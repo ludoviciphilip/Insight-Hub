@@ -16,6 +16,7 @@ import {
   PowerQueryStep,
   PerformanceMetric,
   BiTheme,
+  ActiveDrillthrough,
 } from '../types/bi';
 import { getSampleDatasets, generateCalendarTable } from '../data/sampleDatasets';
 import { globalDataEngine } from '../engine/dataEngine';
@@ -149,6 +150,11 @@ interface BiState {
   removeFilter: (id: string) => void;
   clearFilters: () => void;
   setCrossFilter: (tableId: string, column: string, value: any) => void;
+
+  // Drill-through
+  activeDrillthrough: ActiveDrillthrough | null;
+  executeDrillthrough: (targetPageId: string, field: string, value: any, sourceVisualTitle?: string) => void;
+  clearDrillthrough: (returnToSource?: boolean) => void;
 
   // Bookmarks
   bookmarks: Bookmark[];
@@ -737,6 +743,134 @@ export const useBiStore = create<BiState>((set, get) => {
           },
         ],
       },
+      {
+        id: 'page_detalhes',
+        name: 'Detalhamento de Entidade',
+        order: 4,
+        drillthroughConfig: {
+          isDrillthroughPage: true,
+          targetFields: ['Categoria', 'Regiao', 'Vendedor', 'Canal'],
+        },
+        visuals: [
+          {
+            id: 'vis_det_kpi_fat',
+            type: 'card',
+            title: 'Faturamento do Item / Entidade',
+            x: 20,
+            y: 20,
+            w: 360,
+            h: 120,
+            dataConfig: {
+              tableId: 'f_Vendas',
+              yAxisFields: ['ValorTotal'],
+              aggregation: 'SUM',
+            },
+            formatConfig: {
+              showTitle: true,
+              backgroundColor: '#ffffff',
+              borderRadius: 8,
+            },
+          },
+          {
+            id: 'vis_det_kpi_lucro',
+            type: 'card',
+            title: 'Margem de Lucro Filtrada',
+            x: 400,
+            y: 20,
+            w: 360,
+            h: 120,
+            dataConfig: {
+              tableId: 'f_Vendas',
+              yAxisFields: ['MargemLucro'],
+              aggregation: 'SUM',
+            },
+            formatConfig: {
+              showTitle: true,
+              backgroundColor: '#ffffff',
+              borderRadius: 8,
+            },
+          },
+          {
+            id: 'vis_det_kpi_qtd',
+            type: 'card',
+            title: 'Quantidade Total Vendida',
+            x: 780,
+            y: 20,
+            w: 360,
+            h: 120,
+            dataConfig: {
+              tableId: 'f_Vendas',
+              yAxisFields: ['Quantidade'],
+              aggregation: 'SUM',
+            },
+            formatConfig: {
+              showTitle: true,
+              backgroundColor: '#ffffff',
+              borderRadius: 8,
+            },
+          },
+          {
+            id: 'vis_det_col_mes',
+            type: 'column',
+            title: 'Evolução Mensal do Item Selecionado',
+            x: 20,
+            y: 160,
+            w: 680,
+            h: 300,
+            dataConfig: {
+              tableId: 'f_Vendas',
+              xAxisField: 'Mes',
+              yAxisFields: ['ValorTotal'],
+              aggregation: 'SUM',
+            },
+            formatConfig: {
+              showTitle: true,
+              showDataLabels: true,
+              backgroundColor: '#ffffff',
+              borderRadius: 8,
+            },
+          },
+          {
+            id: 'vis_det_donut_canal',
+            type: 'donut',
+            title: 'Mix por Canal de Venda',
+            x: 720,
+            y: 160,
+            w: 420,
+            h: 300,
+            dataConfig: {
+              tableId: 'f_Vendas',
+              xAxisField: 'Canal',
+              yAxisFields: ['ValorTotal'],
+              aggregation: 'SUM',
+            },
+            formatConfig: {
+              showTitle: true,
+              showLegend: true,
+              backgroundColor: '#ffffff',
+              borderRadius: 8,
+            },
+          },
+          {
+            id: 'vis_det_table_vendas',
+            type: 'table',
+            title: 'Todas as Transações e Detalhes da Entidade Filtrada',
+            x: 20,
+            y: 480,
+            w: 1120,
+            h: 280,
+            dataConfig: {
+              tableId: 'f_Vendas',
+              limit: 50,
+            },
+            formatConfig: {
+              showTitle: true,
+              backgroundColor: '#ffffff',
+              borderRadius: 8,
+            },
+          },
+        ],
+      },
     ],
     activePageId: defaultPageId,
     selectedVisualId: null,
@@ -903,6 +1037,64 @@ export const useBiStore = create<BiState>((set, get) => {
           ],
         });
       }
+    },
+
+    // Drill-through State & Actions
+    activeDrillthrough: null,
+
+    executeDrillthrough: (targetPageId, field, value, sourceVisualTitle) => {
+      const state = get();
+      const sourcePage = state.pages.find(p => p.id === state.activePageId) || state.pages[0];
+      const sourceVisual = sourceVisualTitle || 'Visual';
+      const filterId = `drill_filter_${Date.now()}`;
+
+      // Identify table for this field (default to f_Vendas or first matching table)
+      let tableId = 'f_Vendas';
+      for (const t of state.tables) {
+        if (t.columns.some(c => c.name.toLowerCase() === field.toLowerCase())) {
+          tableId = t.id;
+          break;
+        }
+      }
+
+      const drillFilter: Filter = {
+        id: filterId,
+        level: 'page',
+        tableId,
+        column: field,
+        operator: 'equals',
+        value,
+      };
+
+      set({
+        activePageId: targetPageId,
+        selectedVisualId: null,
+        filters: [...state.filters.filter(f => !f.id.startsWith('drill_filter_')), drillFilter],
+        activeDrillthrough: {
+          sourcePageId: sourcePage.id,
+          sourcePageName: sourcePage.name,
+          sourceVisualTitle: sourceVisual,
+          field,
+          value,
+          filterId,
+        },
+      });
+    },
+
+    clearDrillthrough: (returnToSource = false) => {
+      const state = get();
+      const currentDrill = state.activeDrillthrough;
+      const newFilters = currentDrill
+        ? state.filters.filter(f => f.id !== currentDrill.filterId)
+        : state.filters;
+
+      const targetPageId = returnToSource && currentDrill ? currentDrill.sourcePageId : state.activePageId;
+
+      set({
+        activePageId: targetPageId,
+        filters: newFilters,
+        activeDrillthrough: null,
+      });
     },
 
     // Bookmarks

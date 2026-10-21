@@ -11,6 +11,8 @@ import {
   Filter,
   Layers,
   GripVertical,
+  Target,
+  ArrowRight,
 } from 'lucide-react';
 import { Visual } from '../../types/bi';
 import { useBiStore } from '../../store/useBiStore';
@@ -33,6 +35,8 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual, isSelected, onSe
     deleteVisual,
     pinVisualToDashboard,
     activePageId,
+    pages,
+    executeDrillthrough,
     recordPerformanceMetric,
     canvasZoom,
     activePalette,
@@ -160,10 +164,25 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual, isSelected, onSe
     });
   }, [visual.id, queryResult.rawRows.length]);
 
-  // Handle cross-filtering when user clicks on a chart bar/pie slice
+  // State for interactive Drill-Through popover
+  const [drillPop, setDrillPop] = useState<{
+    field: string;
+    value: any;
+  } | null>(null);
+
+  // Available destination pages for drillthrough
+  const targetPages = useMemo(() => {
+    return pages.filter(p => p.id !== activePageId);
+  }, [pages, activePageId]);
+
+  // Handle cross-filtering & drill-through prompt when user clicks on a chart data point
   const onChartClick = (params: any) => {
     if (params.name && visual.dataConfig.xAxisField) {
       setCrossFilter(visual.dataConfig.tableId, visual.dataConfig.xAxisField, params.name);
+      setDrillPop({
+        field: visual.dataConfig.xAxisField,
+        value: params.name,
+      });
     }
   };
 
@@ -611,6 +630,20 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual, isSelected, onSe
           <button
             onClick={(e) => {
               e.stopPropagation();
+              const primaryField = visual.dataConfig.xAxisField || 'Categoria';
+              const primaryVal = queryResult.categories[0] || 'Geral';
+              setDrillPop(prev => (prev ? null : { field: primaryField, value: primaryVal }));
+            }}
+            title="Detalhamento / Drill-Through"
+            className={`p-1 rounded transition-colors ${
+              drillPop ? 'text-amber-600 bg-amber-100 font-bold' : 'text-slate-500 hover:text-amber-600 hover:bg-slate-200/60'
+            }`}
+          >
+            <Target className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
               setIsFocused(!isFocused);
             }}
             title={isFocused ? 'Restaurar Tamanho' : 'Modo Foco / Tela Cheia'}
@@ -733,20 +766,50 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual, isSelected, onSe
                         {col}
                       </th>
                     ))}
+                  <th className="px-1.5 py-1 font-semibold text-slate-700 bg-slate-100 w-12 text-center">Drill</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 bg-white">
-                {queryResult.rawRows.slice(0, 20).map((row, i) => (
-                  <tr key={i} className="hover:bg-amber-50/50">
-                    {Object.keys(row).slice(0, 6).map(col => (
-                      <td key={col} className="px-2 py-1 text-slate-600 truncate max-w-[120px]">
-                        {typeof row[col] === 'number' && isCurrencyField(col)
-                          ? formatCurrency(row[col])
-                          : String(row[col] ?? '')}
+                {queryResult.rawRows.slice(0, 20).map((row, i) => {
+                  const firstCol = Object.keys(row)[0] || 'Categoria';
+                  const firstVal = row[firstCol];
+                  return (
+                    <tr key={i} className="hover:bg-amber-50/50 group/row">
+                      {Object.keys(row).slice(0, 6).map(col => (
+                        <td
+                          key={col}
+                          onClick={() => {
+                            const val = row[col];
+                            if (val !== undefined && val !== null) {
+                              setCrossFilter(visual.dataConfig.tableId, col, val);
+                              setDrillPop({ field: col, value: val });
+                            }
+                          }}
+                          className="px-2 py-1 text-slate-600 truncate max-w-[120px] cursor-pointer hover:text-amber-800 hover:font-semibold"
+                          title={`Filtrar ou detalhar por ${col}: ${row[col]}`}
+                        >
+                          {typeof row[col] === 'number' && isCurrencyField(col)
+                            ? formatCurrency(row[col])
+                            : String(row[col] ?? '')}
+                        </td>
+                      ))}
+                      <td className="px-1 py-0.5 text-center">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const primaryCol = visual.dataConfig.xAxisField || firstCol;
+                            const primaryVal = row[primaryCol] !== undefined ? row[primaryCol] : firstVal;
+                            setDrillPop({ field: primaryCol, value: primaryVal });
+                          }}
+                          className="p-1 text-slate-400 hover:text-amber-700 hover:bg-amber-100 rounded transition-colors"
+                          title="Fazer Drill-Through nesta linha"
+                        >
+                          <Target className="w-3 h-3" />
+                        </button>
                       </td>
-                    ))}
-                  </tr>
-                ))}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -762,6 +825,71 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual, isSelected, onSe
           />
         )}
       </div>
+
+      {/* Floating Interactive Drill-Through Popover */}
+      {drillPop && (
+        <div
+          onClick={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
+          className="absolute z-50 bottom-2 right-2 min-w-[240px] max-w-[300px] bg-slate-900/95 backdrop-blur-md text-white rounded-xl shadow-2xl p-3 border border-slate-700 text-xs flex flex-col gap-2 animate-in fade-in zoom-in-95"
+        >
+          <div className="flex items-center justify-between border-b border-slate-700/80 pb-1.5">
+            <div className="flex items-center gap-1.5 font-bold text-amber-400">
+              <Target className="w-3.5 h-3.5" />
+              <span>Detalhamento (Drill-Through)</span>
+            </div>
+            <button
+              onClick={() => setDrillPop(null)}
+              className="text-slate-400 hover:text-white px-1 font-bold text-xs cursor-pointer"
+              title="Fechar"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="text-[11px] text-slate-300 leading-snug">
+            Filtrar por <strong className="text-white">{drillPop.field}</strong> ={' '}
+            <span className="text-amber-300 font-mono font-bold">"{String(drillPop.value)}"</span>
+          </div>
+
+          {targetPages.length > 0 ? (
+            <div className="flex flex-col gap-1 max-h-40 overflow-y-auto pr-0.5 mt-0.5">
+              <span className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+                Navegar para página detalhada:
+              </span>
+              {targetPages.map(page => {
+                const isRecommended =
+                  page.drillthroughConfig?.isDrillthroughPage ||
+                  page.name.toLowerCase().includes('detalh');
+                return (
+                  <button
+                    key={page.id}
+                    onClick={() => {
+                      executeDrillthrough(page.id, drillPop.field, drillPop.value, visual.title);
+                      setDrillPop(null);
+                    }}
+                    className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left text-xs font-semibold transition-all group cursor-pointer ${
+                      isRecommended
+                        ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-xs ring-1 ring-amber-300'
+                        : 'bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 truncate">
+                      {isRecommended && <Target className="w-3 h-3 shrink-0" />}
+                      <span className="truncate">{page.name}</span>
+                    </div>
+                    <ArrowRight className="w-3 h-3 opacity-70 group-hover:opacity-100 group-hover:translate-x-0.5 transition-transform shrink-0" />
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-[11px] text-slate-400 py-1">
+              Nenhuma outra página para navegar. Crie uma nova página de detalhes na barra inferior.
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Resize Handle Indicator */}
       {isSelected && !isFocused && !isMobile && (

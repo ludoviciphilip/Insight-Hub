@@ -146,6 +146,21 @@ export interface Visual {
   formatConfig: VisualFormatConfig;
 }
 
+export interface DrillthroughConfig {
+  isDrillthroughPage?: boolean;
+  targetFields?: string[];
+  keepAllFilters?: boolean;
+}
+
+export interface ActiveDrillthrough {
+  sourcePageId: string;
+  sourcePageName: string;
+  sourceVisualTitle: string;
+  field: string;
+  value: any;
+  filterId: string;
+}
+
 export interface Page {
   id: string;
   name: string;
@@ -154,6 +169,7 @@ export interface Page {
   visuals: Visual[];
   backgroundColor?: string;
   layoutMode?: 'desktop' | 'mobile';
+  drillthroughConfig?: DrillthroughConfig;
 }
 
 export interface Filter {

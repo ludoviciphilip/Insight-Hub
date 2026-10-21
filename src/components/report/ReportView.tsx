@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Plus, Copy, Trash2, Edit2, Smartphone } from 'lucide-react';
+import { Plus, Copy, Trash2, Edit2, Smartphone, ArrowLeft, Target, X } from 'lucide-react';
 import { useBiStore } from '../../store/useBiStore';
 import { VisualCard } from './VisualCard';
 
@@ -18,6 +18,8 @@ export const ReportView: React.FC = () => {
     layoutMode,
     gridSize,
     showGrid,
+    activeDrillthrough,
+    clearDrillthrough,
   } = useBiStore();
 
   const activePage = pages.find(p => p.id === activePageId) || pages[0];
@@ -31,6 +33,55 @@ export const ReportView: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-slate-200/70 select-none">
+      {/* Active Drill-Through Top Navigation Banner */}
+      {activeDrillthrough && (
+        <div className="bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 text-slate-950 px-4 py-2 flex items-center justify-between shadow-md shrink-0 z-30 border-b border-amber-600">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => clearDrillthrough(true)}
+              className="flex items-center gap-1.5 px-3 py-1 bg-slate-950 text-white rounded-lg text-xs font-bold hover:bg-slate-800 transition-all shadow-xs cursor-pointer hover:scale-102"
+              title={`Retornar à página ${activeDrillthrough.sourcePageName}`}
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Voltar para {activeDrillthrough.sourcePageName}</span>
+            </button>
+
+            <div className="flex items-center gap-2 text-xs">
+              <span className="bg-amber-300 text-slate-950 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1 border border-amber-400">
+                <Target className="w-3.5 h-3.5 text-slate-900" />
+                Detalhamento Ativo (Drill-Through)
+              </span>
+              <span className="text-white font-medium">
+                Entidade filtrada: <strong className="text-amber-100">{activeDrillthrough.field}</strong> ={' '}
+                <span className="bg-white text-slate-900 px-2 py-0.5 rounded font-bold shadow-xs">
+                  {String(activeDrillthrough.value)}
+                </span>
+              </span>
+              <span className="text-amber-100/80 text-[11px] hidden md:inline">
+                • Origem: {activeDrillthrough.sourceVisualTitle}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => clearDrillthrough(false)}
+              className="px-2.5 py-1 text-xs bg-amber-400/90 hover:bg-amber-300 text-slate-950 rounded-lg font-semibold transition-colors cursor-pointer"
+              title="Manter nesta página mas remover o filtro do detalhamento"
+            >
+              Limpar Filtro
+            </button>
+            <button
+              onClick={() => clearDrillthrough(true)}
+              className="p-1 text-amber-950 hover:bg-amber-600/50 rounded-lg transition-colors cursor-pointer"
+              title="Fechar detalhamento e voltar"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Central Canvas Area */}
       <div
         className="flex-1 overflow-auto p-6 flex justify-center items-start"

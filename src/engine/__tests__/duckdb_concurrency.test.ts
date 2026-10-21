@@ -44,7 +44,7 @@ describe('DuckDbEngine V0.0 - Concurrency & Schema', () => {
     expect(engine.isSynced('f_Teste')).toBe(false);
 
     // Running a query forces sync
-    const res = await engine.query('SELECT SUM(Total) AS Soma FROM f_Teste');
+    const res = await engine.query('SELECT SUM([Total]) AS Soma FROM [f_Teste]');
     expect(res).toBeDefined();
     expect(res.length).toBe(1);
     expect(res[0].Soma).toBe(400.0);

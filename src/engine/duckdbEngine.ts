@@ -200,8 +200,8 @@ export class DuckDbEngine {
       } else {
         // AlaSQL Registration
         try {
-          alasql(`DROP TABLE IF EXISTS "${table.name}"`);
-          alasql(`CREATE TABLE "${table.name}"`);
+          alasql(`DROP TABLE IF EXISTS [${table.name}]`);
+          alasql(`CREATE TABLE [${table.name}]`);
           if (alasql.tables[table.name]) {
             alasql.tables[table.name].data = [...(table.rows || [])];
           }
