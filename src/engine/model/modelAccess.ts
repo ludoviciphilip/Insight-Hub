@@ -1,4 +1,5 @@
 import { Table, Relationship, Measure, Filter } from '../../types/bi';
+import { filterContextFromUIFilters } from './filterContext';
 
 /**
  * Decoupled data model access interface for DAX and analytical query engines.
@@ -74,5 +75,14 @@ export class InMemoryModelAccess implements ModelAccess {
     const clean = idOrName.replace(/^[Σ\s]+/, '').trim().toLowerCase();
     const id = this.measureNamesToId.get(clean);
     return id ? this.measuresById.get(id) : undefined;
+  }
+
+  public getFilteredRows(targetTableId: string, activeFilters: Filter[]): Record<string, any>[] {
+    const table = this.getTable(targetTableId);
+    if (!table) return [];
+    if (!activeFilters || activeFilters.length === 0) return [...table.rows];
+
+    const filterContext = filterContextFromUIFilters(activeFilters, this);
+    return filterContext.getFilteredRows(table.id, this);
   }
 }
