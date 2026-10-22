@@ -65,6 +65,68 @@ export function findClosestMatch(target: string, candidates: string[]): string |
   return null;
 }
 
+export interface TraversalContext {
+  inAggregation?: boolean;
+  inRowContext?: boolean;
+  isFilterSpecification?: boolean;
+  isColumnMetadataArg?: boolean;
+}
+
+const AGGREGATION_FUNCTIONS = new Set([
+  'SUM',
+  'AVERAGE',
+  'AVERAGEA',
+  'MIN',
+  'MAX',
+  'MINA',
+  'MAXA',
+  'COUNT',
+  'COUNTA',
+  'COUNTBLANK',
+  'DISTINCTCOUNT',
+  'DISTINCTCOUNTNOBLANK',
+  'APPROXIMATEDISTINCTCOUNT',
+  'PRODUCT',
+  'MEDIAN',
+]);
+
+const ROW_CONTEXT_ITERATORS = new Set([
+  'SUMX',
+  'AVERAGEX',
+  'MINX',
+  'MAXX',
+  'COUNTX',
+  'COUNTAX',
+  'PRODUCTX',
+  'MEDIANX',
+  'CONCATENATEX',
+  'FILTER',
+]);
+
+const COLUMN_METADATA_FUNCTIONS = new Set([
+  'ALL',
+  'ALLEXCEPT',
+  'ALLNOBLANKROW',
+  'ALLSELECTED',
+  'ALLCROSSFILTERED',
+  'REMOVEFILTERS',
+  'VALUES',
+  'DISTINCT',
+  'SELECTEDVALUE',
+  'HASONEVALUE',
+  'HASONEFILTER',
+  'ISFILTERED',
+  'ISCROSSFILTERED',
+  'ISEMPTY',
+  'FILTERS',
+  'ISINSCOPE',
+  'RELATED',
+  'RELATEDTABLE',
+  'USERELATIONSHIP',
+  'CROSSFILTER',
+  'LOOKUPVALUE',
+]);
+
 export class SemanticValidator {
   private tables: Table[];
   private measures: Measure[];
@@ -147,12 +209,22 @@ export class SemanticValidator {
     node: ASTNode,
     tables: Set<string>,
     columns: Set<string>,
-    measures: Set<string>
+    measures: Set<string>,
+    context: TraversalContext = {}
   ): void {
     switch (node.kind) {
       case 'Literal':
-      case 'VariableRef':
         break;
+
+      case 'VariableRef': {
+        const tableObj = this.tables.find(
+          t => t.name.toLowerCase() === node.name.toLowerCase() || t.id.toLowerCase() === node.name.toLowerCase()
+        );
+        if (tableObj) {
+          tables.add(tableObj.name);
+        }
+        break;
+      }
 
       case 'ColumnRef': {
         const tName = node.table;
@@ -186,20 +258,55 @@ export class SemanticValidator {
             }
           }
           columns.add(cName);
+
+          // Context check for naked column in a measure
+          const isAllowed =
+            context.inAggregation ||
+            context.inRowContext ||
+            context.isFilterSpecification ||
+            context.isColumnMetadataArg;
+          if (!isAllowed) {
+            throw new DaxError(
+              'Semantic',
+              `A coluna ${tableObj.name}[${cName}] não pode ser acessada sem contexto de linha (use uma função de agregação como SUM ou verifique se é uma medida válida)`
+            );
+          }
         } else {
-          // Naked [Identifier]: Check measure first, then columns
+          // Naked [Identifier]: Check measure first, then tables, then columns
           const measureObj = this.measures.find(
             m => m.name.toLowerCase() === cName.toLowerCase()
           );
           if (measureObj) {
             measures.add(measureObj.name);
           } else {
+            // Check if matches a table (e.g. ALL(f_Vendas) or COUNTROWS(f_Vendas))
+            const tableMatch = this.tables.find(
+              t => t.name.toLowerCase() === cName.toLowerCase() || t.id.toLowerCase() === cName.toLowerCase()
+            );
+            if (tableMatch) {
+              tables.add(tableMatch.name);
+              break;
+            }
+
             let foundInAnyTable = false;
             for (const t of this.tables) {
               if (t.columns?.some(c => c.name.toLowerCase() === cName.toLowerCase())) {
                 foundInAnyTable = true;
                 columns.add(cName);
                 tables.add(t.name);
+
+                // Context check for naked column in a measure
+                const isAllowed =
+                  context.inAggregation ||
+                  context.inRowContext ||
+                  context.isFilterSpecification ||
+                  context.isColumnMetadataArg;
+                if (!isAllowed) {
+                  throw new DaxError(
+                    'Semantic',
+                    `A coluna [${cName}] não pode ser acessada sem contexto de linha (use uma função de agregação como SUM ou verifique se é uma medida válida)`
+                  );
+                }
                 break;
               }
             }
@@ -230,6 +337,15 @@ export class SemanticValidator {
         if (measureObj) {
           measures.add(measureObj.name);
         } else {
+          // Check if matches a table (e.g. ALL(f_Vendas))
+          const tableMatch = this.tables.find(
+            t => t.name.toLowerCase() === mName.toLowerCase() || t.id.toLowerCase() === mName.toLowerCase()
+          );
+          if (tableMatch) {
+            tables.add(tableMatch.name);
+            break;
+          }
+
           // Could be a column reference in naked format [Column]
           let foundInAnyTable = false;
           for (const t of this.tables) {
@@ -237,12 +353,24 @@ export class SemanticValidator {
               foundInAnyTable = true;
               columns.add(mName);
               tables.add(t.name);
+
+              // Context check for naked column in a measure
+              const isAllowed =
+                context.inAggregation ||
+                context.inRowContext ||
+                context.isFilterSpecification ||
+                context.isColumnMetadataArg;
+              if (!isAllowed) {
+                throw new DaxError(
+                  'Semantic',
+                  `A coluna [${mName}] não pode ser acessada sem contexto de linha (use uma função de agregação como SUM ou verifique se é uma medida válida)`
+                );
+              }
               break;
             }
           }
 
           if (!foundInAnyTable) {
-            // Suggest either measure or column
             const allCandidates = [
               ...this.measures.map(m => m.name),
               ...this.tables.flatMap(t => (t.columns || []).map(c => c.name)),
@@ -259,12 +387,12 @@ export class SemanticValidator {
       }
 
       case 'UnaryOp':
-        this.traverse(node.operand, tables, columns, measures);
+        this.traverse(node.operand, tables, columns, measures, context);
         break;
 
       case 'BinaryOp':
-        this.traverse(node.left, tables, columns, measures);
-        this.traverse(node.right, tables, columns, measures);
+        this.traverse(node.left, tables, columns, measures, context);
+        this.traverse(node.right, tables, columns, measures, context);
         break;
 
       case 'FunctionCall': {
@@ -272,10 +400,10 @@ export class SemanticValidator {
         // Aggregations and filter functions like CALCULATE, ALL, etc. are also valid in DAX
         const isCoreOrAgg =
           lookupFunction(fnName) !== undefined ||
-          ['CALCULATE', 'CALCULATETABLE', 'ALL', 'ALLEXCEPT', 'ALLSELECTED', 'FILTER', 'VALUES', 'DISTINCT', 'RELATED', 'RELATEDTABLE', 'SUM', 'AVERAGE', 'COUNT', 'COUNTA', 'COUNTROWS', 'DISTINCTCOUNT', 'MIN', 'MAX', 'SUMX', 'AVERAGEX', 'COUNTX', 'MINX', 'MAXX', 'RANKX', 'DATEADD', 'SAMEPERIODLASTYEAR', 'TOTALYTD', 'TOTALQTD', 'TOTALMTD', 'DATESYTD', 'CLOSINGBALANCEMONTH', 'OPENINGBALANCEMONTH'].includes(fnName);
+          ['CALCULATE', 'CALCULATETABLE', 'ALL', 'ALLEXCEPT', 'ALLSELECTED', 'FILTER', 'VALUES', 'DISTINCT', 'RELATED', 'RELATEDTABLE', 'SUM', 'AVERAGE', 'COUNT', 'COUNTA', 'COUNTROWS', 'DISTINCTCOUNT', 'MIN', 'MAX', 'SUMX', 'AVERAGEX', 'COUNTX', 'MINX', 'MAXX', 'RANKX', 'DATEADD', 'SAMEPERIODLASTYEAR', 'TOTALYTD', 'TOTALQTD', 'TOTALMTD', 'DATESYTD', 'CLOSINGBALANCEMONTH', 'OPENINGBALANCEMONTH', 'KEEPFILTERS'].includes(fnName);
 
         if (!isCoreOrAgg) {
-          const allFns = [...getAllFunctionNames(), 'CALCULATE', 'ALL', 'FILTER', 'VALUES', 'SUM', 'AVERAGE', 'COUNT', 'MIN', 'MAX'];
+          const allFns = [...getAllFunctionNames(), 'CALCULATE', 'ALL', 'FILTER', 'VALUES', 'SUM', 'AVERAGE', 'COUNT', 'MIN', 'MAX', 'KEEPFILTERS'];
           const suggestion = findClosestMatch(fnName, allFns);
           const hint = suggestion ? ` Você quis dizer "${suggestion}"?` : '';
           throw new DaxError('Semantic', `Função "${node.name}" não foi reconhecida no catálogo DAX.${hint}`);
@@ -298,9 +426,54 @@ export class SemanticValidator {
           }
         }
 
-        for (const arg of node.args) {
-          if (arg) {
-            this.traverse(arg, tables, columns, measures);
+        // Context-aware argument traversal
+        if (AGGREGATION_FUNCTIONS.has(fnName)) {
+          for (const arg of node.args) {
+            if (arg) {
+              this.traverse(arg, tables, columns, measures, { ...context, inAggregation: true });
+            }
+          }
+        } else if (ROW_CONTEXT_ITERATORS.has(fnName)) {
+          // Arg 0 is table
+          if (node.args[0]) {
+            this.traverse(node.args[0], tables, columns, measures, context);
+          }
+          // Arg 1+ are expressions evaluated in row context
+          for (let i = 1; i < node.args.length; i++) {
+            const arg = node.args[i];
+            if (arg) {
+              this.traverse(arg, tables, columns, measures, { ...context, inRowContext: true });
+            }
+          }
+        } else if (fnName === 'CALCULATE' || fnName === 'CALCULATETABLE') {
+          // Arg 0 is scalar expression in filter context (NOT row context)
+          if (node.args[0]) {
+            this.traverse(node.args[0], tables, columns, measures, context);
+          }
+          // Args 1+ are filter specifications
+          for (let i = 1; i < node.args.length; i++) {
+            const arg = node.args[i];
+            if (arg) {
+              this.traverse(arg, tables, columns, measures, { ...context, isFilterSpecification: true });
+            }
+          }
+        } else if (COLUMN_METADATA_FUNCTIONS.has(fnName)) {
+          for (const arg of node.args) {
+            if (arg) {
+              this.traverse(arg, tables, columns, measures, { ...context, isColumnMetadataArg: true });
+            }
+          }
+        } else if (fnName === 'KEEPFILTERS') {
+          for (const arg of node.args) {
+            if (arg) {
+              this.traverse(arg, tables, columns, measures, { ...context, isFilterSpecification: true });
+            }
+          }
+        } else {
+          for (const arg of node.args) {
+            if (arg) {
+              this.traverse(arg, tables, columns, measures, context);
+            }
           }
         }
         break;
@@ -310,19 +483,19 @@ export class SemanticValidator {
         for (const el of node.elements) {
           if (Array.isArray(el)) {
             for (const sub of el) {
-              this.traverse(sub, tables, columns, measures);
+              this.traverse(sub, tables, columns, measures, context);
             }
           } else {
-            this.traverse(el, tables, columns, measures);
+            this.traverse(el, tables, columns, measures, context);
           }
         }
         break;
 
       case 'VarReturn':
         for (const v of node.variables) {
-          this.traverse(v.expr, tables, columns, measures);
+          this.traverse(v.expr, tables, columns, measures, context);
         }
-        this.traverse(node.returnExpr, tables, columns, measures);
+        this.traverse(node.returnExpr, tables, columns, measures, context);
         break;
     }
   }

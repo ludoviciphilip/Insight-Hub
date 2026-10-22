@@ -194,4 +194,62 @@ describe('Pie & Donut Visuals with Relationships and DAX Measures', () => {
     const enterpriseIdx = result.categories.indexOf('Enterprise');
     expect(result.series[0].data[enterpriseIdx]).toBe(6000);
   });
+
+  it('handles negative measures (e.g. Saídas / Despesas) on pie and donut without failing', () => {
+    const saidasMeasure: Measure = {
+      id: 'm_saidas',
+      name: 'Total Saídas',
+      tableName: 'f_Vendas',
+      formula: '0 - SUM(f_Vendas[ValorTotal])',
+      format: 'currency',
+    };
+
+    const engineWithSaidas = new DataEngine();
+    engineWithSaidas.setSchema([dClientes, fVendas], [rel], [...measures, saidasMeasure]);
+
+    const pieSaidas: Visual = {
+      id: 'pie_saidas',
+      type: 'pie',
+      title: 'Saídas por Segmento',
+      x: 0,
+      y: 0,
+      w: 400,
+      h: 300,
+      dataConfig: {
+        tableId: 'f_Vendas',
+        xAxisField: 'Segmento',
+        yAxisFields: ['Total Saídas'],
+      },
+      formatConfig: { showTitle: true },
+    };
+
+    const result = engineWithSaidas.queryVisualData(pieSaidas, []);
+    expect(result.categories.length).toBe(3);
+
+    const enterpriseIdx = result.categories.indexOf('Enterprise');
+    const varejoIdx = result.categories.indexOf('Varejo');
+    const pmeIdx = result.categories.indexOf('PME');
+
+    // Query returns the true negative numbers
+    expect(result.series[0].data[enterpriseIdx]).toBe(-6000);
+    expect(result.series[0].data[varejoIdx]).toBe(-1200);
+    expect(result.series[0].data[pmeIdx]).toBe(-300);
+
+    // Verify raw mapping for ECharts: magnitude Math.abs(val) must be positive and non-zero
+    const rawPieData = result.categories.map((cat, i) => {
+      const numVal = result.series[0].data[i];
+      return {
+        name: cat,
+        value: Math.abs(numVal),
+        rawValue: numVal,
+      };
+    });
+
+    expect(rawPieData[enterpriseIdx].value).toBe(6000);
+    expect(rawPieData[enterpriseIdx].rawValue).toBe(-6000);
+    expect(rawPieData[varejoIdx].value).toBe(1200);
+    expect(rawPieData[varejoIdx].rawValue).toBe(-1200);
+    expect(rawPieData.every(p => p.value > 0)).toBe(true);
+  });
 });
+

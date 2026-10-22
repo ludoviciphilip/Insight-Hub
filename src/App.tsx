@@ -23,6 +23,7 @@ import { QuickMeasureModal } from './components/modals/QuickMeasureModal';
 import { CustomMeasureModal } from './components/modals/CustomMeasureModal';
 import { LimitationsModal } from './components/modals/LimitationsModal';
 import { ThemeManagerModal } from './components/modals/ThemeManagerModal';
+import { ErrorBoundary } from './components/shared/ErrorBoundary';
 
 export default function App() {
   const { activeView, loadProject, isPresentationMode } = useBiStore();
@@ -69,7 +70,11 @@ export default function App() {
           {activeView === 'report' && !isPresentationMode && (
             <div className="flex h-full shrink-0">
               {showFiltersPane && <FiltersPane />}
-              {showVisualsPane && <VisualizationsPane />}
+              {showVisualsPane && (
+                <ErrorBoundary fallbackTitle="Painel de Visualizações">
+                  <VisualizationsPane />
+                </ErrorBoundary>
+              )}
               {showFieldsPane && <FieldsPane />}
             </div>
           )}

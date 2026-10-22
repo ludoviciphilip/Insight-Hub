@@ -17,6 +17,7 @@ import {
 import { Visual } from '../../types/bi';
 import { useBiStore } from '../../store/useBiStore';
 import { globalDataEngine, formatValue, formatCurrency, formatNumber, formatPercent } from '../../engine/dataEngine';
+import { ErrorBoundary } from '../shared/ErrorBoundary';
 
 interface VisualCardProps {
   visual: Visual;
@@ -177,11 +178,13 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual, isSelected, onSe
 
   // Handle cross-filtering & drill-through prompt when user clicks on a chart data point
   const onChartClick = (params: any) => {
-    if (params.name && visual.dataConfig.xAxisField) {
-      setCrossFilter(visual.dataConfig.tableId, visual.dataConfig.xAxisField, params.name);
+    if (!params) return;
+    const catName = params.name || params.data?.name;
+    if (catName && catName !== 'Sem dados' && visual.dataConfig.xAxisField) {
+      setCrossFilter(visual.dataConfig.tableId, visual.dataConfig.xAxisField, catName);
       setDrillPop({
         field: visual.dataConfig.xAxisField,
-        value: params.name,
+        value: catName,
       });
     }
   };
@@ -362,14 +365,22 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual, isSelected, onSe
 
       case 'pie':
       case 'donut': {
-        const rawPieData = categories.map((cat, i) => ({
-          name: cat,
-          value: series[0]?.data[i] ?? 0,
-        }));
+        const rawPieData = categories.map((cat, i) => {
+          const rawVal = series[0]?.data[i] ?? 0;
+          const numVal = typeof rawVal === 'number' && !isNaN(rawVal) ? rawVal : Number(rawVal) || 0;
+          return {
+            name: cat || 'Sem categoria',
+            value: Math.abs(numVal), // Magnitude for geometric sector angles and percentage shares
+            rawValue: numVal,        // Original signed value preserved for tooltips and labels
+          };
+        });
 
-        // Filter out zero-slices if there are positive slices, preventing clutter and overlapping 0% labels
-        const hasPositive = rawPieData.some(p => p.value > 0);
-        const pieData = hasPositive ? rawPieData.filter(p => p.value > 0) : rawPieData;
+        // Filter out zero slices if there are non-zero slices, preventing clutter and overlapping labels
+        const hasNonZero = rawPieData.some(p => p.value > 0);
+        const nonZeroSlices = hasNonZero ? rawPieData.filter(p => p.value > 0) : rawPieData;
+        const pieData = nonZeroSlices.length > 0
+          ? nonZeroSlices
+          : [{ name: 'Sem dados', value: 0, rawValue: 0 }];
 
         // Find measure or column format
         const yFieldName = visual.dataConfig.yAxisFields?.[0] || '';
@@ -398,9 +409,14 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual, isSelected, onSe
           tooltip: {
             trigger: 'item',
             formatter: (p: any) => {
-              const valStr = formatVal(p.value);
+              if (p.name === 'Sem dados') {
+                return `<div style="font-weight:600;color:#64748b;padding:2px 4px;">Sem dados para exibir</div>`;
+              }
+              const actualVal = p.data?.rawValue !== undefined ? p.data.rawValue : p.value;
+              const valStr = formatVal(actualVal);
+              const percentStr = typeof p.percent === 'number' ? `${p.percent.toFixed(1)}%` : '';
               return `<div style="font-weight:600;color:#1e293b;margin-bottom:2px;">${p.name}</div>
-                      <div style="font-size:12px;color:#475569;">Valor: <b style="color:#0f172a;">${valStr}</b> (${p.percent}%)</div>`;
+                      <div style="font-size:12px;color:#475569;">Valor: <b style="color:#0f172a;">${valStr}</b> ${percentStr ? `(${percentStr})` : ''}</div>`;
             },
           },
           legend: {
@@ -428,7 +444,11 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual, isSelected, onSe
               },
               label: {
                 show: visual.formatConfig.showDataLabels ?? true,
-                formatter: '{b}: {d}%',
+                formatter: (p: any) => {
+                  if (p.name === 'Sem dados') return '';
+                  const percentStr = typeof p.percent === 'number' ? `${p.percent.toFixed(1)}%` : '';
+                  return percentStr ? `${p.name}: ${percentStr}` : `${p.name}`;
+                },
                 fontSize: 10,
                 color: '#334155',
               },
@@ -868,15 +888,17 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual, isSelected, onSe
             </table>
           </div>
         ) : (
-          <ReactECharts
-            key={`${visual.id}_${visual.type}`}
-            option={echartsOption}
-            notMerge={true}
-            lazyUpdate={true}
-            onEvents={onEvents}
-            style={{ width: '100%', height: '100%' }}
-            opts={{ renderer: 'canvas' }}
-          />
+          <ErrorBoundary fallbackTitle="Falha na renderização deste gráfico">
+            <ReactECharts
+              key={`${visual.id}_${visual.type}`}
+              option={echartsOption}
+              notMerge={true}
+              lazyUpdate={true}
+              onEvents={onEvents}
+              style={{ width: '100%', height: '100%' }}
+              opts={{ renderer: 'canvas' }}
+            />
+          </ErrorBoundary>
         )}
       </div>
 

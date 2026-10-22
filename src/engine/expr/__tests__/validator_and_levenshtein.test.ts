@@ -108,4 +108,56 @@ describe('V0.1 Semantic Validator, Levenshtein Distance & Circular Reference Det
     expect(res.referencedColumns).toContain('Quantidade');
     expect(res.referencedMeasures).toContain('Faturamento Total');
   });
+
+  it('rejects bare column reference in CALCULATE first argument without aggregation', () => {
+    // CALCULATE([ValorTotal], ...) where ValorTotal is a column and not a measure
+    const resNaked = validateDax(
+      'CALCULATE([ValorTotal], f_Vendas[Regiao] = "Sul")',
+      sampleTables,
+      sampleMeasures
+    );
+    expect(resNaked.isValid).toBe(false);
+    expect(resNaked.errorMessage).toContain('A coluna [ValorTotal] não pode ser acessada sem contexto de linha');
+
+    // With explicit table prefix: CALCULATE(f_Vendas[ValorTotal], ...)
+    const resPrefix = validateDax(
+      'CALCULATE(f_Vendas[ValorTotal], f_Vendas[Regiao] = "Sul")',
+      sampleTables,
+      sampleMeasures
+    );
+    expect(resPrefix.isValid).toBe(false);
+    expect(resPrefix.errorMessage).toContain('A coluna f_Vendas[ValorTotal] não pode ser acessada sem contexto de linha');
+
+    // Arithmetic with naked column: [ValorTotal] * 1.1
+    const resArith = validateDax('[ValorTotal] * 1.1', sampleTables, sampleMeasures);
+    expect(resArith.isValid).toBe(false);
+    expect(resArith.errorMessage).toContain('não pode ser acessada sem contexto de linha');
+  });
+
+  it('accepts aggregated columns and valid measures in CALCULATE', () => {
+    // With aggregation: CALCULATE(SUM(f_Vendas[ValorTotal]), ...)
+    const resSum = validateDax(
+      'CALCULATE(SUM(f_Vendas[ValorTotal]), f_Vendas[Regiao] = "Sul")',
+      sampleTables,
+      sampleMeasures
+    );
+    expect(resSum.isValid).toBe(true);
+
+    // With existing measure: CALCULATE([Faturamento Total], ...)
+    const resMeasure = validateDax(
+      'CALCULATE([Faturamento Total], f_Vendas[Regiao] = "Sul")',
+      sampleTables,
+      sampleMeasures
+    );
+    expect(resMeasure.isValid).toBe(true);
+
+    // In row context iterator: SUMX(f_Vendas, f_Vendas[ValorTotal] * 1.1)
+    const resSumx = validateDax(
+      'SUMX(f_Vendas, f_Vendas[ValorTotal] * 1.1)',
+      sampleTables,
+      sampleMeasures
+    );
+    expect(resSumx.isValid).toBe(true);
+  });
 });
+

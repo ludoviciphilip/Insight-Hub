@@ -63,13 +63,14 @@ export const CustomMeasureModal: React.FC = () => {
     return DaxEngine.validate(formula, tables, measures);
   }, [customMeasureModalOpen, formula, tables, measures]);
 
-  // Real-time evaluation preview
-  const previewValue = useMemo(() => {
-    if (!customMeasureModalOpen || !validation.isValid) return null;
+  // Real-time evaluation preview & error tracking
+  const previewState = useMemo(() => {
+    if (!customMeasureModalOpen || !validation.isValid) return { value: null, error: null };
     try {
-      return DaxEngine.evaluate(formula, tables, measures, []);
-    } catch {
-      return null;
+      const val = DaxEngine.evaluate(formula, tables, measures, []);
+      return { value: val, error: null };
+    } catch (err: any) {
+      return { value: null, error: err.message || 'Erro na avaliação da fórmula' };
     }
   }, [customMeasureModalOpen, formula, validation, tables, measures]);
 
@@ -93,8 +94,8 @@ export const CustomMeasureModal: React.FC = () => {
       setErrorMsg('Informe um nome para a medida.');
       return;
     }
-    if (!validation.isValid) {
-      setErrorMsg(`Fórmula DAX inválida: ${validation.errorMessage}`);
+    if (!validation.isValid || previewState.error) {
+      setErrorMsg(`Fórmula DAX inválida: ${validation.errorMessage || previewState.error}`);
       return;
     }
 
@@ -306,24 +307,29 @@ export const CustomMeasureModal: React.FC = () => {
           {/* Real-time Syntax Validation and Preview */}
           <div className="p-3 rounded-xl border bg-slate-50 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              {validation.isValid ? (
-                <>
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span className="text-emerald-800 font-semibold text-[11px]">Sintaxe DAX válida</span>
-                </>
-              ) : (
+              {!validation.isValid ? (
                 <>
                   <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
                   <span className="text-red-700 font-medium text-[11px]">{validation.errorMessage}</span>
                 </>
+              ) : previewState.error ? (
+                <>
+                  <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+                  <span className="text-red-700 font-medium text-[11px]">{previewState.error}</span>
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span className="text-emerald-800 font-semibold text-[11px]">Sintaxe DAX válida</span>
+                </>
               )}
             </div>
 
-            {previewValue !== null && (
+            {previewState.value !== null && !previewState.error && validation.isValid && (
               <div className="text-right">
                 <span className="text-[10px] text-slate-400 block">Prévia Calculada:</span>
                 <span className="font-extrabold text-slate-900 text-xs">
-                  {formatValue(previewValue, formatString || (format === 'currency' ? 'Currency' : format === 'percentage' ? '0.0%' : format === 'integer' ? '#,##0' : '#,##0.00'))}
+                  {formatValue(previewState.value, formatString || (format === 'currency' ? 'Currency' : format === 'percentage' ? '0.0%' : format === 'integer' ? '#,##0' : '#,##0.00'))}
                 </span>
               </div>
             )}
@@ -363,7 +369,7 @@ export const CustomMeasureModal: React.FC = () => {
             <button
               type="button"
               onClick={handleSave}
-              disabled={!validation.isValid}
+              disabled={!validation.isValid || !!previewState.error}
               className="px-4 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold disabled:opacity-50 shadow-xs transition-colors"
             >
               {editingMeasureId ? 'Salvar Alterações' : 'Salvar Medida no Modelo'}

@@ -170,14 +170,10 @@ export class DaxEngine {
       const num = Number(evaluated);
       return isNaN(num) ? 0 : num;
     } catch (err: any) {
-      console.error('DAX Evaluation Error in DaxEngine.evaluate:', err);
-      if (
-        err instanceof DaxError &&
-        (err.kind === 'Execution' || (err as any).type === 'Execution') &&
-        err.message.toLowerCase().includes('circular')
-      ) {
+      if (err instanceof DaxError) {
         throw err;
       }
+      console.error('DAX Evaluation Error in DaxEngine.evaluate:', err);
       const constantVal = Number(trimmed);
       return isNaN(constantVal) ? 0 : constantVal;
     }
