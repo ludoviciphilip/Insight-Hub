@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   BarChart,
   BarChart2,
@@ -36,11 +36,122 @@ const visualTypes: { type: VisualType; label: string; icon: any }[] = [
 ];
 
 export const VisualizationsPane: React.FC = () => {
-  const { pages, activePageId, selectedVisualId, updateVisual, tables, measures } = useBiStore();
+  const { pages, activePageId, selectedVisualId, updateVisual, tables, measures, relationships } = useBiStore();
   const [activeTab, setActiveTab] = useState<'build' | 'format'>('build');
 
   const activePage = pages.find(p => p.id === activePageId);
   const selectedVisual = activePage?.visuals.find(v => v.id === selectedVisualId);
+
+  const selectedTable = useMemo(() => {
+    if (!selectedVisual) return undefined;
+    return tables.find(t => t.id === selectedVisual.dataConfig.tableId);
+  }, [tables, selectedVisual]);
+
+  const relatedTables = useMemo(() => {
+    if (!selectedTable || !relationships) return [];
+    const relTableIds = new Set<string>();
+    relationships.forEach(r => {
+      if (!r.isActive) return;
+      if (r.fromTable === selectedTable.id || r.fromTable === selectedTable.name) {
+        relTableIds.add(r.toTable);
+      } else if (r.toTable === selectedTable.id || r.toTable === selectedTable.name) {
+        relTableIds.add(r.fromTable);
+      }
+    });
+    return tables.filter(t => t.id !== selectedTable.id && (relTableIds.has(t.id) || relTableIds.has(t.name)));
+  }, [selectedTable, relationships, tables]);
+
+  const fieldLabels = useMemo(() => {
+    if (!selectedVisual) {
+      return {
+        categoryLabel: 'Eixo X / Categorias',
+        categorySubtitle: undefined,
+        categoryPlaceholder: '(Selecione a coluna)',
+        showCategory: true,
+        valueLabel: 'Eixo Y / Valores',
+        valueSubtitle: undefined,
+        valuePlaceholder: '(Selecione métrica)',
+        showSeriesBreakdown: true,
+      };
+    }
+    switch (selectedVisual.type) {
+      case 'pie':
+      case 'donut':
+        return {
+          categoryLabel: 'Legenda (Fatias)',
+          categorySubtitle: 'Campo para categorizar as fatias da pizza/rosca',
+          categoryPlaceholder: '(Selecione a coluna da Legenda)',
+          showCategory: true,
+          valueLabel: 'Valores',
+          valueSubtitle: 'Métrica ou medida para dimensionar as fatias',
+          valuePlaceholder: '(Selecione métrica ou medida)',
+          showSeriesBreakdown: false,
+        };
+
+      case 'treemap':
+      case 'funnel':
+        return {
+          categoryLabel: 'Categoria',
+          categorySubtitle: 'Campo para agrupar as seções',
+          categoryPlaceholder: '(Selecione a categoria)',
+          showCategory: true,
+          valueLabel: 'Valores',
+          valueSubtitle: 'Métrica ou medida para dimensionar as seções',
+          valuePlaceholder: '(Selecione métrica ou medida)',
+          showSeriesBreakdown: false,
+        };
+
+      case 'card':
+      case 'kpi':
+      case 'gauge':
+        return {
+          categoryLabel: '',
+          categoryPlaceholder: '',
+          showCategory: false,
+          valueLabel: 'Campo de Valor',
+          valueSubtitle: 'Indicador numérico ou medida DAX principal',
+          valuePlaceholder: '(Selecione métrica ou medida)',
+          showSeriesBreakdown: false,
+        };
+
+      case 'bar':
+      case 'stacked-bar':
+        return {
+          categoryLabel: 'Eixo Y / Categorias',
+          categorySubtitle: 'Campo categórico para as barras horizontais',
+          categoryPlaceholder: '(Selecione a coluna de categorias)',
+          showCategory: true,
+          valueLabel: 'Eixo X / Valores',
+          valueSubtitle: 'Métrica ou medida para o comprimento das barras',
+          valuePlaceholder: '(Selecione métrica ou medida)',
+          showSeriesBreakdown: true,
+        };
+
+      case 'scatter':
+        return {
+          categoryLabel: 'Eixo X (Numérico)',
+          categorySubtitle: 'Campo numérico para dispersão horizontal',
+          categoryPlaceholder: '(Selecione o campo do eixo X)',
+          showCategory: true,
+          valueLabel: 'Eixo Y (Numérico)',
+          valueSubtitle: 'Campo numérico para dispersão vertical',
+          valuePlaceholder: '(Selecione o campo do eixo Y)',
+          showSeriesBreakdown: false,
+        };
+
+      default: // column, stacked-column, line, area, waterfall
+        return {
+          categoryLabel: 'Eixo X / Categorias',
+          categorySubtitle: 'Campo para o eixo horizontal',
+          categoryPlaceholder: '(Selecione a coluna do eixo X)',
+          showCategory: true,
+          valueLabel: 'Eixo Y / Valores',
+          valueSubtitle: 'Métrica ou medida para a altura/valores',
+          valuePlaceholder: '(Selecione métrica ou medida)',
+          showSeriesBreakdown: true,
+        };
+    }
+  }, [selectedVisual?.type]);
 
   if (!selectedVisual) {
     return (
@@ -70,8 +181,6 @@ export const VisualizationsPane: React.FC = () => {
       </div>
     );
   }
-
-  const selectedTable = tables.find(t => t.id === selectedVisual.dataConfig.tableId);
 
   return (
     <div className="w-68 border-l border-slate-200 bg-white flex flex-col h-full text-xs select-none shadow-xs">
@@ -145,12 +254,24 @@ export const VisualizationsPane: React.FC = () => {
             </select>
           </div>
 
-          {/* Eixo X / Categoria */}
-          {selectedVisual.type !== 'card' && selectedVisual.type !== 'kpi' && (
+          {/* Eixo X / Legenda / Categoria */}
+          {fieldLabels.showCategory && (
             <div>
-              <label className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider block mb-1">
-                Eixo X / Categoria
-              </label>
+              <div className="flex items-center justify-between mb-0.5">
+                <label className="text-[11px] font-semibold text-slate-700 uppercase tracking-wider block">
+                  {fieldLabels.categoryLabel}
+                </label>
+                {(selectedVisual.type === 'pie' || selectedVisual.type === 'donut') && (
+                  <span className="text-[9px] text-amber-700 bg-amber-100 px-1.5 py-0.2 rounded font-semibold">
+                    Fatias
+                  </span>
+                )}
+              </div>
+              {fieldLabels.categorySubtitle && (
+                <p className="text-[10px] text-slate-400 mb-1 leading-tight">
+                  {fieldLabels.categorySubtitle}
+                </p>
+              )}
               <select
                 value={selectedVisual.dataConfig.xAxisField || ''}
                 onChange={(e) =>
@@ -160,21 +281,44 @@ export const VisualizationsPane: React.FC = () => {
                 }
                 className="w-full bg-slate-50 border border-slate-300 rounded px-2 py-1 text-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-500"
               >
-                <option value="">(Selecione a coluna)</option>
-                {selectedTable?.columns.map(c => (
-                  <option key={c.name} value={c.name}>
-                    {c.name} ({c.dataType})
-                  </option>
+                <option value="">{fieldLabels.categoryPlaceholder}</option>
+                <optgroup label={`Tabela Principal (${selectedTable?.name})`}>
+                  {selectedTable?.columns.map(c => (
+                    <option key={c.name} value={c.name}>
+                      {c.name} ({c.dataType})
+                    </option>
+                  ))}
+                </optgroup>
+                {relatedTables.map(relT => (
+                  <optgroup key={relT.id} label={`Tabela Relacionada (${relT.name})`}>
+                    {relT.columns.map(c => (
+                      <option key={`${relT.name}.${c.name}`} value={`${relT.name}.${c.name}`}>
+                        {relT.name}.{c.name} ({c.dataType})
+                      </option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
             </div>
           )}
 
-          {/* Valores / Eixo Y */}
+          {/* Valores / Métrica */}
           <div>
-            <label className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider block mb-1">
-              Valores / Métrica (Eixo Y)
-            </label>
+            <div className="flex items-center justify-between mb-0.5">
+              <label className="text-[11px] font-semibold text-slate-700 uppercase tracking-wider block">
+                {fieldLabels.valueLabel}
+              </label>
+              {measures.some(m => m.name === selectedVisual.dataConfig.yAxisFields?.[0]) && (
+                <span className="text-[9px] text-purple-700 bg-purple-100 px-1.5 py-0.2 rounded font-semibold">
+                  Medida DAX
+                </span>
+              )}
+            </div>
+            {fieldLabels.valueSubtitle && (
+              <p className="text-[10px] text-slate-400 mb-1 leading-tight">
+                {fieldLabels.valueSubtitle}
+              </p>
+            )}
             <select
               value={selectedVisual.dataConfig.yAxisFields?.[0] || ''}
               onChange={(e) => {
@@ -190,8 +334,15 @@ export const VisualizationsPane: React.FC = () => {
               }}
               className="w-full bg-slate-50 border border-slate-300 rounded px-2 py-1 text-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-500"
             >
-              <option value="">(Selecione métrica)</option>
-              <optgroup label="Colunas Numéricas">
+              <option value="">{fieldLabels.valuePlaceholder}</option>
+              <optgroup label="Medidas Calculadas (DAX)">
+                {measures.map(m => (
+                  <option key={m.name} value={m.name}>
+                    Σ {m.name}
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label={`Colunas Numéricas (${selectedTable?.name})`}>
                 {selectedTable?.columns
                   .filter(c => c.dataType === 'number' || c.dataType === 'currency' || c.dataType === 'percentage')
                   .map(c => (
@@ -200,13 +351,17 @@ export const VisualizationsPane: React.FC = () => {
                     </option>
                   ))}
               </optgroup>
-              <optgroup label="Medidas Calculadas (DAX)">
-                {measures.map(m => (
-                  <option key={m.name} value={m.name}>
-                    Σ {m.name}
-                  </option>
-                ))}
-              </optgroup>
+              {relatedTables.map(relT => (
+                <optgroup key={relT.id} label={`Colunas Numéricas (${relT.name})`}>
+                  {relT.columns
+                    .filter(c => c.dataType === 'number' || c.dataType === 'currency' || c.dataType === 'percentage')
+                    .map(c => (
+                      <option key={`${relT.name}.${c.name}`} value={`${relT.name}.${c.name}`}>
+                        {relT.name}.{c.name}
+                      </option>
+                    ))}
+                </optgroup>
+              ))}
             </select>
           </div>
 
@@ -261,11 +416,11 @@ export const VisualizationsPane: React.FC = () => {
             </div>
           </div>
 
-          {/* Legenda / Série */}
-          {selectedVisual.type !== 'card' && selectedVisual.type !== 'kpi' && selectedVisual.type !== 'slicer' && (
+          {/* Legenda / Série (apenas para gráficos com quebra de série dimensional) */}
+          {fieldLabels.showSeriesBreakdown && selectedVisual.type !== 'slicer' && (
             <div>
               <label className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider block mb-1">
-                Legenda (Opcional)
+                Legenda de Série (Opcional)
               </label>
               <select
                 value={selectedVisual.dataConfig.legendField || ''}
@@ -340,6 +495,24 @@ export const VisualizationsPane: React.FC = () => {
               onChange={(e) =>
                 updateVisual(selectedVisual.id, {
                   formatConfig: { ...selectedVisual.formatConfig, showLegend: e.target.checked },
+                })
+              }
+              className="rounded border-slate-300 text-amber-500 focus:ring-amber-400"
+            />
+          </div>
+
+          {/* Mostrar BLANK como 0 */}
+          <div className="flex items-center justify-between py-1 border-t border-slate-100">
+            <div>
+              <span className="text-[11px] font-medium text-slate-700 block">Mostrar BLANK como 0</span>
+              <span className="text-[9px] text-slate-400 block">Exibe 0 em vez de vazio para valores nulos</span>
+            </div>
+            <input
+              type="checkbox"
+              checked={selectedVisual.formatConfig.showBlankAsZero ?? false}
+              onChange={(e) =>
+                updateVisual(selectedVisual.id, {
+                  formatConfig: { ...selectedVisual.formatConfig, showBlankAsZero: e.target.checked },
                 })
               }
               className="rounded border-slate-300 text-amber-500 focus:ring-amber-400"

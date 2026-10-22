@@ -1003,13 +1003,39 @@ export const useBiStore = create<BiState>((set, get) => {
     },
 
     setCrossFilter: (tableId, column, value) => {
-      const targetTable = get().tables.find(t => t.id === tableId || t.name === tableId);
-      const matchedTableId = targetTable ? targetTable.id : tableId;
-      const matchedTableName = targetTable ? targetTable.name : tableId;
+      let resolvedTableId = tableId;
+      let cleanColumn = column;
+
+      // Handle table prefix if present, e.g. "d_Clientes.Segmento"
+      if (column.includes('.')) {
+        const [prefixT, col] = column.split('.', 2);
+        const matchT = get().tables.find(
+          t => t.id === prefixT || t.name === prefixT || t.id.toLowerCase() === prefixT.toLowerCase() || t.name.toLowerCase() === prefixT.toLowerCase()
+        );
+        if (matchT) {
+          resolvedTableId = matchT.id;
+          cleanColumn = col;
+        }
+      } else {
+        const targetTable = get().tables.find(t => t.id === tableId || t.name === tableId);
+        if (targetTable && !targetTable.columns.some(c => c.name.toLowerCase() === column.toLowerCase())) {
+          for (const t of get().tables) {
+            if (t.columns.some(c => c.name.toLowerCase() === column.toLowerCase())) {
+              resolvedTableId = t.id;
+              cleanColumn = t.columns.find(c => c.name.toLowerCase() === column.toLowerCase())!.name;
+              break;
+            }
+          }
+        }
+      }
+
+      const targetTable = get().tables.find(t => t.id === resolvedTableId || t.name === resolvedTableId);
+      const matchedTableId = targetTable ? targetTable.id : resolvedTableId;
+      const matchedTableName = targetTable ? targetTable.name : resolvedTableId;
 
       const existing = get().filters.find(
         f => (f.tableId === matchedTableId || f.tableId === matchedTableName) &&
-             f.column === column &&
+             f.column === cleanColumn &&
              f.level === 'visual'
       );
 
@@ -1020,10 +1046,10 @@ export const useBiStore = create<BiState>((set, get) => {
         }
       } else {
         const newFilter: Filter = {
-          id: 'cross_' + matchedTableId + '_' + column,
+          id: 'cross_' + matchedTableId + '_' + cleanColumn,
           level: 'visual',
           tableId: matchedTableId,
-          column,
+          column: cleanColumn,
           operator: 'equals',
           value,
         };
@@ -1031,7 +1057,7 @@ export const useBiStore = create<BiState>((set, get) => {
           filters: [
             ...get().filters.filter(
               f => f.id !== newFilter.id &&
-                   !( (f.tableId === matchedTableId || f.tableId === matchedTableName) && f.column === column && f.level === 'visual' )
+                   !( (f.tableId === matchedTableId || f.tableId === matchedTableName) && f.column === cleanColumn && f.level === 'visual' )
             ),
             newFilter,
           ],

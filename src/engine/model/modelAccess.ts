@@ -9,6 +9,7 @@ export interface ModelAccess {
   getTables(): Table[];
   getRelationships(): Relationship[];
   getMeasures(): Measure[];
+  getMeasure?(idOrName: string): Measure | undefined;
   getFilteredRows?(targetTableId: string, activeFilters: Filter[]): Record<string, any>[];
 }
 

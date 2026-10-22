@@ -1,14 +1,14 @@
 import { Table, Measure, Filter } from '../types/bi';
 import { ModelAccess, InMemoryModelAccess } from './model/modelAccess';
 import { parseNumber } from './shared/valueParser';
+import { DaxError } from './shared/errors';
+import { validateDax } from './expr/validator';
+import type { DaxValidationResult } from './expr/validator';
+import { generateQuickMeasure } from './expr/quickMeasures';
+import type { QuickMeasureType, QuickMeasureResult } from './expr/quickMeasures';
+import { evaluateExpression } from './expr/evaluator';
 
-export interface DaxValidationResult {
-  isValid: boolean;
-  errorMessage?: string;
-  referencedTables: string[];
-  referencedColumns: string[];
-  referencedMeasures: string[];
-}
+export type { DaxValidationResult, QuickMeasureType, QuickMeasureResult };
 
 export class DaxEngine {
   private static activeModelAccess: ModelAccess | null = null;
@@ -28,74 +28,18 @@ export class DaxEngine {
   }
 
   /**
-   * Validate a DAX expression syntax and references
+   * Validate a DAX expression syntax and references using unified AST validator
    */
-  public static validate(formula: string, availableTables: Table[], availableMeasures: Measure[]): DaxValidationResult {
-    const trimmed = formula.trim();
-    if (!trimmed) {
-      return { isValid: false, errorMessage: 'Fórmula vazia', referencedTables: [], referencedColumns: [], referencedMeasures: [] };
-    }
-
-    // Check balanced parentheses and brackets
-    let pCount = 0;
-    let bCount = 0;
-    for (const char of trimmed) {
-      if (char === '(') pCount++;
-      if (char === ')') pCount--;
-      if (char === '[') bCount++;
-      if (char === ']') bCount--;
-      if (pCount < 0 || bCount < 0) {
-        return { isValid: false, errorMessage: 'Parênteses ou colchetes desbalanceados', referencedTables: [], referencedColumns: [], referencedMeasures: [] };
-      }
-    }
-    if (pCount !== 0) return { isValid: false, errorMessage: 'Parênteses desbalanceados', referencedTables: [], referencedColumns: [], referencedMeasures: [] };
-    if (bCount !== 0) return { isValid: false, errorMessage: 'Colchetes desbalanceados', referencedTables: [], referencedColumns: [], referencedMeasures: [] };
-
-    // Extract table[column] references: Table[Column] or 'Table'[Column]
-    const colRegex = /(?:'([^']+)'|([a-zA-Z0-9_\u00C0-\u017F ]+))\[([^\]]+)\]/g;
-    const referencedTables: string[] = [];
-    const referencedColumns: string[] = [];
-    let match;
-    while ((match = colRegex.exec(trimmed)) !== null) {
-      const tName = (match[1] || match[2] || '').trim();
-      const cName = match[3].trim();
-      referencedTables.push(tName);
-      referencedColumns.push(cName);
-
-      const tableExists = availableTables.some(
-        t => t.name.toLowerCase() === tName.toLowerCase() || t.id.toLowerCase() === tName.toLowerCase()
-      );
-      if (!tableExists) {
-        return {
-          isValid: false,
-          errorMessage: `A tabela "${tName}" não foi encontrada no modelo`,
-          referencedTables,
-          referencedColumns,
-          referencedMeasures: [],
-        };
-      }
-    }
-
-    // Extract [Measure] or [Column] references (without table prefix)
-    const measureRegex = /(?:^|[^a-zA-Z0-9_\u00C0-\u017F'])\[([^\]]+)\]/g;
-    const referencedMeasures: string[] = [];
-    while ((match = measureRegex.exec(trimmed)) !== null) {
-      const mName = match[1].trim();
-      if (!referencedColumns.includes(mName)) {
-        referencedMeasures.push(mName);
-      }
-    }
-
-    return {
-      isValid: true,
-      referencedTables: Array.from(new Set(referencedTables)),
-      referencedColumns: Array.from(new Set(referencedColumns)),
-      referencedMeasures: Array.from(new Set(referencedMeasures)),
-    };
+  public static validate(
+    formula: string,
+    availableTables: Table[],
+    availableMeasures: Measure[]
+  ): DaxValidationResult {
+    return validateDax(formula, availableTables, availableMeasures);
   }
 
   /**
-   * Split top-level arguments respecting quotes and parentheses
+   * Split top-level arguments respecting quotes and parentheses (compatibility helper)
    */
   public static splitArgs(str: string): string[] {
     const args: string[] = [];
@@ -147,7 +91,8 @@ export class DaxEngine {
     formula: string,
     tablesOrModel: Table[] | ModelAccess,
     measures?: Measure[],
-    activeFilters: Filter[] = []
+    activeFilters: Filter[] = [],
+    callStack?: Set<string>
   ): number {
     let model: ModelAccess;
     let tables: Table[];
@@ -163,7 +108,8 @@ export class DaxEngine {
       model = DaxEngine.activeModelAccess || new InMemoryModelAccess(tables, [], measuresList);
     }
 
-    const trimmed = formula.trim();
+    const trimmed = (formula || '').trim();
+    if (!trimmed) return 0;
 
     // 1. DIVIDE(A, B, alt)
     const divideMatch = trimmed.match(/^DIVIDE\s*\(\s*(.+?)\s*,\s*(.+?)(?:\s*,\s*(.+?))?\s*\)$/i);
@@ -171,8 +117,8 @@ export class DaxEngine {
       const numExpr = divideMatch[1];
       const denExpr = divideMatch[2];
       const altExpr = divideMatch[3] ? Number(divideMatch[3]) : 0;
-      const num = this.evaluate(numExpr, model, measuresList, activeFilters);
-      const den = this.evaluate(denExpr, model, measuresList, activeFilters);
+      const num = this.evaluate(numExpr, model, measuresList, activeFilters, callStack);
+      const den = this.evaluate(denExpr, model, measuresList, activeFilters, callStack);
       if (den === 0 || isNaN(den)) return altExpr;
       return num / den;
     }
@@ -260,7 +206,7 @@ export class DaxEngine {
           }
         }
 
-        return this.evaluate(innerExpr, model, measuresList, modifiedFilters);
+        return this.evaluate(innerExpr, model, measuresList, modifiedFilters, callStack);
       }
     }
 
@@ -268,10 +214,10 @@ export class DaxEngine {
     const ytdMatch = trimmed.match(/^TOTALYTD\s*\(\s*(.+?)\s*,\s*(?:'([^']+)'|([a-zA-Z0-9_\u00C0-\u017F ]+))?\[([^\]]+)\]\s*\)$/i);
     if (ytdMatch) {
       const expr = ytdMatch[1];
-      return this.evaluate(expr, model, measuresList, activeFilters);
+      return this.evaluate(expr, model, measuresList, activeFilters, callStack);
     }
 
-    // 4. Aggregations: SUM, AVERAGE, MIN, MAX, COUNT, COUNTROWS
+    // 4. Aggregations: SUM, AVERAGE, MIN, MAX, COUNT, COUNTROWS, DISTINCTCOUNT
     const aggMatch = trimmed.match(
       /^(SUM|AVERAGE|AVG|MIN|MAX|COUNT|DISTINCTCOUNT)\s*\(\s*(?:(?:'([^']+)'|([a-zA-Z0-9_\u00C0-\u017F ]+))\[)?([^\]]+)\]?\s*\)$/i
     );
@@ -290,7 +236,7 @@ export class DaxEngine {
       }
       if (!table) return 0;
 
-      // Filter rows dynamically using model without global window
+      // Filter rows dynamically using model
       let rows: Record<string, any>[] = [];
       if (typeof model.getFilteredRows === 'function') {
         rows = model.getFilteredRows(table.id, activeFilters);
@@ -329,77 +275,89 @@ export class DaxEngine {
     if (countRowsMatch) {
       const tName = countRowsMatch[1];
       const table = model.getTable(tName);
-      return table ? table.rows.length : 0;
+      if (!table) return 0;
+      if (typeof model.getFilteredRows === 'function') {
+        return model.getFilteredRows(table.id, activeFilters).length;
+      }
+      let filtered = table.rows;
+      activeFilters.forEach(f => {
+        if (!f.tableId || f.tableId === table!.id || f.tableId === table!.name) {
+          filtered = filtered.filter(r => String(r[f.column] ?? '').toLowerCase() === String(f.value ?? '').toLowerCase());
+        }
+      });
+      return filtered.length;
     }
 
-    // 6. Binary arithmetic: [Medida 1] - [Medida 2], [A] + [B], [A] * [B]
-    const binaryMatch = trimmed.match(/^\[([^\]]+)\]\s*([\+\-\*\/])\s*\[([^\]]+)\]$/);
-    if (binaryMatch) {
-      const m1 = measuresList.find(m => m.name === binaryMatch[1]);
-      const m2 = measuresList.find(m => m.name === binaryMatch[3]);
-      const v1 = m1 ? this.evaluate(m1.formula, model, measuresList, activeFilters) : 0;
-      const v2 = m2 ? this.evaluate(m2.formula, model, measuresList, activeFilters) : 0;
-      const op = binaryMatch[2];
-      if (op === '+') return v1 + v2;
-      if (op === '-') return v1 - v2;
-      if (op === '*') return v1 * v2;
-      if (op === '/') return v2 !== 0 ? v1 / v2 : 0;
-    }
-
-    // 7. Measure reference alone: [Faturamento Total]
+    // 6. Single Measure Reference alone: [Faturamento Total]
     const singleMeasureMatch = trimmed.match(/^\[([^\]]+)\]$/);
     if (singleMeasureMatch) {
-      const targetM = measuresList.find(m => m.name === singleMeasureMatch[1]);
+      const rawName = singleMeasureMatch[1].trim();
+      const targetM = measuresList.find(m => m.name.toLowerCase() === rawName.toLowerCase())
+        || (typeof model.getMeasure === 'function' ? model.getMeasure(rawName) : undefined);
       if (targetM) {
-        return this.evaluate(targetM.formula, model, measuresList, activeFilters);
+        const stack = callStack || new Set<string>();
+        const normKey = targetM.name.toLowerCase();
+        if (stack.has(normKey)) {
+          throw new DaxError('Execution', `Referência circular detectada entre medidas: [${targetM.name}]`);
+        }
+        const nextStack = new Set(stack);
+        nextStack.add(normKey);
+        return this.evaluate(targetM.formula, model, measuresList, activeFilters, nextStack);
       }
     }
 
-    // Fallback: numeric constant
-    const constantVal = Number(trimmed);
-    return isNaN(constantVal) ? 0 : constantVal;
+    // 7. General Expression / VAR RETURN / Evaluator with measure resolution & measure-to-measure arithmetic
+    try {
+      const evaluated = evaluateExpression(trimmed, {
+        dialect: 'dax',
+        measures: measuresList,
+        tables,
+        model,
+        activeFilters,
+        callStack,
+        resolveMeasure: (name: string) => {
+          const rawName = name.trim();
+          const targetM = measuresList.find(m => m.name.toLowerCase() === rawName.toLowerCase())
+            || (typeof model.getMeasure === 'function' ? model.getMeasure(rawName) : undefined);
+          if (targetM) {
+            const stack = callStack || new Set<string>();
+            const normKey = targetM.name.toLowerCase();
+            if (stack.has(normKey)) {
+              throw new DaxError('Execution', `Referência circular detectada entre medidas: [${targetM.name}]`);
+            }
+            const nextStack = new Set(stack);
+            nextStack.add(normKey);
+            return this.evaluate(targetM.formula, model, measuresList, activeFilters, nextStack);
+          }
+          return undefined;
+        },
+      });
+
+      if (typeof evaluated === 'number') return evaluated;
+      if (typeof evaluated === 'boolean') return evaluated ? 1 : 0;
+      if (evaluated === null || evaluated === undefined) return 0;
+      const num = Number(evaluated);
+      return isNaN(num) ? 0 : num;
+    } catch (err: any) {
+      if (err instanceof DaxError && (err.kind === 'Execution' || (err as any).type === 'Execution') && err.message.toLowerCase().includes('circular')) {
+        throw err;
+      }
+      // Fallback: numeric constant or 0
+      const constantVal = Number(trimmed);
+      return isNaN(constantVal) ? 0 : constantVal;
+    }
   }
 
   /**
    * Helper: Generate Quick Measure formulas
+   * Delegates to dedicated module
    */
   public static generateQuickMeasure(
-    type: 'pct_of_total' | 'yoy_growth' | 'mom_growth' | 'rolling_avg' | 'ranking',
+    type: QuickMeasureType,
     baseMeasure: string,
     dimensionCol: string,
     table: string
-  ): { name: string; formula: string; format: Measure['format'] } {
-    switch (type) {
-      case 'pct_of_total':
-        return {
-          name: `% ${baseMeasure} do Total`,
-          formula: `DIVIDE([${baseMeasure}], CALCULATE([${baseMeasure}], ALL(${table})), 0)`,
-          format: 'percentage',
-        };
-      case 'yoy_growth':
-        return {
-          name: `Crescimento YoY ${baseMeasure}`,
-          formula: `DIVIDE([${baseMeasure}] - CALCULATE([${baseMeasure}], SAMEPERIODLASTYEAR(d_Calendario[Data])), CALCULATE([${baseMeasure}], SAMEPERIODLASTYEAR(d_Calendario[Data])), 0)`,
-          format: 'percentage',
-        };
-      case 'mom_growth':
-        return {
-          name: `Variação MoM ${baseMeasure}`,
-          formula: `DIVIDE([${baseMeasure}] - CALCULATE([${baseMeasure}], DATEADD(d_Calendario[Data], -1, MONTH)), CALCULATE([${baseMeasure}], DATEADD(d_Calendario[Data], -1, MONTH)), 0)`,
-          format: 'percentage',
-        };
-      case 'rolling_avg':
-        return {
-          name: `Média Móvel 3M ${baseMeasure}`,
-          formula: `AVERAGE(${table}[${dimensionCol}])`,
-          format: 'number',
-        };
-      case 'ranking':
-        return {
-          name: `Ranking por ${baseMeasure}`,
-          formula: `RANKX(ALL(${table}), [${baseMeasure}])`,
-          format: 'integer',
-        };
-    }
+  ): QuickMeasureResult {
+    return generateQuickMeasure(type, baseMeasure, dimensionCol, table);
   }
 }

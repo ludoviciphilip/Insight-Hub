@@ -57,6 +57,7 @@ export interface Measure {
   tableName: string;
   formula: string;
   format: 'currency' | 'number' | 'percentage' | 'integer';
+  formatString?: string;
   description?: string;
   displayFolder?: string;
 }
@@ -102,6 +103,7 @@ export interface VisualFormatConfig {
   showLegend?: boolean;
   colorPalette?: string[];
   isTransparent?: boolean;
+  showBlankAsZero?: boolean;
   conditionalFormatting?: {
     field: string;
     rules: ConditionalFormatRule[];

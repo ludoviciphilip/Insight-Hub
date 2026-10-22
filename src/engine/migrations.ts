@@ -37,13 +37,40 @@ export function migrateProjectState(rawState: any): ProjectState {
     };
   });
 
-  return {
-    version: CURRENT_ENGINE_VERSION,
-    projectName: rawState.projectName || 'Projeto InsightHub',
-    tables,
-    relationships: normalizedRelationships,
-    measures: Array.isArray(rawState.measures) ? rawState.measures : [],
-    pages: Array.isArray(rawState.pages) ? rawState.pages : [],
+    // Migrate measures: map legacy format enum to formatString if missing
+    const rawMeasures: any[] = Array.isArray(rawState.measures) ? rawState.measures : [];
+    const normalizedMeasures = rawMeasures.map(m => {
+      let formatString = m.formatString;
+      if (!formatString && m.format) {
+        switch (m.format) {
+          case 'currency':
+            formatString = 'Currency';
+            break;
+          case 'percentage':
+            formatString = '0.0%';
+            break;
+          case 'integer':
+            formatString = '#,##0';
+            break;
+          case 'number':
+          default:
+            formatString = '#,##0.00';
+            break;
+        }
+      }
+      return {
+        ...m,
+        formatString: formatString || '#,##0.00',
+      };
+    });
+
+    return {
+      version: CURRENT_ENGINE_VERSION,
+      projectName: rawState.projectName || 'Projeto InsightHub',
+      tables,
+      relationships: normalizedRelationships,
+      measures: normalizedMeasures,
+      pages: Array.isArray(rawState.pages) ? rawState.pages : [],
     activePageId: rawState.activePageId || rawState.pages?.[0]?.id || 'page_executivo',
     filters: Array.isArray(rawState.filters) ? rawState.filters : [],
     bookmarks: Array.isArray(rawState.bookmarks) ? rawState.bookmarks : [],

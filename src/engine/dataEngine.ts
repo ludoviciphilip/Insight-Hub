@@ -3,44 +3,15 @@ import { Table, Relationship, Filter, Measure, Visual } from '../types/bi';
 import { DaxEngine } from './daxEngine';
 import { ModelAccess } from './model/modelAccess';
 import { globalColumnStore } from './model/columnStore';
+import {
+  formatValue,
+  formatCurrency,
+  formatNumber,
+  formatPercent,
+  formatDateBR,
+} from './shared/formatter';
 
-export function formatCurrency(value: number | null | undefined): string {
-  if (value === null || value === undefined || isNaN(value)) return 'R$ 0,00';
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value);
-}
-
-export function formatNumber(value: number | null | undefined, decimals = 0): string {
-  if (value === null || value === undefined || isNaN(value)) return '0';
-  return new Intl.NumberFormat('pt-BR', {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  }).format(value);
-}
-
-export function formatPercent(value: number | null | undefined): string {
-  if (value === null || value === undefined || isNaN(value)) return '0,0%';
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'percent',
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 1,
-  }).format(value / (Math.abs(value) > 1 ? 100 : 1));
-}
-
-export function formatDateBR(dateVal: any): string {
-  if (!dateVal) return '';
-  try {
-    const d = new Date(dateVal);
-    if (isNaN(d.getTime())) return String(dateVal);
-    return d.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
-  } catch {
-    return String(dateVal);
-  }
-}
+export { formatValue, formatCurrency, formatNumber, formatPercent, formatDateBR };
 
 export class DataEngine implements ModelAccess {
   private tablesById: Map<string, Table> = new Map();
@@ -183,14 +154,19 @@ export class DataEngine implements ModelAccess {
           const rel = this.relationships.find(
             r =>
               r.isActive &&
-              (((r.fromTable === targetTable.id || r.fromTable === targetTable.name) &&
-                (r.toTable === sourceTable.id || r.toTable === sourceTable.name)) ||
-                ((r.toTable === targetTable.id || r.toTable === targetTable.name) &&
-                  (r.fromTable === sourceTable.id || r.fromTable === sourceTable.name)))
+              (((r.fromTable === targetTable.id || r.fromTable === targetTable.name || r.fromTable?.toLowerCase() === targetTable.id?.toLowerCase() || r.fromTable?.toLowerCase() === targetTable.name?.toLowerCase()) &&
+                (r.toTable === sourceTable.id || r.toTable === sourceTable.name || r.toTable?.toLowerCase() === sourceTable.id?.toLowerCase() || r.toTable?.toLowerCase() === sourceTable.name?.toLowerCase())) ||
+                ((r.toTable === targetTable.id || r.toTable === targetTable.name || r.toTable?.toLowerCase() === targetTable.id?.toLowerCase() || r.toTable?.toLowerCase() === targetTable.name?.toLowerCase()) &&
+                  (r.fromTable === sourceTable.id || r.fromTable === sourceTable.name || r.fromTable?.toLowerCase() === sourceTable.id?.toLowerCase() || r.fromTable?.toLowerCase() === sourceTable.name?.toLowerCase())))
           );
 
           if (rel) {
-            const isTargetFrom = rel.fromTable === targetTable.id || rel.fromTable === targetTable.name;
+            const isTargetFrom =
+              rel.fromTable === targetTable.id ||
+              rel.fromTable === targetTable.name ||
+              rel.fromTable?.toLowerCase() === targetTable.id?.toLowerCase() ||
+              rel.fromTable?.toLowerCase() === targetTable.name?.toLowerCase();
+
             const targetJoinCol = isTargetFrom ? rel.fromColumn : rel.toColumn;
             const sourceJoinCol = isTargetFrom ? rel.toColumn : rel.fromColumn;
 
@@ -198,10 +174,10 @@ export class DataEngine implements ModelAccess {
             const validKeys = new Set(
               sourceTable.rows
                 .filter(sr => this.matchesFilter(sr[filter.column], filter.operator, filter.value))
-                .map(sr => String(sr[sourceJoinCol]))
+                .map(sr => String(sr[sourceJoinCol] ?? '').trim())
             );
 
-            rows = rows.filter(tr => validKeys.has(String(tr[targetJoinCol])));
+            rows = rows.filter(tr => validKeys.has(String(tr[targetJoinCol] ?? '').trim()));
             propagated = true;
           }
         }
@@ -304,18 +280,112 @@ export class DataEngine implements ModelAccess {
     }
 
     // Standard Charts (Column, Bar, Line, Area, Pie, Donut, Treemap, Waterfall, Funnel)
-    const xField = visual.dataConfig.xAxisField || table.columns[0]?.name || 'Categoria';
+    let categoryTable = table;
+    let cleanXField = visual.dataConfig.xAxisField || table.columns[0]?.name || 'Categoria';
+
+    // Support dot-notation or related table column references: e.g. "d_Clientes.Segmento" or "Segmento"
+    if (cleanXField.includes('.')) {
+      const [tPrefix, cName] = cleanXField.split('.', 2);
+      const foundTable = this.getTable(tPrefix);
+      if (foundTable) {
+        categoryTable = foundTable;
+        cleanXField = cName;
+      }
+    } else if (!categoryTable.columns.some(c => c.name.toLowerCase() === cleanXField.toLowerCase())) {
+      // If not directly on categoryTable, check if it exists in an active related table
+      for (const rel of this.relationships.filter(r => r.isActive)) {
+        let candId: string | null = null;
+        if (
+          rel.fromTable === table.id ||
+          rel.fromTable === table.name ||
+          rel.fromTable?.toLowerCase() === table.id.toLowerCase() ||
+          rel.fromTable?.toLowerCase() === table.name.toLowerCase()
+        ) {
+          candId = rel.toTable;
+        } else if (
+          rel.toTable === table.id ||
+          rel.toTable === table.name ||
+          rel.toTable?.toLowerCase() === table.id.toLowerCase() ||
+          rel.toTable?.toLowerCase() === table.name.toLowerCase()
+        ) {
+          candId = rel.fromTable;
+        }
+
+        if (candId) {
+          const candTable = this.getTable(candId);
+          if (candTable && candTable.columns.some(c => c.name.toLowerCase() === cleanXField.toLowerCase())) {
+            categoryTable = candTable;
+            cleanXField = candTable.columns.find(c => c.name.toLowerCase() === cleanXField.toLowerCase())!.name;
+            break;
+          }
+        }
+      }
+    }
+
     const yFields = visual.dataConfig.yAxisFields && visual.dataConfig.yAxisFields.length > 0
       ? visual.dataConfig.yAxisFields
       : [table.columns.find(c => c.dataType === 'number' || c.dataType === 'currency')?.name || 'ValorTotal'];
     const agg = visual.dataConfig.aggregation;
 
-    // Collect unique categories in order
+    // Resolve cross-table relationship if category comes from a related dimension
+    const isCrossTable = categoryTable.id !== table.id;
+    let catMap: Map<string, string> | null = null;
+    let targetJoinCol = '';
+    let sourceJoinCol = '';
+
     const categoriesSet = new Set<string>();
-    filteredRows.forEach(row => {
-      const catKey = String(row[xField] ?? 'N/D');
-      categoriesSet.add(catKey);
-    });
+
+    if (isCrossTable) {
+      const rel = this.relationships.find(
+        r =>
+          r.isActive &&
+          (((r.fromTable === table.id || r.fromTable === table.name || r.fromTable?.toLowerCase() === table.id.toLowerCase() || r.fromTable?.toLowerCase() === table.name.toLowerCase()) &&
+            (r.toTable === categoryTable.id || r.toTable === categoryTable.name || r.toTable?.toLowerCase() === categoryTable.id.toLowerCase() || r.toTable?.toLowerCase() === categoryTable.name.toLowerCase())) ||
+           ((r.toTable === table.id || r.toTable === table.name || r.toTable?.toLowerCase() === table.id.toLowerCase() || r.toTable?.toLowerCase() === table.name.toLowerCase()) &&
+            (r.fromTable === categoryTable.id || r.fromTable === categoryTable.name || r.fromTable?.toLowerCase() === categoryTable.id.toLowerCase() || r.fromTable?.toLowerCase() === categoryTable.name.toLowerCase())))
+      );
+
+      if (rel) {
+        const isTargetFrom =
+          rel.fromTable === table.id ||
+          rel.fromTable === table.name ||
+          rel.fromTable?.toLowerCase() === table.id.toLowerCase() ||
+          rel.fromTable?.toLowerCase() === table.name.toLowerCase();
+
+        targetJoinCol = isTargetFrom ? rel.fromColumn : rel.toColumn;
+        sourceJoinCol = isTargetFrom ? rel.toColumn : rel.fromColumn;
+
+        const catTableRows = this.getFilteredRows(categoryTable.id, allFilters);
+        catMap = new Map<string, string>();
+        catTableRows.forEach(cr => {
+          const key = String(cr[sourceJoinCol] ?? '').trim();
+          if (key) {
+            catMap!.set(key, String(cr[cleanXField] ?? 'N/D'));
+          }
+        });
+
+        // Map and extract distinct categories from filteredRows
+        filteredRows.forEach(row => {
+          const joinKey = String(row[targetJoinCol] ?? '').trim();
+          const catVal = catMap!.get(joinKey) ?? 'N/D';
+          row[cleanXField] = catVal;
+          categoriesSet.add(catVal);
+        });
+
+        // If categoriesSet has no entries from fact rows, populate from related dimension table
+        if (categoriesSet.size === 0) {
+          catTableRows.forEach(cr => {
+            categoriesSet.add(String(cr[cleanXField] ?? 'N/D'));
+          });
+        }
+      }
+    } else {
+      // Direct category from table
+      filteredRows.forEach(row => {
+        const catKey = String(row[cleanXField] ?? 'N/D');
+        categoriesSet.add(catKey);
+      });
+    }
 
     let categories = Array.from(categoriesSet);
 
@@ -336,20 +406,29 @@ export class DataEngine implements ModelAccess {
 
       const data = categories.map(cat => {
         if (isMeasure && measureObj) {
-          // DAX Measure: calculate value in context of category without aggregation
+          // DAX Measure: calculate value in context of category filter
           const catFilter: Filter = {
             id: 'dax_ctx_' + Math.random(),
             level: 'visual',
-            tableId,
-            column: xField,
+            tableId: categoryTable.id,
+            column: cleanXField,
             operator: 'equals',
             value: cat,
           };
           const val = DaxEngine.evaluate(measureObj.formula, this, undefined, [...activeFilters, catFilter]);
-          return Number(val.toFixed(2));
+          const numVal = typeof val === 'number' && !isNaN(val) ? val : (val === null || val === undefined ? 0 : Number(val) || 0);
+          return Number(numVal.toFixed(2));
         }
 
-        const catRows = filteredRows.filter(r => String(r[xField] ?? 'N/D') === cat);
+        const catRows = filteredRows.filter(r => {
+          if (isCrossTable && catMap && targetJoinCol) {
+            const joinKey = String(r[targetJoinCol] ?? '').trim();
+            const resolved = catMap.get(joinKey) ?? String(r[cleanXField] ?? 'N/D');
+            return resolved === cat;
+          }
+          return String(r[cleanXField] ?? 'N/D') === cat;
+        });
+
         if (catRows.length === 0) return 0;
 
         if (effectiveAgg === 'NONE') {

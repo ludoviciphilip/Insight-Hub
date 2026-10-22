@@ -33,6 +33,7 @@ import {
 import { useBiStore } from '../../store/useBiStore';
 import { PowerQueryStep, Table, DataType } from '../../types/bi';
 import { POWER_BI_FUNCTIONS, PowerBiColumnEngine, FunctionDoc } from '../../engine/powerBiColumnEngine';
+import { FormulaEditor } from '../shared/FormulaEditor';
 
 export const PowerQueryView: React.FC = () => {
   const {
@@ -1621,19 +1622,15 @@ export const PowerQueryView: React.FC = () => {
                     </span>
                   </div>
 
-                  <div className="flex rounded-xl border border-slate-700 overflow-hidden bg-slate-900 focus-within:ring-2 focus-within:ring-amber-500 shadow-inner">
-                    <div className="flex items-start pt-3 px-3 bg-slate-950/70 text-amber-400 font-mono font-bold text-xs border-r border-slate-800 select-none">
-                      <span className="text-amber-500 font-serif italic text-xs font-bold mr-1">fx</span>
-                      <span className="text-amber-300 text-sm font-bold">=</span>
-                    </div>
-                    <textarea
-                      rows={5}
-                      value={customFormula}
-                      onChange={(e) => setCustomFormula(e.target.value)}
-                      placeholder="Ex.: =[Valor] * -1   ou   =[PrecoUnitario] * [Quantidade]   ou   =IF([ValorTotal] > 1000, UPPER([Categoria]), [Canal])"
-                      className="w-full flex-1 p-3 font-mono text-xs bg-transparent text-amber-300 focus:outline-none resize-none leading-relaxed"
-                    />
-                  </div>
+                  <FormulaEditor
+                    value={customFormula}
+                    onChange={setCustomFormula}
+                    dialect="column"
+                    columns={currentTable?.columns || []}
+                    sampleRow={currentTable?.rows?.[0]}
+                    placeholder="Ex.: =[Valor] * -1   ou   =[PrecoUnitario] * [Quantidade]   ou   =IF([ValorTotal] > 1000, UPPER([Categoria]), [Canal])"
+                    rows={4}
+                  />
                 </div>
 
                 {/* Real-time Live Preview */}

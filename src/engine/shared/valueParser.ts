@@ -66,12 +66,25 @@ export function parseDate(val: any): DateParseResult {
     return { date: null, serial: null, iso: null };
   }
 
-  // Numeric serial stored as string (e.g. "46113" or "46113.0")
-  if (/^\d{4,6}(\.\d+)?$/.test(s)) {
-    const num = parseFloat(s);
-    if (num >= 1000 && num <= 2958465) {
-      return parseDate(num);
+  // Pure digits: check if compact 8-digit YYYYMMDD (e.g. "20250115")
+  if (/^\d{8}$/.test(s)) {
+    const y = parseInt(s.substring(0, 4), 10);
+    const m = parseInt(s.substring(4, 6), 10);
+    const d = parseInt(s.substring(6, 8), 10);
+    if (y >= 1900 && y <= 2100 && m >= 1 && m <= 12 && d >= 1 && d <= 31) {
+      const utcDate = new Date(Date.UTC(y, m - 1, d));
+      if (!isNaN(utcDate.getTime())) {
+        const serial = Math.floor((utcDate.getTime() - EXCEL_EPOCH_UTC) / MS_PER_DAY);
+        const iso = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        return { date: utcDate, serial, iso };
+      }
     }
+  }
+
+  // Reject any other pure numeric strings (e.g. "100", "1234", "50000", "1500.50")
+  // Plain numbers in string form are numbers, IDs, or currency, NOT date strings
+  if (/^-?\d+(\.\d+)?$/.test(s)) {
+    return { date: null, serial: null, iso: null, error: `Valor numérico em formato de texto não é data: "${s}"` };
   }
 
   // Brazilian format: DD/MM/YYYY or DD-MM-YYYY (with optional time)
@@ -80,8 +93,11 @@ export function parseDate(val: any): DateParseResult {
     const day = parseInt(brMatch[1], 10);
     const month = parseInt(brMatch[2], 10);
     const year = parseInt(brMatch[3], 10);
+    const hour = brMatch[4] ? parseInt(brMatch[4], 10) : 0;
+    const min = brMatch[5] ? parseInt(brMatch[5], 10) : 0;
+    const sec = brMatch[6] ? parseInt(brMatch[6], 10) : 0;
     if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
-      const utcDate = new Date(Date.UTC(year, month - 1, day));
+      const utcDate = new Date(Date.UTC(year, month - 1, day, hour, min, sec));
       if (!isNaN(utcDate.getTime())) {
         const serial = Math.floor((utcDate.getTime() - EXCEL_EPOCH_UTC) / MS_PER_DAY);
         const iso = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -96,8 +112,11 @@ export function parseDate(val: any): DateParseResult {
     const year = parseInt(isoMatch[1], 10);
     const month = parseInt(isoMatch[2], 10);
     const day = parseInt(isoMatch[3], 10);
+    const hour = isoMatch[4] ? parseInt(isoMatch[4], 10) : 0;
+    const min = isoMatch[5] ? parseInt(isoMatch[5], 10) : 0;
+    const sec = isoMatch[6] ? parseInt(isoMatch[6], 10) : 0;
     if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
-      const utcDate = new Date(Date.UTC(year, month - 1, day));
+      const utcDate = new Date(Date.UTC(year, month - 1, day, hour, min, sec));
       if (!isNaN(utcDate.getTime())) {
         const serial = Math.floor((utcDate.getTime() - EXCEL_EPOCH_UTC) / MS_PER_DAY);
         const iso = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -106,16 +125,21 @@ export function parseDate(val: any): DateParseResult {
     }
   }
 
-  // Native Date fallback
-  const parsed = new Date(s);
-  if (!isNaN(parsed.getTime())) {
-    const y = parsed.getUTCFullYear();
-    const m = parsed.getUTCMonth();
-    const d = parsed.getUTCDate();
-    const utcDate = new Date(Date.UTC(y, m, d));
-    const serial = Math.floor((utcDate.getTime() - EXCEL_EPOCH_UTC) / MS_PER_DAY);
-    const iso = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-    return { date: utcDate, serial, iso };
+  // Native Date fallback ONLY if string contains date separators or month names
+  if (/[-/,\s]/.test(s) && /[a-zA-Z0-9]/.test(s)) {
+    const parsed = new Date(s);
+    if (!isNaN(parsed.getTime())) {
+      const y = parsed.getUTCFullYear();
+      // Constrain plausible date range to avoid bogus dates like year 0100
+      if (y >= 1900 && y <= 2100) {
+        const m = parsed.getUTCMonth();
+        const d = parsed.getUTCDate();
+        const utcDate = new Date(Date.UTC(y, m, d));
+        const serial = Math.floor((utcDate.getTime() - EXCEL_EPOCH_UTC) / MS_PER_DAY);
+        const iso = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        return { date: utcDate, serial, iso };
+      }
+    }
   }
 
   return { date: null, serial: null, iso: null, error: `Formato de data inválido ou irreconhecível: "${s}"` };

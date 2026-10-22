@@ -172,16 +172,26 @@ export class EtlEngine {
           isCalculated: true,
         });
 
+        let errorCount = 0;
+        let firstError: string | undefined;
+
         newRows = newRows.map((r, idx) => {
           const row = { ...r };
-          try {
-            const computedVal = PowerBiColumnEngine.evaluateRow(expression, row, idx, newCols);
-            row[newColumnName] = computedVal;
-          } catch {
+          const result = PowerBiColumnEngine.evaluateRowDetailed(expression, row, idx, newCols);
+          if (result.error) {
+            errorCount++;
+            if (!firstError) firstError = result.error;
             row[newColumnName] = null;
+          } else {
+            row[newColumnName] = result.value;
           }
           return row;
         });
+
+        if (errorCount > 0) {
+          step.params = { ...step.params, errorCount, firstError };
+          step.description = `${step.description || `Adicionou coluna personalizada "${newColumnName}"`} (${errorCount} erro${errorCount > 1 ? 's' : ''}: ${firstError})`;
+        }
         sql = `ALTER TABLE CurrentTable ADD COLUMN "${newColumnName}" COMPUTED (${expression});`;
         break;
       }

@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { Visual } from '../../types/bi';
 import { useBiStore } from '../../store/useBiStore';
-import { globalDataEngine, formatCurrency, formatNumber, formatPercent } from '../../engine/dataEngine';
+import { globalDataEngine, formatValue, formatCurrency, formatNumber, formatPercent } from '../../engine/dataEngine';
 
 interface VisualCardProps {
   visual: Visual;
@@ -362,41 +362,80 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual, isSelected, onSe
 
       case 'pie':
       case 'donut': {
-        const pieData = categories.map((cat, i) => ({
+        const rawPieData = categories.map((cat, i) => ({
           name: cat,
-          value: series[0]?.data[i] || 0,
+          value: series[0]?.data[i] ?? 0,
         }));
+
+        // Filter out zero-slices if there are positive slices, preventing clutter and overlapping 0% labels
+        const hasPositive = rawPieData.some(p => p.value > 0);
+        const pieData = hasPositive ? rawPieData.filter(p => p.value > 0) : rawPieData;
+
+        // Find measure or column format
+        const yFieldName = visual.dataConfig.yAxisFields?.[0] || '';
+        const activeMeasure = measures.find(
+          m => m.name.toLowerCase() === yFieldName.toLowerCase() || `Σ ${m.name}`.toLowerCase() === yFieldName.toLowerCase()
+        );
+
+        const formatVal = (val: number): string => {
+          if (activeMeasure) {
+            if (activeMeasure.formatString) {
+              return formatValue(val, activeMeasure.formatString);
+            }
+            if (activeMeasure.format === 'currency') return formatCurrency(val);
+            if (activeMeasure.format === 'percentage') return formatPercent(val);
+            if (activeMeasure.format === 'integer') return formatNumber(Math.round(val));
+            if (activeMeasure.format === 'number') return formatNumber(val);
+          }
+          if (isYCurrency || isCurrencyField(yFieldName)) {
+            return formatCurrency(val);
+          }
+          return formatNumber(val);
+        };
+
         return {
           color: colors,
           tooltip: {
             trigger: 'item',
             formatter: (p: any) => {
-              const valStr = isYCurrency ? formatCurrency(p.value) : formatNumber(p.value);
-              return `${p.name}: <b>${valStr}</b> (${p.percent}%)`;
+              const valStr = formatVal(p.value);
+              return `<div style="font-weight:600;color:#1e293b;margin-bottom:2px;">${p.name}</div>
+                      <div style="font-size:12px;color:#475569;">Valor: <b style="color:#0f172a;">${valStr}</b> (${p.percent}%)</div>`;
             },
           },
           legend: {
             show: visual.formatConfig.showLegend ?? true,
-            bottom: 5,
+            type: 'scroll',
+            bottom: 4,
+            left: 'center',
             itemWidth: 10,
             itemHeight: 10,
             textStyle: { fontSize: 11, color: '#64748b' },
+            pageIconSize: 10,
+            pageTextStyle: { fontSize: 10, color: '#94a3b8' },
           },
           series: [
             {
+              name: visual.title || (visual.type === 'donut' ? 'Gráfico de Rosca' : 'Gráfico de Pizza'),
               type: 'pie',
-              radius: visual.type === 'donut' ? ['42%', '72%'] : '70%',
-              center: ['50%', '45%'],
+              radius: visual.type === 'donut' ? ['45%', '72%'] : '68%',
+              center: ['50%', (visual.formatConfig.showLegend ?? true) ? '44%' : '50%'],
               avoidLabelOverlap: true,
               itemStyle: {
-                borderRadius: 5,
-                borderColor: '#fff',
+                borderRadius: visual.type === 'donut' ? 4 : 2,
+                borderColor: '#ffffff',
                 borderWidth: 2,
               },
               label: {
                 show: visual.formatConfig.showDataLabels ?? true,
                 formatter: '{b}: {d}%',
                 fontSize: 10,
+                color: '#334155',
+              },
+              labelLine: {
+                show: visual.formatConfig.showDataLabels ?? true,
+                length: 8,
+                length2: 8,
               },
               data: pieData,
             },
@@ -684,7 +723,9 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual, isSelected, onSe
                   <tr key={i} className="hover:bg-slate-50">
                     {Object.keys(row).slice(0, 7).map(col => (
                       <td key={col} className="px-2 py-1 text-slate-600 truncate max-w-[120px]">
-                        {typeof row[col] === 'number' && isCurrencyField(col)
+                        {row[col] === null || row[col] === undefined
+                          ? (visual.formatConfig?.showBlankAsZero ? (isCurrencyField(col) ? formatCurrency(0) : '0') : '')
+                          : typeof row[col] === 'number' && isCurrencyField(col)
                           ? formatCurrency(row[col])
                           : String(row[col] ?? '')}
                       </td>
@@ -697,11 +738,24 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual, isSelected, onSe
         ) : visual.type === 'card' || visual.type === 'kpi' ? (
           <div className="flex flex-col items-center justify-center h-full text-center p-2">
             <span className="text-3xl font-extrabold text-slate-800 tracking-tight">
-              {visual.title.includes('%') || visual.dataConfig.yAxisFields?.[0]?.toLowerCase().includes('pct') || visual.dataConfig.yAxisFields?.[0]?.toLowerCase().includes('percent')
-                ? formatPercent(queryResult.summaryValue ?? 0)
-                : isCurrencyField(visual.dataConfig.yAxisFields?.[0] || '') || visual.title.toLowerCase().includes('r$') || visual.title.toLowerCase().includes('faturamento') || visual.title.toLowerCase().includes('lucro') || visual.title.toLowerCase().includes('custo')
-                ? formatCurrency(queryResult.summaryValue ?? 0)
-                : formatNumber(queryResult.summaryValue ?? 0)}
+              {(() => {
+                const isValBlank = queryResult.summaryValue === null || queryResult.summaryValue === undefined || isNaN(queryResult.summaryValue);
+                const showZero = Boolean(visual.formatConfig?.showBlankAsZero);
+                if (isValBlank && !showZero) return '';
+                const val = isValBlank ? 0 : queryResult.summaryValue;
+                const yField = visual.dataConfig.yAxisFields?.[0] || '';
+                const targetMeasure = measures.find(m => m.name.toLowerCase() === yField.toLowerCase());
+                if (targetMeasure?.formatString) {
+                  return formatValue(val, targetMeasure.formatString, { showBlankAsZero: showZero, isLegacyColumn: false });
+                }
+                if (visual.title.includes('%') || yField.toLowerCase().includes('pct') || yField.toLowerCase().includes('percent')) {
+                  return formatPercent(val);
+                }
+                if (isCurrencyField(yField) || visual.title.toLowerCase().includes('r$') || visual.title.toLowerCase().includes('faturamento') || visual.title.toLowerCase().includes('lucro') || visual.title.toLowerCase().includes('custo')) {
+                  return formatCurrency(val);
+                }
+                return formatNumber(val);
+              })()}
             </span>
             <span className="text-xs font-medium text-slate-500 mt-1">
               {visual.dataConfig.tableId} • {visual.dataConfig.yAxisFields?.[0] || 'Total'} ({visual.dataConfig.aggregation || 'SUM'})

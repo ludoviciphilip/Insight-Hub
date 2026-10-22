@@ -3,7 +3,8 @@ import { Sigma, CheckCircle2, AlertCircle, Sparkles, BookOpen, Trash2 } from 'lu
 import { useBiStore } from '../../store/useBiStore';
 import { DaxEngine } from '../../engine/daxEngine';
 import { Measure } from '../../types/bi';
-import { formatCurrency, formatPercent, formatNumber } from '../../engine/dataEngine';
+import { formatValue, formatCurrency, formatPercent, formatNumber } from '../../engine/dataEngine';
+import { FormulaEditor } from '../shared/FormulaEditor';
 
 export const CustomMeasureModal: React.FC = () => {
   const {
@@ -22,6 +23,7 @@ export const CustomMeasureModal: React.FC = () => {
   const [tableName, setTableName] = useState(tables[0]?.name || 'f_Vendas');
   const [formula, setFormula] = useState('SUM(f_Vendas[ValorTotal])');
   const [format, setFormat] = useState<Measure['format']>('currency');
+  const [formatString, setFormatString] = useState('Currency');
   const [displayFolder, setDisplayFolder] = useState('Métricas Personalizadas');
   const [description, setDescription] = useState('');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -36,6 +38,7 @@ export const CustomMeasureModal: React.FC = () => {
           setTableName(existing.tableName);
           setFormula(existing.formula);
           setFormat(existing.format || 'currency');
+          setFormatString(existing.formatString || (existing.format === 'currency' ? 'Currency' : existing.format === 'percentage' ? '0.0%' : existing.format === 'integer' ? '#,##0' : '#,##0.00'));
           setDisplayFolder(existing.displayFolder || 'Métricas Personalizadas');
           setDescription(existing.description || '');
           setErrorMsg(null);
@@ -47,6 +50,7 @@ export const CustomMeasureModal: React.FC = () => {
       setTableName(tables[0]?.name || 'f_Vendas');
       setFormula('SUM(f_Vendas[ValorTotal])');
       setFormat('currency');
+      setFormatString('Currency');
       setDisplayFolder('Métricas Personalizadas');
       setDescription('');
       setErrorMsg(null);
@@ -100,6 +104,7 @@ export const CustomMeasureModal: React.FC = () => {
         tableName,
         formula: formula.trim(),
         format,
+        formatString: formatString.trim() || undefined,
         displayFolder: displayFolder.trim() || undefined,
         description: description.trim() || undefined,
       });
@@ -110,6 +115,7 @@ export const CustomMeasureModal: React.FC = () => {
         tableName,
         formula: formula.trim(),
         format,
+        formatString: formatString.trim() || undefined,
         displayFolder: displayFolder.trim() || undefined,
         description: description.trim() || undefined,
       };
@@ -140,7 +146,7 @@ export const CustomMeasureModal: React.FC = () => {
               <p className="text-[11px] text-slate-500">
                 {editingMeasureId
                   ? 'Modifique os cálculos, parâmetros de formatação ou fórmula DAX desta medida.'
-                  : 'Escreva cálculos avançados com agregadores, filtros e transição de contexto.'}
+                  : 'Escreva cálculos avançados, agregações e operações matemáticas entre medidas ([A] + [B]).'}
               </p>
             </div>
           </div>
@@ -179,31 +185,85 @@ export const CustomMeasureModal: React.FC = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <div>
               <label className="font-semibold text-slate-700 block mb-1">Formato do Resultado</label>
               <select
                 value={format}
-                onChange={(e) => setFormat(e.target.value as any)}
+                onChange={(e) => {
+                  const f = e.target.value as Measure['format'];
+                  setFormat(f);
+                  if (f === 'currency') setFormatString('Currency');
+                  else if (f === 'percentage') setFormatString('0.0%');
+                  else if (f === 'integer') setFormatString('#,##0');
+                  else setFormatString('#,##0.00');
+                }}
                 className="w-full border rounded-lg p-1.5 bg-slate-50 text-slate-800"
               >
-                <option value="currency">Moeda Brasileira (R$ 1.250,00)</option>
+                <option value="currency">Moeda (R$ 1.250,00)</option>
                 <option value="percentage">Porcentagem (25,0%)</option>
                 <option value="number">Número Decimal (1.250,50)</option>
                 <option value="integer">Número Inteiro (1.250)</option>
               </select>
             </div>
             <div>
-              <label className="font-semibold text-slate-700 block mb-1">Pasta de Exibição (Opcional)</label>
+              <label className="font-semibold text-slate-700 block mb-1">Máscara DAX (formatString)</label>
               <input
                 type="text"
-                placeholder="Ex.: Comercial, KPIs, Financeiro"
+                placeholder='Ex.: "#,0.00", "0.0%"'
+                value={formatString}
+                onChange={(e) => setFormatString(e.target.value)}
+                className="w-full border rounded-lg p-1.5 bg-slate-50 text-slate-800 font-mono text-[11px]"
+              />
+            </div>
+            <div>
+              <label className="font-semibold text-slate-700 block mb-1">Pasta de Exibição</label>
+              <input
+                type="text"
+                placeholder="Ex.: Comercial, KPIs"
                 value={displayFolder}
                 onChange={(e) => setDisplayFolder(e.target.value)}
                 className="w-full border rounded-lg p-1.5 bg-slate-50 text-slate-800"
               />
             </div>
           </div>
+
+          {/* Measure-to-Measure Arithmetic helper bar */}
+          {measures.length > 0 && (
+            <div className="p-2 rounded-lg bg-amber-50/70 border border-amber-200/70 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold text-amber-900 flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-amber-600" /> Inserir Medida na Operação ([A] + [B]):
+                </span>
+                <div className="flex items-center gap-1">
+                  {['+', '-', '*', '/'].map(op => (
+                    <button
+                      key={op}
+                      type="button"
+                      onClick={() => insertSnippet(` ${op} `)}
+                      className="w-5 h-5 flex items-center justify-center rounded bg-white hover:bg-amber-100 text-slate-800 border border-slate-300 font-mono font-bold text-[10px]"
+                      title={`Inserir operador ${op}`}
+                    >
+                      {op}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-1 max-h-16 overflow-y-auto">
+                {measures.map(m => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => insertSnippet(`[${m.name}]`)}
+                    className="px-1.5 py-0.5 rounded bg-white hover:bg-amber-200 text-amber-950 border border-amber-300 font-mono text-[10px] font-medium"
+                    title={`Inserir [${m.name}]`}
+                  >
+                    [{m.name}]
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Quick Snippets Bar */}
           <div>
@@ -232,12 +292,14 @@ export const CustomMeasureModal: React.FC = () => {
               ))}
             </div>
 
-            <textarea
+            <FormulaEditor
               value={formula}
-              onChange={(e) => setFormula(e.target.value)}
+              onChange={setFormula}
+              dialect="dax"
+              tables={tables}
+              measures={measures}
+              placeholder="Ex.: [Total Vendas] - [Custo Total] ou DIVIDE([Vendas], [Meta])"
               rows={4}
-              className="w-full font-mono text-xs bg-slate-900 text-amber-300 p-3 rounded-xl border border-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
-              placeholder="Ex.: CALCULATE(SUM(f_Vendas[ValorTotal]), f_Vendas[Regiao] = 'Sudeste')"
             />
           </div>
 
@@ -261,11 +323,7 @@ export const CustomMeasureModal: React.FC = () => {
               <div className="text-right">
                 <span className="text-[10px] text-slate-400 block">Prévia Calculada:</span>
                 <span className="font-extrabold text-slate-900 text-xs">
-                  {format === 'currency'
-                    ? formatCurrency(previewValue)
-                    : format === 'percentage'
-                    ? formatPercent(previewValue)
-                    : formatNumber(previewValue)}
+                  {formatValue(previewValue, formatString || (format === 'currency' ? 'Currency' : format === 'percentage' ? '0.0%' : format === 'integer' ? '#,##0' : '#,##0.00'))}
                 </span>
               </div>
             )}
