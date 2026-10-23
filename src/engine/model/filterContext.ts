@@ -233,7 +233,8 @@ export class FilterContext {
    * Evaluates visible row indices for a target table considering all direct
    * column filters and cross-table active relationship propagation.
    */
-  public getVisibleRowIndices(targetTableId: string, model: ModelAccess): number[] {
+  public getVisibleRowIndices(targetTableId: string, model?: ModelAccess | null): number[] {
+    if (!model) return [];
     const table = model.getTable(targetTableId);
     if (!table || !table.rows || table.rows.length === 0) return [];
 
@@ -325,7 +326,8 @@ export class FilterContext {
   /**
    * Helper that returns the visible row objects for target table
    */
-  public getFilteredRows(targetTableId: string, model: ModelAccess): Record<string, any>[] {
+  public getFilteredRows(targetTableId: string, model?: ModelAccess | null): Record<string, any>[] {
+    if (!model) return [];
     const table = model.getTable(targetTableId);
     if (!table) return [];
     const indices = this.getVisibleRowIndices(targetTableId, model);

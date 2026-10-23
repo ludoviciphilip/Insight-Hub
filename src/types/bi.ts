@@ -35,6 +35,23 @@ export interface Table {
   isCalculated?: boolean;
   expression?: string;
   isCalendar?: boolean;
+  calendarDateColumn?: string;
+  fiscalYearEndMonth?: number;
+  calendarDiagnostics?: {
+    isValid: boolean;
+    isMarkedAsDateTable: boolean;
+    dateColumn?: string;
+    minDate?: string;
+    maxDate?: string;
+    totalDays: number;
+    expectedDays: number;
+    hasNulls: boolean;
+    hasDuplicates: boolean;
+    isContinuous: boolean;
+    errors: string[];
+    warnings: string[];
+  };
+  autoDateTimeEnabled?: boolean;
   isHidden?: boolean;
   isDim?: boolean;
   x?: number; // for model view coordinates

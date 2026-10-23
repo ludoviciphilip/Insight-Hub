@@ -312,6 +312,27 @@ export class Evaluator {
       return this.evalColumnRef({ kind: 'ColumnRef', column: node.name });
     }
 
+    // Unquoted DAX keywords / intervals / orders: YEAR, MONTH, QUARTER, DAY, WEEK, DESC, ASC, etc.
+    const standardKeywords = [
+      'year', 'month', 'quarter', 'day', 'week',
+      'ano', 'mes', 'mês', 'trimestre', 'dia', 'semana',
+      'desc', 'asc', 'both', 'single', 'none',
+      'second', 'minute', 'hour',
+    ];
+    if (standardKeywords.includes(vName)) {
+      return node.name.toUpperCase();
+    }
+
+    // Check if it's an unbracketed measure
+    if (this.context.measures) {
+      const found = this.context.measures.find(
+        m => m.name.toLowerCase() === vName
+      );
+      if (found) {
+        return this.evaluateMeasure(found);
+      }
+    }
+
     throw new DaxError('Reference', `A variável VAR "${node.name}" não está definida no escopo`);
   }
 
@@ -401,6 +422,23 @@ export class Evaluator {
     // 1. CALCULATE & CALCULATETABLE
     if (fnName === 'CALCULATE' || fnName === 'CALCULATETABLE') {
       return this.evalCalculate(node);
+    }
+
+    // 1.1 Time Intelligence Syntactic Sugars
+    if (['TOTALYTD', 'TOTALQTD', 'TOTALMTD', 'TOTALWTD'].includes(fnName)) {
+      return this.evalTotalPeriod(node);
+    }
+    if (['CLOSINGBALANCEMONTH', 'CLOSINGBALANCEQUARTER', 'CLOSINGBALANCEYEAR', 'CLOSINGBALANCEWEEK'].includes(fnName)) {
+      return this.evalClosingBalance(node);
+    }
+    if (['OPENINGBALANCEMONTH', 'OPENINGBALANCEQUARTER', 'OPENINGBALANCEYEAR', 'OPENINGBALANCEWEEK'].includes(fnName)) {
+      return this.evalOpeningBalance(node);
+    }
+    if (['FIRSTNONBLANK', 'LASTNONBLANK'].includes(fnName)) {
+      return this.evalFirstLastNonBlank(node, false);
+    }
+    if (['FIRSTNONBLANKVALUE', 'LASTNONBLANKVALUE'].includes(fnName)) {
+      return this.evalFirstLastNonBlank(node, true);
     }
 
     // 2. Iterators
@@ -665,12 +703,49 @@ export class Evaluator {
       'SUBSTITUTEWITHINDEX',
     ].includes(fnName);
 
+    const isTimeIntelligence =
+      fnDef.category === 'Inteligência de Tempo' ||
+      [
+        'DATESYTD',
+        'DATESQTD',
+        'DATESMTD',
+        'DATESWTD',
+        'DATEADD',
+        'SAMEPERIODLASTYEAR',
+        'PARALLELPERIOD',
+        'PREVIOUSDAY',
+        'PREVIOUSWEEK',
+        'PREVIOUSMONTH',
+        'PREVIOUSQUARTER',
+        'PREVIOUSYEAR',
+        'NEXTDAY',
+        'NEXTWEEK',
+        'NEXTMONTH',
+        'NEXTQUARTER',
+        'NEXTYEAR',
+        'DATESBETWEEN',
+        'DATESINPERIOD',
+        'FIRSTDATE',
+        'LASTDATE',
+        'STARTOFWEEK',
+        'STARTOFMONTH',
+        'STARTOFQUARTER',
+        'STARTOFYEAR',
+        'ENDOFWEEK',
+        'ENDOFMONTH',
+        'ENDOFQUARTER',
+        'ENDOFYEAR',
+      ].includes(fnName);
+
     const evaluatedArgs = node.args.map((arg, idx) => {
       if (!arg) return DAX_BLANK;
       if (isAgg && idx === 0 && arg.kind === 'ColumnRef') {
         return { table: arg.table, column: arg.column };
       }
       if (isContextOrRel && (arg.kind === 'ColumnRef' || arg.kind === 'VariableRef')) {
+        return arg.kind === 'VariableRef' ? { column: arg.name } : { table: arg.table, column: arg.column };
+      }
+      if (isTimeIntelligence && idx === 0 && (arg.kind === 'ColumnRef' || arg.kind === 'VariableRef')) {
         return arg.kind === 'VariableRef' ? { column: arg.name } : { table: arg.table, column: arg.column };
       }
       if (isTableFunction && (arg.kind === 'ColumnRef' || arg.kind === 'VariableRef')) {
@@ -690,6 +765,307 @@ export class Evaluator {
     }
 
     return DAX_BLANK;
+  }
+
+  /**
+   * Evaluates period-to-date syntaxes (TOTALYTD, TOTALQTD, TOTALMTD, TOTALWTD)
+   * Strictly equivalent to CALCULATE(expr, DATES*TD(dates, [year_end_date]), [filter])
+   */
+  private evalTotalPeriod(node: FunctionCallNode): any {
+    const fnName = node.name.toUpperCase();
+    if (node.args.length < 2 || !node.args[0] || !node.args[1]) {
+      throw new DaxError('Semantic', `${fnName} requer pelo menos 2 argumentos (expressão, datas)`);
+    }
+
+    const exprNode = node.args[0];
+    const dateNode = node.args[1];
+
+    let datesFnName = 'DATESYTD';
+    if (fnName === 'TOTALQTD') datesFnName = 'DATESQTD';
+    else if (fnName === 'TOTALMTD') datesFnName = 'DATESMTD';
+    else if (fnName === 'TOTALWTD') datesFnName = 'DATESWTD';
+
+    let filterNode: ASTNode | null | undefined;
+    let yearEndNode: ASTNode | null | undefined;
+
+    if (fnName === 'TOTALYTD') {
+      if (node.args.length === 4) {
+        filterNode = node.args[2];
+        yearEndNode = node.args[3];
+      } else if (node.args.length === 3) {
+        const third = node.args[2];
+        if (third && third.kind === 'Literal' && typeof third.value === 'string' && /[\/\-\.]/.test(third.value)) {
+          yearEndNode = third;
+        } else {
+          filterNode = third;
+        }
+      }
+    } else if (node.args.length >= 3) {
+      filterNode = node.args[2];
+    }
+
+    const datesCallArgs: ASTNode[] = [dateNode];
+    if (yearEndNode) {
+      datesCallArgs.push(yearEndNode);
+    }
+
+    const datesCallNode: FunctionCallNode = {
+      kind: 'FunctionCall',
+      name: datesFnName,
+      args: datesCallArgs,
+    };
+
+    const calcArgs: ASTNode[] = [exprNode, datesCallNode];
+    if (filterNode) {
+      calcArgs.push(filterNode);
+    }
+
+    return this.evalCalculate({
+      kind: 'FunctionCall',
+      name: 'CALCULATE',
+      args: calcArgs,
+    });
+  }
+
+  /**
+   * Evaluates CLOSINGBALANCE* syntaxes
+   * Equivalent to CALCULATE(expr, ENDOF*(dates), [filter])
+   */
+  private evalClosingBalance(node: FunctionCallNode): any {
+    const fnName = node.name.toUpperCase();
+    if (node.args.length < 2 || !node.args[0] || !node.args[1]) {
+      throw new DaxError('Semantic', `${fnName} requer pelo menos 2 argumentos (expressão, datas)`);
+    }
+
+    const exprNode = node.args[0];
+    const dateNode = node.args[1];
+
+    let endFnName = 'ENDOFMONTH';
+    if (fnName === 'CLOSINGBALANCEQUARTER') endFnName = 'ENDOFQUARTER';
+    else if (fnName === 'CLOSINGBALANCEYEAR') endFnName = 'ENDOFYEAR';
+    else if (fnName === 'CLOSINGBALANCEWEEK') endFnName = 'ENDOFWEEK';
+
+    let filterNode: ASTNode | null | undefined;
+    let yearEndNode: ASTNode | null | undefined;
+
+    if (fnName === 'CLOSINGBALANCEYEAR') {
+      if (node.args.length === 4) {
+        filterNode = node.args[2];
+        yearEndNode = node.args[3];
+      } else if (node.args.length === 3) {
+        const third = node.args[2];
+        if (third && third.kind === 'Literal' && typeof third.value === 'string' && /[\/\-\.]/.test(third.value)) {
+          yearEndNode = third;
+        } else {
+          filterNode = third;
+        }
+      }
+    } else if (node.args.length >= 3) {
+      filterNode = node.args[2];
+    }
+
+    const endCallArgs: ASTNode[] = [dateNode];
+    if (yearEndNode) endCallArgs.push(yearEndNode);
+
+    const endCallNode: FunctionCallNode = {
+      kind: 'FunctionCall',
+      name: endFnName,
+      args: endCallArgs,
+    };
+
+    const calcArgs: ASTNode[] = [exprNode, endCallNode];
+    if (filterNode) calcArgs.push(filterNode);
+
+    return this.evalCalculate({
+      kind: 'FunctionCall',
+      name: 'CALCULATE',
+      args: calcArgs,
+    });
+  }
+
+  /**
+   * Evaluates OPENINGBALANCE* syntaxes
+   * Equivalent to CALCULATE(expr, PREVIOUSDAY(STARTOF*(dates)), [filter])
+   */
+  private evalOpeningBalance(node: FunctionCallNode): any {
+    const fnName = node.name.toUpperCase();
+    if (node.args.length < 2 || !node.args[0] || !node.args[1]) {
+      throw new DaxError('Semantic', `${fnName} requer pelo menos 2 argumentos (expressão, datas)`);
+    }
+
+    const exprNode = node.args[0];
+    const dateNode = node.args[1];
+
+    let startFnName = 'STARTOFMONTH';
+    if (fnName === 'OPENINGBALANCEQUARTER') startFnName = 'STARTOFQUARTER';
+    else if (fnName === 'OPENINGBALANCEYEAR') startFnName = 'STARTOFYEAR';
+    else if (fnName === 'OPENINGBALANCEWEEK') startFnName = 'STARTOFWEEK';
+
+    let filterNode: ASTNode | null | undefined;
+    let yearEndNode: ASTNode | null | undefined;
+
+    if (fnName === 'OPENINGBALANCEYEAR') {
+      if (node.args.length === 4) {
+        filterNode = node.args[2];
+        yearEndNode = node.args[3];
+      } else if (node.args.length === 3) {
+        const third = node.args[2];
+        if (third && third.kind === 'Literal' && typeof third.value === 'string' && /[\/\-\.]/.test(third.value)) {
+          yearEndNode = third;
+        } else {
+          filterNode = third;
+        }
+      }
+    } else if (node.args.length >= 3) {
+      filterNode = node.args[2];
+    }
+
+    const startCallArgs: ASTNode[] = [dateNode];
+    if (yearEndNode) startCallArgs.push(yearEndNode);
+
+    const startCallNode: FunctionCallNode = {
+      kind: 'FunctionCall',
+      name: startFnName,
+      args: startCallArgs,
+    };
+
+    const prevDayNode: FunctionCallNode = {
+      kind: 'FunctionCall',
+      name: 'PREVIOUSDAY',
+      args: [startCallNode],
+    };
+
+    const calcArgs: ASTNode[] = [exprNode, prevDayNode];
+    if (filterNode) calcArgs.push(filterNode);
+
+    return this.evalCalculate({
+      kind: 'FunctionCall',
+      name: 'CALCULATE',
+      args: calcArgs,
+    });
+  }
+
+  /**
+   * Evaluates FIRSTNONBLANK, LASTNONBLANK, FIRSTNONBLANKVALUE, LASTNONBLANKVALUE
+   */
+  private evalFirstLastNonBlank(node: FunctionCallNode, returnValueOnly: boolean): any {
+    const fnName = node.name.toUpperCase();
+    if (node.args.length !== 2 || !node.args[0] || !node.args[1]) {
+      throw new DaxError('Semantic', `${fnName} requer exatamente 2 argumentos (coluna, expressão)`);
+    }
+
+    const colNode = node.args[0];
+    const exprNode = node.args[1];
+    const isLast = fnName.startsWith('LAST');
+
+    const model = this.context.model;
+    let colName = '';
+    let tableName = '';
+
+    if (colNode.kind === 'ColumnRef') {
+      colName = colNode.column;
+      tableName = colNode.table || '';
+    } else if (colNode.kind === 'VariableRef') {
+      colName = colNode.name;
+    }
+
+    let targetTable = tableName && model ? model.getTable(tableName) : undefined;
+    if (!targetTable && model) {
+      for (const t of model.getTables()) {
+        if (t.columns.some(c => c.name.toLowerCase() === colName.toLowerCase())) {
+          targetTable = t;
+          break;
+        }
+      }
+    }
+
+    if (!targetTable) {
+      throw new DaxError('Semantic', `Coluna [${colName}] não foi encontrada no modelo para ${fnName}`);
+    }
+
+    let rows = targetTable.rows || [];
+    if (this.context.filterContext) {
+      rows = this.context.filterContext.getFilteredRows(targetTable.id, model || undefined);
+    }
+
+    const valSet = new Set<any>();
+    for (const r of rows) {
+      const v = r[colName];
+      if (v !== undefined && v !== null && !isBlank(v)) {
+        valSet.add(v);
+      }
+    }
+
+    const sortedVals = Array.from(valSet).sort((a, b) => daxCompare(a, b));
+    if (isLast) {
+      sortedVals.reverse();
+    }
+
+    for (const val of sortedVals) {
+      const childFilterCtx = this.context.filterContext
+        ? this.context.filterContext.clone()
+        : new FilterContext();
+
+      childFilterCtx.setColumnFilter(
+        targetTable.id,
+        colName,
+        {
+          tableId: targetTable.id,
+          column: colName,
+          allowedValues: new Set([val]),
+          isKeepFilters: false,
+        },
+        false
+      );
+
+      const childEval = new Evaluator({
+        ...this.context,
+        filterContext: childFilterCtx,
+        row: undefined,
+        rowIndex: undefined,
+        rowContextStack: undefined,
+      });
+
+      const res = childEval.evalNode(exprNode);
+      if (!isBlank(res)) {
+        if (returnValueOnly) {
+          return res;
+        } else {
+          return {
+            __isDaxTable: true,
+            columns: [colName],
+            rows: [{ [colName]: val }],
+            tableId: targetTable.id,
+            tableName: targetTable.name,
+            lineage: {
+              [colName]: {
+                tableId: targetTable.id,
+                tableName: targetTable.name,
+                column: colName,
+              },
+            },
+          };
+        }
+      }
+    }
+
+    if (returnValueOnly) {
+      return DAX_BLANK;
+    }
+    return {
+      __isDaxTable: true,
+      columns: [colName],
+      rows: [],
+      tableId: targetTable.id,
+      tableName: targetTable.name,
+      lineage: {
+        [colName]: {
+          tableId: targetTable.id,
+          tableName: targetTable.name,
+          column: colName,
+        },
+      },
+    };
   }
 
   /**
@@ -1044,6 +1420,12 @@ export class Evaluator {
         const targetTableId = lin ? lin.tableId : (tableVal.tableId || '');
         const targetCol = lin ? lin.column : col;
         if (targetTableId) {
+          const targetTable = model?.getTable(targetTableId);
+          const isDateCol = targetTable?.isCalendar || targetTable?.columns.some(c => c.name.toLowerCase() === targetCol.toLowerCase() && c.dataType === 'date');
+          if (!isKeepFilters && isDateCol) {
+            filterCtx.removeTableFilters(targetTableId);
+          }
+
           filterCtx.setColumnFilter(
             targetTableId,
             targetCol,
@@ -1074,6 +1456,14 @@ export class Evaluator {
       }
 
       if (targetTableId) {
+        // In DAX, when a filter is applied to a table's primary date column via time intelligence or table filter,
+        // it clears other filters on that same date dimension table (e.g. Ano, Mes, AnoMes).
+        const targetTable = model?.getTable(targetTableId);
+        const isDateCol = targetTable?.isCalendar || targetTable?.columns.some(c => c.name.toLowerCase() === targetCol.toLowerCase() && c.dataType === 'date');
+        if (!isKeepFilters && isDateCol) {
+          filterCtx.removeTableFilters(targetTableId);
+        }
+
         const distinct = new Set(tableVal.rows.map(r => r[col]));
         filterCtx.setColumnFilter(
           targetTableId,

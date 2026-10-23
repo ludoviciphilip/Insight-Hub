@@ -28,7 +28,8 @@ export type FunctionCategory =
   | 'Linha'
   | 'Agregação'
   | 'Filtro'
-  | 'Tabela';
+  | 'Tabela'
+  | 'Inteligência de Tempo';
 
 export interface FunctionDefinition {
   name: string;
@@ -45,7 +46,17 @@ export interface FunctionDefinition {
 
 export interface FunctionDoc {
   name: string;
-  category: 'Texto' | 'Matemática' | 'Data' | 'Lógica / Condicional' | 'Linha' | 'Agregação' | 'Filtro' | 'Tabela';
+  category:
+    | 'Texto'
+    | 'Matemática'
+    | 'Data'
+    | 'Lógica / Condicional'
+    | 'Linha'
+    | 'Agregação'
+    | 'Filtro'
+    | 'Tabela'
+    | 'Inteligência de Tempo'
+    | 'Informação';
   syntax: string;
   description: string;
   example: string;
@@ -895,6 +906,8 @@ export const POWER_BI_FUNCTIONS: FunctionDoc[] = Object.values(FUNCTION_REGISTRY
   else if (fn.category === 'Agregação') cat = 'Agregação';
   else if (fn.category === 'Filtro') cat = 'Filtro';
   else if (fn.category === 'Tabela') cat = 'Tabela';
+  else if (fn.category === 'Inteligência de Tempo') cat = 'Inteligência de Tempo';
+  else if (fn.category === 'Informação') cat = 'Informação';
 
   return {
     name: fn.name,

@@ -1,6 +1,11 @@
 import { Table, Relationship, Measure } from '../types/bi';
+import { validateDateTable } from '../engine/model/dateTable';
 
-export function generateCalendarTable(startDate = '2025-01-01', endDate = '2026-12-31'): Table {
+export function generateCalendarTable(
+  startDate = '2025-01-01',
+  endDate = '2026-12-31',
+  fiscalYearEndMonth = 12
+): Table {
   const rows: Record<string, any>[] = [];
   const start = new Date(startDate);
   const end = new Date(endDate);
@@ -36,11 +41,14 @@ export function generateCalendarTable(startDate = '2025-01-01', endDate = '2026-
     current.setDate(current.getDate() + 1);
   }
 
-  return {
+  const table: Table = {
     id: 'd_Calendario',
     name: 'd_Calendario',
     originalName: 'd_Calendario',
     isCalendar: true,
+    calendarDateColumn: 'Data',
+    fiscalYearEndMonth: fiscalYearEndMonth || 12,
+    autoDateTimeEnabled: false,
     isDim: true,
     x: 40,
     y: 40,
@@ -56,6 +64,9 @@ export function generateCalendarTable(startDate = '2025-01-01', endDate = '2026-
     ],
     rows,
   };
+
+  table.calendarDiagnostics = validateDateTable(table, 'Data');
+  return table;
 }
 
 export function getSampleDatasets(): { tables: Table[]; relationships: Relationship[]; measures: Measure[] } {

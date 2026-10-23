@@ -6,6 +6,7 @@ import { AGGREGATION_FUNCTIONS } from './aggregation';
 import { FILTER_FUNCTIONS } from './filter';
 import { RELATIONSHIP_FUNCTIONS } from './relationships';
 import { TABLE_FUNCTIONS } from './table';
+import { TIME_INTELLIGENCE_FUNCTIONS } from './timeIntelligence';
 import { FunctionDefinition } from '../expr/registry';
 
 export const ALL_SCALAR_FUNCTIONS: Record<string, FunctionDefinition> = {
@@ -17,6 +18,7 @@ export const ALL_SCALAR_FUNCTIONS: Record<string, FunctionDefinition> = {
   ...FILTER_FUNCTIONS,
   ...RELATIONSHIP_FUNCTIONS,
   ...TABLE_FUNCTIONS,
+  ...TIME_INTELLIGENCE_FUNCTIONS,
 };
 
 export {
@@ -28,4 +30,5 @@ export {
   FILTER_FUNCTIONS,
   RELATIONSHIP_FUNCTIONS,
   TABLE_FUNCTIONS,
+  TIME_INTELLIGENCE_FUNCTIONS,
 };
