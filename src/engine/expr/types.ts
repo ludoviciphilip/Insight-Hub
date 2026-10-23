@@ -21,6 +21,30 @@ export type DaxDataType =
   | 'VARIANT'
   | 'UNKNOWN';
 
+export interface ColumnLineage {
+  tableId: string;
+  tableName: string;
+  column: string;
+}
+
+export interface DaxTableValue {
+  __isTable?: true;
+  __isDaxTable?: true;
+  tableId?: string;
+  tableName?: string;
+  columns: any[];
+  rows: Record<string, any>[];
+  lineage?: Record<string, ColumnLineage>;
+}
+
+export function isDaxTable(val: any): val is DaxTableValue {
+  return Boolean(
+    val &&
+    typeof val === 'object' &&
+    (val.__isTable === true || val.__isDaxTable === true || (Array.isArray(val.columns) && Array.isArray(val.rows)))
+  );
+}
+
 export const DAX_BLANK: null = null;
 
 export function isBlank(val: any): boolean {
@@ -251,6 +275,10 @@ export function daxCompare(left: any, right: any): number {
 
 export function daxIn(left: any, tableOrList: any): boolean {
   if (!tableOrList) return false;
+  if (isDaxTable(tableOrList)) {
+    const col = tableOrList.columns[0];
+    return tableOrList.rows.some(r => daxEqual(left, r[col]));
+  }
   const list = Array.isArray(tableOrList) ? tableOrList : [tableOrList];
   return list.some(item => {
     // If item is a row tuple [a, b], or single value

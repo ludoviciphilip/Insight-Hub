@@ -1,5 +1,5 @@
 import alasql from 'alasql';
-import { Table, Relationship, Filter, Measure, Visual } from '../types/bi';
+import { Table, Column, DataType, Relationship, Filter, Measure, Visual } from '../types/bi';
 import { DaxEngine } from './daxEngine';
 import { ModelAccess } from './model/modelAccess';
 import { globalColumnStore } from './model/columnStore';
@@ -14,6 +14,9 @@ import {
 } from './shared/formatter';
 
 export { formatValue, formatCurrency, formatNumber, formatPercent, formatDateBR };
+
+import { Evaluator } from './expr/evaluator';
+import { isDaxTable } from './expr/types';
 
 export class DataEngine implements ModelAccess {
   private tablesById: Map<string, Table> = new Map();
@@ -33,6 +36,80 @@ export class DataEngine implements ModelAccess {
     DaxEngine.setModelAccess(this);
   }
 
+  public recomputeCalculatedTables(tables: Table[], measures: Measure[]): Table[] {
+    const calcTables = tables.filter(t => t.isCalculated && t.expression);
+    if (calcTables.length === 0) return tables;
+
+    const resultTables = [...tables];
+    for (const ct of calcTables) {
+      try {
+        const evaluator = new Evaluator({
+          dialect: 'dax',
+          tables: resultTables,
+          measures,
+          model: this,
+        });
+        const res = evaluator.evaluate(ct.expression!);
+        if (isDaxTable(res)) {
+          const idx = resultTables.findIndex(t => t.id === ct.id);
+          if (idx !== -1) {
+            const cols: Column[] = res.columns.map(c => {
+              const sampleVal = res.rows[0]?.[c];
+              let dataType: DataType = 'text';
+              if (typeof sampleVal === 'number') dataType = 'number';
+              else if (typeof sampleVal === 'boolean') dataType = 'boolean';
+              else if (sampleVal instanceof Date) dataType = 'date';
+              return {
+                id: `col_${c}`,
+                name: c,
+                originalName: c,
+                dataType,
+                isCalculated: false,
+              };
+            });
+            resultTables[idx] = {
+              ...resultTables[idx],
+              columns: cols.length > 0 ? cols : resultTables[idx].columns,
+              rows: res.rows,
+            };
+          }
+        }
+      } catch (e) {
+        console.warn(`Error evaluating calculated table ${ct.name}:`, e);
+      }
+    }
+    return resultTables;
+  }
+
+  public recomputeCalculatedColumns(table: Table): Table {
+    const calcCols = table.columns.filter(c => c.isCalculated && c.expression);
+    if (calcCols.length === 0) return table;
+
+    const updatedRows = table.rows.map(r => ({ ...r }));
+    for (const col of calcCols) {
+      for (let i = 0; i < updatedRows.length; i++) {
+        const row = updatedRows[i];
+        try {
+          const evaluator = new Evaluator({
+            dialect: 'column',
+            row,
+            rowIndex: i,
+            tableId: table.id,
+            tableName: table.name,
+            tables: this.getTables(),
+            measures: this.getMeasures(),
+            model: this,
+          });
+          row[col.name] = evaluator.evaluate(col.expression!);
+        } catch {
+          row[col.name] = null;
+        }
+      }
+    }
+
+    return { ...table, rows: updatedRows };
+  }
+
   public setSchema(tables: Table[], relationships: Relationship[], measures: Measure[]): void {
     this.tablesById.clear();
     this.tableNamesToId.clear();
@@ -40,10 +117,13 @@ export class DataEngine implements ModelAccess {
     this.measureNamesToId.clear();
     this.registeredAlaSqlTables.clear();
 
-    tables.forEach(t => {
-      this.tablesById.set(t.id, t);
-      this.tableNamesToId.set(t.name.toLowerCase().trim(), t.id);
-      globalColumnStore.updateTable(t);
+    const effectiveTables = this.recomputeCalculatedTables(tables, measures);
+
+    effectiveTables.forEach(t => {
+      const computedTable = this.recomputeCalculatedColumns(t);
+      this.tablesById.set(computedTable.id, computedTable);
+      this.tableNamesToId.set(computedTable.name.toLowerCase().trim(), computedTable.id);
+      globalColumnStore.updateTable(computedTable);
     });
 
     // Normalize relationships: ensure fromTable / toTable use table IDs

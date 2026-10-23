@@ -9,9 +9,12 @@ import {
   HelpCircle,
   Layers,
   Wand2,
+  BookOpen,
+  Search,
+  X,
 } from 'lucide-react';
 import { Table, Measure, Column } from '../../types/bi';
-import { FUNCTION_REGISTRY, getAllFunctionNames } from '../../engine/expr/registry';
+import { FUNCTION_REGISTRY, getAllFunctionNames, POWER_BI_FUNCTIONS, FunctionDoc } from '../../engine/expr/registry';
 import { validateDax, DaxValidationResult } from '../../engine/expr/validator';
 import { PowerBiColumnEngine } from '../../engine/powerBiColumnEngine';
 
@@ -34,6 +37,7 @@ interface SuggestionItem {
   kind: 'function' | 'column' | 'measure' | 'table' | 'keyword';
   detail?: string;
   syntax?: string;
+  category?: string;
 }
 
 export const FormulaEditor: React.FC<FormulaEditorProps> = ({
@@ -55,45 +59,49 @@ export const FormulaEditor: React.FC<FormulaEditorProps> = ({
   const [suggestions, setSuggestions] = useState<SuggestionItem[]>([]);
   const [suggestionPrefix, setSuggestionPrefix] = useState<string>('');
   const [suggestionTrigger, setSuggestionTrigger] = useState<string>('');
+  const [showCatalog, setShowCatalog] = useState(false);
+  const [catalogSearch, setCatalogSearch] = useState('');
+  const [catalogCategory, setCatalogCategory] = useState<string>('Todas');
 
   // Collect all available symbols
   const allSymbols = useMemo(() => {
     const list: SuggestionItem[] = [];
+    const addedFns = new Set<string>();
 
-    // Functions
-    for (const [name, fn] of Object.entries(FUNCTION_REGISTRY)) {
-      list.push({
-        label: name,
-        insertText: `${name}(`,
-        kind: 'function',
-        detail: fn.description,
-        syntax: fn.syntax,
-      });
+    // 1. All functions from POWER_BI_FUNCTIONS catalog
+    for (const fn of POWER_BI_FUNCTIONS) {
+      const up = fn.name.toUpperCase();
+      if (!addedFns.has(up)) {
+        addedFns.add(up);
+        const isIter =
+          up.endsWith('X') ||
+          ['FILTER', 'ADDCOLUMNS', 'SELECTCOLUMNS', 'GENERATE', 'GENERATEALL', 'SUMMARIZE', 'SUMMARIZECOLUMNS', 'GROUPBY'].includes(up);
+        list.push({
+          label: fn.name,
+          insertText: `${fn.name}(`,
+          kind: 'function',
+          detail: fn.description,
+          syntax: fn.syntax,
+          category: isIter ? 'Iterador' : fn.category,
+        });
+      }
     }
 
-    // Additional common DAX aggregations & filters
-    const extraDax = [
-      { name: 'CALCULATE', syntax: 'CALCULATE(Expr, Filter1, ...)', detail: 'Modifica o contexto de filtro da expressão' },
-      { name: 'ALL', syntax: 'ALL(Table_or_Column)', detail: 'Remove filtros de tabela ou coluna' },
-      { name: 'ALLEXCEPT', syntax: 'ALLEXCEPT(Table, Col1, ...)', detail: 'Remove todos os filtros exceto nas colunas especificadas' },
-      { name: 'FILTER', syntax: 'FILTER(Table, Condition)', detail: 'Filtra uma tabela linha a linha' },
-      { name: 'SUM', syntax: 'SUM(Table[Column])', detail: 'Soma todos os números de uma coluna' },
-      { name: 'AVERAGE', syntax: 'AVERAGE(Table[Column])', detail: 'Calcula a média de uma coluna' },
-      { name: 'MIN', syntax: 'MIN(Table[Column])', detail: 'Retorna o menor valor de uma coluna' },
-      { name: 'MAX', syntax: 'MAX(Table[Column])', detail: 'Retorna o maior valor de uma coluna' },
-      { name: 'COUNT', syntax: 'COUNT(Table[Column])', detail: 'Conta valores existentes em uma coluna' },
-      { name: 'COUNTROWS', syntax: 'COUNTROWS(Table)', detail: 'Conta o total de linhas da tabela' },
-      { name: 'DISTINCTCOUNT', syntax: 'DISTINCTCOUNT(Table[Column])', detail: 'Conta valores únicos em uma coluna' },
-      { name: 'RELATED', syntax: 'RELATED(Table[Column])', detail: 'Obtém valor correspondente em tabela relacionada' },
-    ];
-    for (const extra of extraDax) {
-      if (!list.some(item => item.label === extra.name)) {
+    // 2. Any additional functions in FUNCTION_REGISTRY
+    for (const [name, fn] of Object.entries(FUNCTION_REGISTRY)) {
+      const up = name.toUpperCase();
+      if (!addedFns.has(up)) {
+        addedFns.add(up);
+        const isIter =
+          up.endsWith('X') ||
+          ['FILTER', 'ADDCOLUMNS', 'SELECTCOLUMNS', 'GENERATE', 'GENERATEALL', 'SUMMARIZE', 'SUMMARIZECOLUMNS', 'GROUPBY'].includes(up);
         list.push({
-          label: extra.name,
-          insertText: `${extra.name}(`,
+          label: name,
+          insertText: `${name}(`,
           kind: 'function',
-          detail: extra.detail,
-          syntax: extra.syntax,
+          detail: fn.description,
+          syntax: fn.syntax,
+          category: isIter ? 'Iterador' : fn.category,
         });
       }
     }
@@ -227,14 +235,29 @@ export const FormulaEditor: React.FC<FormulaEditorProps> = ({
       setSuggestions(filtered.slice(0, 10));
       setSelectedSuggestionIdx(0);
       setShowSuggestions(filtered.length > 0);
-    } else if (wordMatch && wordMatch[1].length >= 2) {
+    } else if (wordMatch && wordMatch[1].length >= 1) {
       const prefix = wordMatch[1].toLowerCase();
       setSuggestionPrefix(wordMatch[1]);
       setSuggestionTrigger('');
       const filtered = allSymbols.filter(
         s => s.label.toLowerCase().includes(prefix)
       );
-      setSuggestions(filtered.slice(0, 10));
+      filtered.sort((a, b) => {
+        const aL = a.label.toLowerCase();
+        const bL = b.label.toLowerCase();
+        const aExact = aL === prefix;
+        const bExact = bL === prefix;
+        if (aExact && !bExact) return -1;
+        if (!aExact && bExact) return 1;
+
+        const aStarts = aL.startsWith(prefix);
+        const bStarts = bL.startsWith(prefix);
+        if (aStarts && !bStarts) return -1;
+        if (!aStarts && bStarts) return 1;
+
+        return aL.localeCompare(bL);
+      });
+      setSuggestions(filtered.slice(0, 25));
       setSelectedSuggestionIdx(0);
       setShowSuggestions(filtered.length > 0);
     } else {
@@ -313,6 +336,52 @@ export const FormulaEditor: React.FC<FormulaEditorProps> = ({
     onChange(code);
   };
 
+  const insertFunction = (fnName: string) => {
+    const insertText = `${fnName}(`;
+    if (!textareaRef.current) {
+      onChange(value ? `${value} ${insertText}` : insertText);
+      return;
+    }
+    const pos = textareaRef.current.selectionStart;
+    const textBefore = value.slice(0, pos);
+    const textAfter = value.slice(pos);
+    const newText = textBefore + insertText + textAfter;
+    onChange(newText);
+    setTimeout(() => {
+      if (textareaRef.current) {
+        const newPos = pos + insertText.length;
+        textareaRef.current.focus();
+        textareaRef.current.setSelectionRange(newPos, newPos);
+      }
+    }, 10);
+  };
+
+  // Filtered function list for catalog drawer
+  const catalogFilteredFns = useMemo(() => {
+    return POWER_BI_FUNCTIONS.filter(fn => {
+      const up = fn.name.toUpperCase();
+      const isIter =
+        up.endsWith('X') ||
+        ['FILTER', 'ADDCOLUMNS', 'SELECTCOLUMNS', 'GENERATE', 'GENERATEALL', 'SUMMARIZE', 'SUMMARIZECOLUMNS', 'GROUPBY'].includes(up);
+
+      let matchesCat = true;
+      if (catalogCategory === 'Iteradores (X)') {
+        matchesCat = isIter;
+      } else if (catalogCategory !== 'Todas') {
+        matchesCat = fn.category === catalogCategory;
+      }
+
+      const q = catalogSearch.trim().toLowerCase();
+      const matchesSearch =
+        !q ||
+        fn.name.toLowerCase().includes(q) ||
+        fn.description.toLowerCase().includes(q) ||
+        fn.syntax.toLowerCase().includes(q);
+
+      return matchesCat && matchesSearch;
+    });
+  }, [catalogCategory, catalogSearch]);
+
   return (
     <div className="flex flex-col relative font-sans">
       {/* Top action toolbar */}
@@ -330,8 +399,22 @@ export const FormulaEditor: React.FC<FormulaEditorProps> = ({
         <div className="flex items-center gap-2">
           <button
             type="button"
+            onClick={() => setShowCatalog(prev => !prev)}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded transition-colors text-[11px] font-semibold ${
+              showCatalog
+                ? 'bg-amber-500 text-slate-950 shadow-xs'
+                : 'bg-slate-700 hover:bg-slate-600 text-slate-200 hover:text-white'
+            }`}
+            title="Abrir catálogo completo de funções DAX e iteradores"
+          >
+            <BookOpen className="w-3.5 h-3.5 text-amber-400" />
+            <span>Catálogo DAX ({POWER_BI_FUNCTIONS.length})</span>
+          </button>
+
+          <button
+            type="button"
             onClick={formatDaxCode}
-            className="flex items-center gap-1 px-2 py-0.5 rounded bg-slate-700 hover:bg-slate-600 text-amber-300 hover:text-amber-200 transition-colors text-[11px] font-medium"
+            className="flex items-center gap-1 px-2 py-1 rounded bg-slate-700 hover:bg-slate-600 text-amber-300 hover:text-amber-200 transition-colors text-[11px] font-medium"
             title="Formatar espaçamentos e recuos do código DAX"
           >
             <Wand2 className="w-3 h-3" />
@@ -339,6 +422,130 @@ export const FormulaEditor: React.FC<FormulaEditorProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Interactive Catalog Drawer */}
+      {showCatalog && (
+        <div className="bg-slate-900 border-x border-b border-slate-700 p-3 flex flex-col gap-2 animate-in fade-in slide-in-from-top-1 text-xs z-30">
+          <div className="flex items-center justify-between gap-2">
+            <div className="relative flex-1">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
+              <input
+                type="text"
+                placeholder="Pesquisar função DAX (ex.: SUMX, FILTER, CALCULATE...)"
+                value={catalogSearch}
+                onChange={e => setCatalogSearch(e.target.value)}
+                className="w-full pl-8 pr-7 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-slate-200 placeholder-slate-500 text-xs focus:outline-none focus:ring-1 focus:ring-amber-500 font-sans"
+              />
+              {catalogSearch && (
+                <button
+                  type="button"
+                  onClick={() => setCatalogSearch('')}
+                  className="absolute right-2 top-2 text-slate-400 hover:text-slate-200"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowCatalog(false)}
+              className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 text-xs"
+              title="Fechar catálogo"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {/* Category Tabs */}
+          <div className="flex flex-wrap gap-1">
+            {[
+              'Todas',
+              'Iteradores (X)',
+              'Agregação',
+              'Filtro',
+              'Tabela',
+              'Lógica / Condicional',
+              'Texto',
+              'Matemática',
+              'Data',
+              'Informação',
+            ].map(cat => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setCatalogCategory(cat)}
+                className={`px-2 py-0.5 rounded-md text-[10px] font-semibold transition-colors ${
+                  catalogCategory === cat
+                    ? cat === 'Iteradores (X)'
+                      ? 'bg-amber-400 text-slate-950 font-bold'
+                      : 'bg-amber-500 text-slate-950'
+                    : cat === 'Iteradores (X)'
+                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30'
+                    : 'bg-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-700'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+
+          {/* Quick Iterators bar */}
+          <div className="flex items-center gap-1 overflow-x-auto py-1 border-t border-slate-800 text-[10px]">
+            <span className="text-amber-400 font-bold shrink-0 flex items-center gap-1">
+              <Sparkles className="w-3 h-3 text-amber-400" /> Iteradores Rápidos:
+            </span>
+            {['SUMX', 'AVERAGEX', 'COUNTX', 'MINX', 'MAXX', 'CONCATENATEX', 'FILTER', 'ADDCOLUMNS', 'TOPN'].map(itFn => (
+              <button
+                key={itFn}
+                type="button"
+                onClick={() => insertFunction(itFn)}
+                className="px-1.5 py-0.5 rounded bg-amber-500/10 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 font-mono text-[10px] font-semibold shrink-0"
+              >
+                {itFn}()
+              </button>
+            ))}
+          </div>
+
+          {/* Functions List */}
+          <div className="max-h-56 overflow-y-auto space-y-1.5 pr-1">
+            {catalogFilteredFns.length === 0 ? (
+              <div className="text-center py-4 text-slate-500 text-xs">
+                Nenhuma função encontrada para "{catalogSearch}".
+              </div>
+            ) : (
+              catalogFilteredFns.map(fn => (
+                <div
+                  key={fn.name}
+                  className="p-2 rounded-lg bg-slate-950/80 border border-slate-800 hover:border-amber-500/40 flex items-start justify-between gap-3 group transition-colors"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="font-mono text-xs font-bold text-amber-300">{fn.name}</span>
+                      <span className="text-[9px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 font-medium">
+                        {fn.category}
+                      </span>
+                    </div>
+                    <div className="font-mono text-[10px] text-slate-400 mb-0.5">{fn.syntax}</div>
+                    <p className="text-[11px] text-slate-300 leading-normal">{fn.description}</p>
+                    {fn.example && (
+                      <div className="mt-1 font-mono text-[10px] text-emerald-400 bg-emerald-950/30 px-1.5 py-0.5 rounded border border-emerald-900/40 inline-block">
+                        Ex.: {fn.example}
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => insertFunction(fn.name)}
+                    className="px-2.5 py-1 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[10px] shrink-0 shadow-xs transition-colors"
+                  >
+                    Inserir
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Code Textarea with autocomplete */}
       <div className="relative bg-slate-950 border-x border-slate-700 focus-within:border-amber-500">
@@ -359,11 +566,11 @@ export const FormulaEditor: React.FC<FormulaEditorProps> = ({
         {/* Autocomplete Popup */}
         {showSuggestions && suggestions.length > 0 && (
           <div
-            className="absolute z-50 left-4 top-12 w-80 max-h-56 overflow-y-auto bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-1 text-xs"
+            className="absolute z-50 left-4 top-12 w-96 max-h-60 overflow-y-auto bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-1 text-xs"
             style={{ backdropFilter: 'blur(8px)' }}
           >
             <div className="px-2 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800 flex justify-between">
-              <span>Sugestões disponíveis</span>
+              <span>Sugestões disponíveis ({suggestions.length})</span>
               <span>Tab / Enter</span>
             </div>
             {suggestions.map((item, idx) => (
@@ -390,20 +597,32 @@ export const FormulaEditor: React.FC<FormulaEditorProps> = ({
                     }`}
                   >
                     {item.kind === 'function'
-                      ? 'fx'
+                      ? (item.category === 'Iterador' ? 'iter' : 'fx')
                       : item.kind === 'measure'
                       ? '[M]'
                       : item.kind === 'column'
                       ? '[C]'
                       : 'tab'}
                   </span>
-                  <span className="font-mono text-xs font-semibold truncate">{item.label}</span>
+                  <div className="flex flex-col truncate">
+                    <span className="font-mono text-xs font-semibold truncate text-white">{item.label}</span>
+                    {item.syntax && (
+                      <span className="font-mono text-[9px] text-slate-400 truncate">{item.syntax}</span>
+                    )}
+                  </div>
                 </div>
-                {item.detail && (
-                  <span className="text-[10px] text-slate-400 ml-2 truncate max-w-[120px]">
-                    {item.detail}
-                  </span>
-                )}
+                <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                  {item.category && (
+                    <span className="text-[8px] px-1 py-0.5 rounded bg-slate-800 text-slate-400 font-medium">
+                      {item.category}
+                    </span>
+                  )}
+                  {item.detail && (
+                    <span className="text-[10px] text-slate-400 truncate max-w-[100px]">
+                      {item.detail}
+                    </span>
+                  )}
+                </div>
               </div>
             ))}
           </div>

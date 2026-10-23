@@ -464,4 +464,117 @@ export const AGGREGATION_FUNCTIONS: Record<string, FunctionDefinition> = {
       return (nums[mid - 1] + nums[mid]) / 2;
     },
   },
+
+  // ==========================================
+  // DAX Iterators (X-Functions)
+  // ==========================================
+  SUMX: {
+    name: 'SUMX',
+    category: 'Agregação',
+    syntax: 'SUMX(table, expression)',
+    description: 'Itera linha a linha sobre uma tabela avaliando a expressão e somando os resultados no contexto de filtro ativo.',
+    example: 'SUMX(f_Vendas, f_Vendas[Qtd] * RELATED(d_Produto[Preco]))',
+    minArgs: 2,
+    maxArgs: 2,
+  },
+
+  AVERAGEX: {
+    name: 'AVERAGEX',
+    category: 'Agregação',
+    syntax: 'AVERAGEX(table, expression)',
+    description: 'Calcula a média de uma expressão avaliada para cada linha de uma tabela.',
+    example: 'AVERAGEX(f_Vendas, f_Vendas[Qtd] * f_Vendas[Preco])',
+    minArgs: 2,
+    maxArgs: 2,
+  },
+
+  COUNTX: {
+    name: 'COUNTX',
+    category: 'Agregação',
+    syntax: 'COUNTX(table, expression)',
+    description: 'Conta o número de linhas onde a expressão avaliada não resulta em BLANK.',
+    example: 'COUNTX(f_Vendas, f_Vendas[ValorTotal])',
+    minArgs: 2,
+    maxArgs: 2,
+  },
+
+  COUNTAX: {
+    name: 'COUNTAX',
+    category: 'Agregação',
+    syntax: 'COUNTAX(table, expression)',
+    description: 'Conta os valores não em branco incluindo strings e booleanos ao avaliar a expressão para cada linha de uma tabela.',
+    example: 'COUNTAX(d_Cliente, d_Cliente[Cidade])',
+    minArgs: 2,
+    maxArgs: 2,
+  },
+
+  MINX: {
+    name: 'MINX',
+    category: 'Agregação',
+    syntax: 'MINX(table, expression)',
+    description: 'Retorna o menor valor resultante da avaliação de uma expressão para cada linha de uma tabela.',
+    example: 'MINX(f_Vendas, f_Vendas[ValorTotal])',
+    minArgs: 2,
+    maxArgs: 2,
+  },
+
+  MAXX: {
+    name: 'MAXX',
+    category: 'Agregação',
+    syntax: 'MAXX(table, expression)',
+    description: 'Retorna o maior valor resultante da avaliação de uma expressão para cada linha de uma tabela.',
+    example: 'MAXX(f_Vendas, f_Vendas[ValorTotal])',
+    minArgs: 2,
+    maxArgs: 2,
+  },
+
+  PRODUCTX: {
+    name: 'PRODUCTX',
+    category: 'Agregação',
+    syntax: 'PRODUCTX(table, expression)',
+    description: 'Retorna o produto de uma expressão avaliada para cada linha de uma tabela.',
+    example: 'PRODUCTX(Tabela, 1 + Tabela[Taxa])',
+    minArgs: 2,
+    maxArgs: 2,
+  },
+
+  MEDIANX: {
+    name: 'MEDIANX',
+    category: 'Agregação',
+    syntax: 'MEDIANX(table, expression)',
+    description: 'Calcula a mediana de uma expressão avaliada para cada linha de uma tabela.',
+    example: 'MEDIANX(f_Vendas, f_Vendas[Qtd] * f_Vendas[Preco])',
+    minArgs: 2,
+    maxArgs: 2,
+  },
+
+  GEOMEANX: {
+    name: 'GEOMEANX',
+    category: 'Agregação',
+    syntax: 'GEOMEANX(table, expression)',
+    description: 'Calcula a média geométrica de uma expressão avaliada para cada linha de uma tabela.',
+    example: 'GEOMEANX(Investimentos, 1 + Investimentos[Retorno])',
+    minArgs: 2,
+    maxArgs: 2,
+  },
+
+  CONCATENATEX: {
+    name: 'CONCATENATEX',
+    category: 'Agregação',
+    syntax: 'CONCATENATEX(table, expression, [delimiter], [orderBy_expression], [order])',
+    description: 'Concatena o resultado de uma expressão avaliada para cada linha em uma tabela com delimitador e ordenação opcionais.',
+    example: 'CONCATENATEX(d_Cliente, d_Cliente[Cliente], ", ", d_Cliente[Cliente], ASC)',
+    minArgs: 2,
+    maxArgs: 5,
+  },
+
+  RANKX: {
+    name: 'RANKX',
+    category: 'Agregação',
+    syntax: 'RANKX(table, expression, [value], [order], [ties])',
+    description: 'Retorna o ranking de uma expressão avaliada no contexto atual para cada linha da tabela especificada.',
+    example: 'RANKX(ALL(d_Produto[Nome]), [Total Vendas])',
+    minArgs: 2,
+    maxArgs: 5,
+  },
 };

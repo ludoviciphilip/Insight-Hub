@@ -22,7 +22,7 @@ import { getSampleDatasets, generateCalendarTable } from '../data/sampleDatasets
 import { globalDataEngine } from '../engine/dataEngine';
 import { EtlEngine } from '../engine/etlEngine';
 import { saveProjectToStorage, loadProjectFromStorage, ProjectState } from '../engine/storage';
-import { migrateProjectState } from '../engine/migrations';
+import { migrateProjectState, syncWhatIfWithModel } from '../engine/migrations';
 import { globalDuckDb } from '../engine/duckdbEngine';
 
 export const PRESET_THEMES: BiTheme[] = [
@@ -181,6 +181,7 @@ interface BiState {
   setActiveRole: (roleId: string | null) => void;
   whatIfParameters: WhatIfParameter[];
   updateWhatIfValue: (id: string, value: number) => void;
+  addWhatIfParameter: (param: WhatIfParameter) => void;
 
   // Performance Analyzer
   performanceMetrics: PerformanceMetric[];
@@ -508,7 +509,8 @@ const initialWhatIf: WhatIfParameter[] = [
 
 export const useBiStore = create<BiState>((set, get) => {
   const initialData = getSampleDatasets();
-  globalDataEngine.setSchema(initialData.tables, initialData.relationships, initialData.measures);
+  const initialSynced = syncWhatIfWithModel(initialWhatIf, initialData.tables, initialData.measures);
+  globalDataEngine.setSchema(initialSynced.tables, initialData.relationships, initialSynced.measures);
 
   return {
     activeView: 'report',
@@ -518,9 +520,9 @@ export const useBiStore = create<BiState>((set, get) => {
     setProjectName: (name) => set({ projectName: name }),
     lastSavedAt: null,
 
-    tables: initialData.tables,
+    tables: initialSynced.tables,
     relationships: initialData.relationships,
-    measures: initialData.measures,
+    measures: initialSynced.measures,
 
     setTables: (tables) => {
       set({ tables });
@@ -1275,9 +1277,25 @@ export const useBiStore = create<BiState>((set, get) => {
 
     whatIfParameters: initialWhatIf,
     updateWhatIfValue: (id, val) => {
+      const updatedParams = get().whatIfParameters.map(p => (p.id === id ? { ...p, currentValue: val } : p));
+      const synced = syncWhatIfWithModel(updatedParams, get().tables, get().measures);
       set({
-        whatIfParameters: get().whatIfParameters.map(p => (p.id === id ? { ...p, currentValue: val } : p)),
+        whatIfParameters: updatedParams,
+        tables: synced.tables,
+        measures: synced.measures,
       });
+      globalDataEngine.setSchema(synced.tables, get().relationships, synced.measures);
+    },
+
+    addWhatIfParameter: (param) => {
+      const updatedParams = [...get().whatIfParameters, param];
+      const synced = syncWhatIfWithModel(updatedParams, get().tables, get().measures);
+      set({
+        whatIfParameters: updatedParams,
+        tables: synced.tables,
+        measures: synced.measures,
+      });
+      globalDataEngine.setSchema(synced.tables, get().relationships, synced.measures);
     },
 
     // Performance Analyzer

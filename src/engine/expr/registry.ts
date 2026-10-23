@@ -27,7 +27,8 @@ export type FunctionCategory =
   | 'Data'
   | 'Linha'
   | 'Agregação'
-  | 'Filtro';
+  | 'Filtro'
+  | 'Tabela';
 
 export interface FunctionDefinition {
   name: string;
@@ -44,7 +45,7 @@ export interface FunctionDefinition {
 
 export interface FunctionDoc {
   name: string;
-  category: 'Texto' | 'Matemática' | 'Data' | 'Lógica / Condicional' | 'Linha';
+  category: 'Texto' | 'Matemática' | 'Data' | 'Lógica / Condicional' | 'Linha' | 'Agregação' | 'Filtro' | 'Tabela';
   syntax: string;
   description: string;
   example: string;
@@ -879,7 +880,7 @@ export function lookupFunction(name: string): FunctionDefinition | undefined {
 }
 
 export function getAllFunctionNames(): string[] {
-  return Array.from(ALIAS_MAP.keys());
+  return Array.from(new Set(Object.values(FUNCTION_REGISTRY).map(fn => fn.name.toUpperCase())));
 }
 
 /**
@@ -891,6 +892,9 @@ export const POWER_BI_FUNCTIONS: FunctionDoc[] = Object.values(FUNCTION_REGISTRY
   else if (fn.category === 'Matemática') cat = 'Matemática';
   else if (fn.category === 'Data') cat = 'Data';
   else if (fn.category === 'Linha') cat = 'Linha';
+  else if (fn.category === 'Agregação') cat = 'Agregação';
+  else if (fn.category === 'Filtro') cat = 'Filtro';
+  else if (fn.category === 'Tabela') cat = 'Tabela';
 
   return {
     name: fn.name,

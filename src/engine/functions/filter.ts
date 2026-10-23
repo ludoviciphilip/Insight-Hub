@@ -1,6 +1,6 @@
 import { FunctionDefinition } from '../expr/registry';
 import { DaxError } from '../shared/errors';
-import { DAX_BLANK, isBlank, daxEqual } from '../expr/types';
+import { DAX_BLANK, isBlank, daxEqual, isDaxTable, DaxTableValue } from '../expr/types';
 import { ModelAccess } from '../model/modelAccess';
 import { FilterContext } from '../model/filterContext';
 
@@ -233,16 +233,49 @@ export const FILTER_FUNCTIONS: Record<string, FunctionDefinition> = {
         }
       }
 
-      if (!table) return [];
+      if (!table) {
+        return {
+          __isDaxTable: true,
+          columns: colName ? [colName] : [],
+          rows: [],
+        };
+      }
 
       const filterContext: FilterContext | undefined = context?.filterContext;
       const rows = filterContext ? filterContext.getFilteredRows(table.id, model!) : table.rows;
 
-      if (!colName) return rows;
+      if (!colName) {
+        return {
+          __isDaxTable: true,
+          columns: table.columns.map(c => c.name),
+          rows: rows || [],
+          tableId: table.id,
+          tableName: table.name,
+          lineage: Object.fromEntries(
+            table.columns.map(c => [c.name, { tableId: table!.id, tableName: table!.name, column: c.name }])
+          ),
+        };
+      }
 
       const distinctSet = new Set<any>();
-      rows.forEach(r => distinctSet.add(r[colName]));
-      return Array.from(distinctSet);
+      (rows || []).forEach(r => {
+        if (r[colName] !== undefined) {
+          distinctSet.add(r[colName]);
+        }
+      });
+      const distinctArray = Array.from(distinctSet);
+      const resRows = distinctArray.map(v => ({ [colName]: v }));
+
+      return {
+        __isDaxTable: true,
+        columns: [colName],
+        rows: resRows,
+        tableId: table.id,
+        tableName: table.name,
+        lineage: {
+          [colName]: { tableId: table.id, tableName: table.name, column: colName },
+        },
+      };
     },
   },
 
@@ -268,7 +301,20 @@ export const FILTER_FUNCTIONS: Record<string, FunctionDefinition> = {
     minArgs: 1,
     maxArgs: 2,
     evaluate: ([colArg, altResult], context) => {
-      const distinctVals: any[] = FILTER_FUNCTIONS.VALUES.evaluate!([colArg], context);
+      const distinctValsRaw: any = FILTER_FUNCTIONS.VALUES.evaluate!([colArg], context);
+      let distinctVals: any[] = [];
+      if (isDaxTable(distinctValsRaw)) {
+        const col = distinctValsRaw.columns[0];
+        distinctVals = distinctValsRaw.rows.map(r => r[col]);
+      } else if (Array.isArray(distinctValsRaw)) {
+        if (distinctValsRaw.length > 0 && typeof distinctValsRaw[0] === 'object' && distinctValsRaw[0] !== null) {
+          const firstKey = Object.keys(distinctValsRaw[0])[0];
+          distinctVals = distinctValsRaw.map(r => r[firstKey]);
+        } else {
+          distinctVals = distinctValsRaw;
+        }
+      }
+
       const filtered = distinctVals.filter(v => !isBlank(v) && v !== null && v !== undefined && v !== '');
 
       if (filtered.length === 1) {
@@ -287,7 +333,19 @@ export const FILTER_FUNCTIONS: Record<string, FunctionDefinition> = {
     minArgs: 1,
     maxArgs: 1,
     evaluate: ([colArg], context) => {
-      const distinctVals: any[] = FILTER_FUNCTIONS.VALUES.evaluate!([colArg], context);
+      const distinctValsRaw: any = FILTER_FUNCTIONS.VALUES.evaluate!([colArg], context);
+      let distinctVals: any[] = [];
+      if (isDaxTable(distinctValsRaw)) {
+        const col = distinctValsRaw.columns[0];
+        distinctVals = distinctValsRaw.rows.map(r => r[col]);
+      } else if (Array.isArray(distinctValsRaw)) {
+        if (distinctValsRaw.length > 0 && typeof distinctValsRaw[0] === 'object' && distinctValsRaw[0] !== null) {
+          const firstKey = Object.keys(distinctValsRaw[0])[0];
+          distinctVals = distinctValsRaw.map(r => r[firstKey]);
+        } else {
+          distinctVals = distinctValsRaw;
+        }
+      }
       const filtered = distinctVals.filter(v => !isBlank(v) && v !== null && v !== undefined && v !== '');
       return filtered.length === 1;
     },
@@ -493,5 +551,38 @@ export const FILTER_FUNCTIONS: Record<string, FunctionDefinition> = {
       const colName = typeof colArg === 'string' ? colArg.replace(/^[\[]|\]$/g, '') : colArg?.column;
       return earliestCtx.row[colName] ?? DAX_BLANK;
     },
+  },
+
+  // ==========================================
+  // CALCULATE & Context Modifiers
+  // ==========================================
+  CALCULATE: {
+    name: 'CALCULATE',
+    category: 'Filtro',
+    syntax: 'CALCULATE(expression, [filter1], [filter2], ...)',
+    description: 'Avalia uma expressão sob um contexto modificado pelos filtros informados (transição de contexto e sobreposição de filtros).',
+    example: 'CALCULATE([Total Vendas], d_Produto[Categoria] = "Eletrônicos")',
+    minArgs: 1,
+    maxArgs: -1,
+  },
+
+  CALCULATETABLE: {
+    name: 'CALCULATETABLE',
+    category: 'Filtro',
+    syntax: 'CALCULATETABLE(table, [filter1], [filter2], ...)',
+    description: 'Avalia uma expressão de tabela em um contexto modificado pelos filtros informados.',
+    example: 'CALCULATETABLE(f_Vendas, d_Produto[Preco] > 1000)',
+    minArgs: 1,
+    maxArgs: -1,
+  },
+
+  FILTER: {
+    name: 'FILTER',
+    category: 'Filtro',
+    syntax: 'FILTER(table, filter_expression)',
+    description: 'Retorna uma tabela contendo apenas as linhas que satisfazem a condição de filtro avaliada linha a linha.',
+    example: 'FILTER(f_Vendas, f_Vendas[Qtd] > 1)',
+    minArgs: 2,
+    maxArgs: 2,
   },
 };

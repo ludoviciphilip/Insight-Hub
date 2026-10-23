@@ -8,17 +8,27 @@ export interface RowContext {
   tableName: string;
   row: Record<string, any>;
   rowIndex: number;
+  lineage?: Record<string, { tableId: string; tableName: string; column: string }>;
 }
 
 export class RowContextStack {
   private stack: RowContext[] = [];
 
   constructor(initialStack: RowContext[] = []) {
-    this.stack = [...initialStack];
+    this.stack = initialStack.map(s => ({
+      ...s,
+      lineage: s.lineage ? { ...s.lineage } : undefined,
+    }));
   }
 
-  public push(tableId: string, tableName: string, row: Record<string, any>, rowIndex: number): void {
-    this.stack.push({ tableId, tableName, row, rowIndex });
+  public push(
+    tableId: string,
+    tableName: string,
+    row: Record<string, any>,
+    rowIndex: number,
+    lineage?: Record<string, { tableId: string; tableName: string; column: string }>
+  ): void {
+    this.stack.push({ tableId, tableName, row, rowIndex, lineage });
   }
 
   public pop(): RowContext | undefined {
@@ -75,32 +85,95 @@ export class RowContextStack {
 
     const newCtx = baseContext.clone();
 
-    // Apply row values as filters from innermost to outermost or all
+    // Apply row values as filters from each row context in stack
     for (const ctx of this.stack) {
       const table = model.getTable(ctx.tableId) || model.getTable(ctx.tableName);
-      if (!table) continue;
+      const effectiveTableId = table ? table.id : ctx.tableId;
 
-      table.columns.forEach(col => {
-        const val = ctx.row[col.name];
-        newCtx.setColumnFilter(
-          table.id,
-          col.name,
-          {
-            tableId: table.id,
-            column: col.name,
-            allowedValues: new Set([val]),
-            isKeepFilters: false,
-          },
-          false // context transition replaces filter on that column
-        );
-      });
+      // Filter only columns that exist in ctx.row
+      for (const colKey of Object.keys(ctx.row)) {
+        const val = ctx.row[colKey];
+        if (val === undefined) continue;
+
+        // Check if lineage defines the target table and column
+        if (ctx.lineage && ctx.lineage[colKey]) {
+          const l = ctx.lineage[colKey];
+          const lTable = model.getTable(l.tableId) || model.getTable(l.tableName);
+          const tId = lTable ? lTable.id : l.tableId;
+          newCtx.setColumnFilter(
+            tId,
+            l.column,
+            {
+              tableId: tId,
+              column: l.column,
+              allowedValues: new Set([val]),
+              isKeepFilters: false,
+            },
+            false
+          );
+          continue;
+        }
+
+        // Match against table.columns
+        if (table && table.columns.some(c => c.name.toLowerCase() === colKey.toLowerCase())) {
+          const targetCol = table.columns.find(c => c.name.toLowerCase() === colKey.toLowerCase())!;
+          newCtx.setColumnFilter(
+            table.id,
+            targetCol.name,
+            {
+              tableId: table.id,
+              column: targetCol.name,
+              allowedValues: new Set([val]),
+              isKeepFilters: false,
+            },
+            false
+          );
+        } else if (effectiveTableId) {
+          // If not in table columns, check across all tables in model
+          let foundTable = false;
+          for (const t of model.getTables()) {
+            if (t.columns.some(c => c.name.toLowerCase() === colKey.toLowerCase())) {
+              const targetCol = t.columns.find(c => c.name.toLowerCase() === colKey.toLowerCase())!;
+              newCtx.setColumnFilter(
+                t.id,
+                targetCol.name,
+                {
+                  tableId: t.id,
+                  column: targetCol.name,
+                  allowedValues: new Set([val]),
+                  isKeepFilters: false,
+                },
+                false
+              );
+              foundTable = true;
+              break;
+            }
+          }
+          if (!foundTable) {
+            newCtx.setColumnFilter(
+              effectiveTableId,
+              colKey,
+              {
+                tableId: effectiveTableId,
+                column: colKey,
+                allowedValues: new Set([val]),
+                isKeepFilters: false,
+              },
+              false
+            );
+          }
+        }
+      }
     }
 
     return newCtx;
   }
 
   public clone(): RowContextStack {
-    return new RowContextStack(this.stack.map(s => ({ ...s })));
+    return new RowContextStack(this.stack.map(s => ({
+      ...s,
+      lineage: s.lineage ? { ...s.lineage } : undefined,
+    })));
   }
 }
 

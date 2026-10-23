@@ -5,6 +5,7 @@ import { CONVERSION_FUNCTIONS } from './conversion';
 import { AGGREGATION_FUNCTIONS } from './aggregation';
 import { FILTER_FUNCTIONS } from './filter';
 import { RELATIONSHIP_FUNCTIONS } from './relationships';
+import { TABLE_FUNCTIONS } from './table';
 import { FunctionDefinition } from '../expr/registry';
 
 export const ALL_SCALAR_FUNCTIONS: Record<string, FunctionDefinition> = {
@@ -15,6 +16,7 @@ export const ALL_SCALAR_FUNCTIONS: Record<string, FunctionDefinition> = {
   ...AGGREGATION_FUNCTIONS,
   ...FILTER_FUNCTIONS,
   ...RELATIONSHIP_FUNCTIONS,
+  ...TABLE_FUNCTIONS,
 };
 
 export {
@@ -25,4 +27,5 @@ export {
   AGGREGATION_FUNCTIONS,
   FILTER_FUNCTIONS,
   RELATIONSHIP_FUNCTIONS,
+  TABLE_FUNCTIONS,
 };

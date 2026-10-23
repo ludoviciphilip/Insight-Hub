@@ -270,25 +270,34 @@ export const CustomMeasureModal: React.FC = () => {
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="font-bold text-slate-700">Fórmula DAX</label>
-              <span className="text-[10px] text-slate-400">Atalhos rápidos:</span>
+              <span className="text-[10px] text-slate-400">Atalhos rápidos (incluindo iteradores):</span>
             </div>
             <div className="flex flex-wrap gap-1 mb-1.5">
               {[
-                'SUM()',
-                'AVERAGE()',
-                'COUNTROWS()',
-                'DIVIDE(, , 0)',
-                'CALCULATE()',
-                'ALL()',
-                'TOTALYTD(, d_Calendario[Data])',
-              ].map(snip => (
+                { label: 'SUM', snip: 'SUM()' },
+                { label: 'SUMX (Iterador)', snip: 'SUMX(, )', highlight: true },
+                { label: 'AVERAGEX', snip: 'AVERAGEX(, )', highlight: true },
+                { label: 'CALCULATE', snip: 'CALCULATE()' },
+                { label: 'FILTER', snip: 'FILTER(, )', highlight: true },
+                { label: 'COUNTROWS', snip: 'COUNTROWS()' },
+                { label: 'DIVIDE', snip: 'DIVIDE(, , 0)' },
+                { label: 'TOPN', snip: 'TOPN(5, , , DESC)' },
+                { label: 'VALUES', snip: 'VALUES()' },
+                { label: 'ALL', snip: 'ALL()' },
+                { label: 'CONCATENATEX', snip: 'CONCATENATEX(, , ", ")', highlight: true },
+              ].map(item => (
                 <button
-                  key={snip}
+                  key={item.label}
                   type="button"
-                  onClick={() => insertSnippet(snip)}
-                  className="px-1.5 py-0.5 rounded bg-slate-100 hover:bg-amber-100 hover:text-amber-900 text-slate-600 font-mono text-[10px]"
+                  onClick={() => insertSnippet(item.snip)}
+                  className={`px-1.5 py-0.5 rounded font-mono text-[10px] transition-colors ${
+                    item.highlight
+                      ? 'bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-300 font-bold'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
+                  }`}
+                  title={`Inserir ${item.snip}`}
                 >
-                  {snip.split('(')[0]}
+                  {item.label}
                 </button>
               ))}
             </div>

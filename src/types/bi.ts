@@ -33,6 +33,7 @@ export interface Table {
   columns: Column[];
   rows: Record<string, any>[];
   isCalculated?: boolean;
+  expression?: string;
   isCalendar?: boolean;
   isHidden?: boolean;
   isDim?: boolean;
