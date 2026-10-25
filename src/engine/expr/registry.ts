@@ -29,7 +29,9 @@ export type FunctionCategory =
   | 'Agregação'
   | 'Filtro'
   | 'Tabela'
-  | 'Inteligência de Tempo';
+  | 'Inteligência de Tempo'
+  | 'Janela e Ranking'
+  | 'Cálculo Visual';
 
 export interface FunctionDefinition {
   name: string;
@@ -56,6 +58,8 @@ export interface FunctionDoc {
     | 'Filtro'
     | 'Tabela'
     | 'Inteligência de Tempo'
+    | 'Janela e Ranking'
+    | 'Cálculo Visual'
     | 'Informação';
   syntax: string;
   description: string;

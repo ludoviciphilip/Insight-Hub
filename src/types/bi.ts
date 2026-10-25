@@ -128,6 +128,15 @@ export interface VisualFormatConfig {
   };
 }
 
+export interface VisualCalculation {
+  id: string;
+  name: string;
+  formula: string;
+  format?: 'currency' | 'number' | 'percentage' | 'integer';
+  description?: string;
+  axis?: 'ROWS' | 'COLUMNS';
+}
+
 export interface VisualDataConfig {
   tableId: string;
   xAxisField?: string;
@@ -142,6 +151,7 @@ export interface VisualDataConfig {
   currentDrillLevel?: number;
   kpiTarget?: number;
   kpiComparisonField?: string;
+  visualCalculations?: VisualCalculation[];
   slicerConfig?: {
     mode: 'list' | 'dropdown' | 'slider' | 'relative-date';
     selectedValues?: any[];
@@ -164,6 +174,7 @@ export interface Visual {
   zIndex?: number;
   dataConfig: VisualDataConfig;
   formatConfig: VisualFormatConfig;
+  visualCalculations?: VisualCalculation[];
 }
 
 export interface DrillthroughConfig {

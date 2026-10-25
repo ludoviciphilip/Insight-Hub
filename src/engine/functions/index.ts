@@ -7,6 +7,8 @@ import { FILTER_FUNCTIONS } from './filter';
 import { RELATIONSHIP_FUNCTIONS } from './relationships';
 import { TABLE_FUNCTIONS } from './table';
 import { TIME_INTELLIGENCE_FUNCTIONS } from './timeIntelligence';
+import { WINDOW_AND_RANKING_FUNCTIONS } from './windowAndRanking';
+import { VISUAL_CALCULATION_FUNCTIONS } from './visualCalculations';
 import { FunctionDefinition } from '../expr/registry';
 
 export const ALL_SCALAR_FUNCTIONS: Record<string, FunctionDefinition> = {
@@ -19,6 +21,8 @@ export const ALL_SCALAR_FUNCTIONS: Record<string, FunctionDefinition> = {
   ...RELATIONSHIP_FUNCTIONS,
   ...TABLE_FUNCTIONS,
   ...TIME_INTELLIGENCE_FUNCTIONS,
+  ...WINDOW_AND_RANKING_FUNCTIONS,
+  ...VISUAL_CALCULATION_FUNCTIONS,
 };
 
 export {
@@ -31,4 +35,6 @@ export {
   RELATIONSHIP_FUNCTIONS,
   TABLE_FUNCTIONS,
   TIME_INTELLIGENCE_FUNCTIONS,
+  WINDOW_AND_RANKING_FUNCTIONS,
+  VISUAL_CALCULATION_FUNCTIONS,
 };

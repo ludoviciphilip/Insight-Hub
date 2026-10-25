@@ -21,6 +21,25 @@ export function toDaxTable(input: any, model?: ModelAccess, filterContext?: Filt
     return input;
   }
 
+  if (input && typeof input === 'object' && input.__isModifier && input.rows) {
+    const table = model?.getTable(input.tableId || input.tableName);
+    const cols = input.columns || (table ? table.columns.map((c: any) => c.name) : (input.rows[0] ? Object.keys(input.rows[0]) : []));
+    const lineage: Record<string, { tableId: string; tableName: string; column: string }> = {};
+    if (table) {
+      for (const c of cols) {
+        lineage[c] = { tableId: table.id, tableName: table.name, column: c };
+      }
+    }
+    return {
+      __isDaxTable: true,
+      columns: cols,
+      rows: input.rows,
+      tableId: table ? table.id : input.tableId,
+      tableName: table ? table.name : input.tableName,
+      lineage,
+    };
+  }
+
   // String table name or ColumnRef object
   let tableName = '';
   if (typeof input === 'string') {

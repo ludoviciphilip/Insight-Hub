@@ -13,11 +13,13 @@ import {
   GripVertical,
   Target,
   ArrowRight,
+  Calculator,
 } from 'lucide-react';
 import { Visual } from '../../types/bi';
 import { useBiStore } from '../../store/useBiStore';
 import { globalDataEngine, formatValue, formatCurrency, formatNumber, formatPercent } from '../../engine/dataEngine';
 import { ErrorBoundary } from '../shared/ErrorBoundary';
+import { VisualCalculationModal } from '../modals/VisualCalculationModal';
 
 interface VisualCardProps {
   visual: Visual;
@@ -48,6 +50,7 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual, isSelected, onSe
   const [isFocused, setIsFocused] = useState(false);
   const [showRawTable, setShowRawTable] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [isVisualCalcModalOpen, setIsVisualCalcModalOpen] = useState(false);
 
   // Currency Field Detection
   const isCurrencyField = (fieldName: string): boolean => {
@@ -703,6 +706,20 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual, isSelected, onSe
           <button
             onClick={(e) => {
               e.stopPropagation();
+              setIsVisualCalcModalOpen(true);
+            }}
+            title="Cálculos Visuais (Visual Calculations)"
+            className={`p-1 rounded transition-colors ${
+              ((visual.dataConfig?.visualCalculations?.length ?? 0) > 0 || (visual.visualCalculations?.length ?? 0) > 0)
+                ? 'text-amber-600 bg-amber-100 font-bold ring-1 ring-amber-300'
+                : 'text-slate-500 hover:text-amber-600 hover:bg-slate-200/60'
+            }`}
+          >
+            <Calculator className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
               setIsFocused(!isFocused);
             }}
             title={isFocused ? 'Restaurar Tamanho' : 'Modo Foco / Tela Cheia'}
@@ -980,6 +997,22 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual, isSelected, onSe
           ></div>
         </>
       )}
+
+      {/* Visual Calculation Editor Modal */}
+      <VisualCalculationModal
+        visual={visual}
+        isOpen={isVisualCalcModalOpen}
+        onClose={() => setIsVisualCalcModalOpen(false)}
+        onSave={(updatedCalcs) => {
+          updateVisual(visual.id, {
+            visualCalculations: updatedCalcs,
+            dataConfig: {
+              ...visual.dataConfig,
+              visualCalculations: updatedCalcs,
+            },
+          });
+        }}
+      />
     </div>
   );
 };

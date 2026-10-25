@@ -5,6 +5,7 @@ import { RelationshipGraph } from '../model/relationships';
 import { DaxEngine } from '../daxEngine';
 import { parseNumber } from '../shared/valueParser';
 import { isBlank, DAX_BLANK } from '../expr/types';
+import { Evaluator } from '../expr/evaluator';
 
 export interface VisualQueryResult {
   categories: string[];
@@ -238,6 +239,15 @@ export class QueryPlanner {
       }));
     }
 
+    // Apply Visual Calculations (V0.6)
+    const visualRows = this.applyVisualCalculations(
+      visual,
+      finalCategories,
+      finalSeries,
+      effectiveXField,
+      baseFilterContext
+    );
+
     // Calculate Grand Total using own context without category filters
     let grandTotal: number | undefined;
     if (yFields.length > 0) {
@@ -253,13 +263,81 @@ export class QueryPlanner {
 
     const totalTime = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - startTime;
 
+    const hasVisualCalcs = (visual.dataConfig?.visualCalculations?.length ?? 0) > 0 || (visual.visualCalculations?.length ?? 0) > 0;
+
     return {
       categories: finalCategories,
       series: finalSeries,
-      rawRows: filteredRows,
+      rawRows: (hasVisualCalcs && visualRows.length > 0) ? visualRows : filteredRows,
       grandTotal,
       queryTimeMs: Number(totalTime.toFixed(1)),
     };
+  }
+
+  /**
+   * Applies Visual Calculations (Cálculos Visuais) over visual rows
+   */
+  private applyVisualCalculations(
+    visual: Visual,
+    categories: string[],
+    series: { name: string; data: number[] }[],
+    effectiveXField: string,
+    filterContext: FilterContext
+  ): Record<string, any>[] {
+    const calcs = visual.dataConfig?.visualCalculations || visual.visualCalculations;
+    if (!calcs || calcs.length === 0 || categories.length === 0) return [];
+
+    // Synthesize visual rows representing the visual's current layout
+    const visualRows: Record<string, any>[] = categories.map((cat, idx) => {
+      const row: Record<string, any> = {
+        [effectiveXField]: cat,
+        Category: cat,
+      };
+      for (const s of series) {
+        row[s.name] = s.data[idx];
+      }
+      return row;
+    });
+
+    for (const vc of calcs) {
+      if (!vc.name || !vc.formula) continue;
+      const calcData: number[] = [];
+
+      for (let rIdx = 0; rIdx < visualRows.length; rIdx++) {
+        try {
+          const evalContext = {
+            model: this.model,
+            filterContext,
+            isVisualCalculation: true,
+            visualRows,
+            visualRowIndex: rIdx,
+            row: visualRows[rIdx],
+            rowIndex: rIdx,
+            tables: this.model.getTables(),
+            measures: this.model.getMeasures ? this.model.getMeasures() : [],
+          };
+          const evaluator = new Evaluator(evalContext);
+          const rawResult = evaluator.evaluate(vc.formula);
+          const num = typeof rawResult === 'number' && !isNaN(rawResult)
+            ? rawResult
+            : (isBlank(rawResult) ? 0 : Number(rawResult) || 0);
+
+          calcData.push(num);
+          visualRows[rIdx][vc.name] = rawResult;
+        } catch (err) {
+          console.warn(`[VisualCalculation] Erro ao calcular "${vc.name}":`, err);
+          calcData.push(0);
+          visualRows[rIdx][vc.name] = 0;
+        }
+      }
+
+      series.push({
+        name: vc.name,
+        data: calcData,
+      });
+    }
+
+    return visualRows;
   }
 
   private resolveColumnLocation(

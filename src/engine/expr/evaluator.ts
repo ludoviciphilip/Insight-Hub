@@ -40,6 +40,7 @@ import { ModelAccess } from '../model/modelAccess';
 import { FilterContext } from '../model/filterContext';
 import { RowContextStack } from '../model/rowContext';
 import { toDaxTable } from '../functions/table';
+import { sortRowsBySpecs } from '../functions/windowAndRanking';
 
 export interface EvalContext {
   dialect?: 'dax' | 'column';
@@ -60,6 +61,9 @@ export interface EvalContext {
   resolveMeasure?: (name: string) => any;
   callStack?: Set<string>;
   currentGroupRows?: Record<string, any>[];
+  isVisualCalculation?: boolean;
+  visualRows?: Record<string, any>[];
+  visualRowIndex?: number;
 }
 
 export class Evaluator {
@@ -200,6 +204,18 @@ export class Evaluator {
   }
 
   private evalColumnRef(node: ColumnRefNode): any {
+    // 0. Visual Calculation Context: direct resolution to visual row field
+    if (this.context.isVisualCalculation && this.context.visualRows && this.context.visualRowIndex !== undefined) {
+      const vRow = this.context.visualRows[this.context.visualRowIndex];
+      if (vRow) {
+        if (node.column in vRow) return vRow[node.column];
+        const lower = node.column.toLowerCase();
+        for (const [k, v] of Object.entries(vRow)) {
+          if (k.toLowerCase() === lower) return v;
+        }
+      }
+    }
+
     // 1. In DAX, unqualified [Identifier] without a table prefix can be a Measure
     if (!node.table) {
       if (this.context.measures) {
@@ -267,6 +283,18 @@ export class Evaluator {
 
   private evalMeasureRef(node: MeasureRefNode): any {
     const mName = node.measure;
+
+    // 0. Visual Calculation Context: direct resolution to visual row field
+    if (this.context.isVisualCalculation && this.context.visualRows && this.context.visualRowIndex !== undefined) {
+      const vRow = this.context.visualRows[this.context.visualRowIndex];
+      if (vRow) {
+        if (mName in vRow) return vRow[mName];
+        const lower = mName.toLowerCase();
+        for (const [k, v] of Object.entries(vRow)) {
+          if (k.toLowerCase() === lower) return v;
+        }
+      }
+    }
 
     // Check measures list
     if (this.context.measures) {
@@ -439,6 +467,20 @@ export class Evaluator {
     }
     if (['FIRSTNONBLANKVALUE', 'LASTNONBLANKVALUE'].includes(fnName)) {
       return this.evalFirstLastNonBlank(node, true);
+    }
+
+    // 1.2 Window & Ranking Functions
+    if (fnName === 'RANKX') {
+      return this.evalRankX(node);
+    }
+    if (fnName === 'RANK') {
+      return this.evalRank(node);
+    }
+    if (fnName === 'ROWNUMBER') {
+      return this.evalRowNumber(node);
+    }
+    if (['INDEX', 'LINHA', 'ROW'].includes(fnName) && (this.context.dialect === 'column' || node.args.length === 0)) {
+      return (this.context.rowIndex ?? 0) + 1;
     }
 
     // 2. Iterators
@@ -737,6 +779,26 @@ export class Evaluator {
         'ENDOFYEAR',
       ].includes(fnName);
 
+    const isVisualCalc =
+      fnDef.category === 'Cálculo Visual' ||
+      [
+        'RUNNINGSUM',
+        'MOVINGAVERAGE',
+        'PREVIOUS',
+        'NEXT',
+        'FIRST',
+        'LAST',
+        'RANGE',
+        'COLLAPSE',
+        'COLLAPSEALL',
+        'EXPAND',
+        'EXPANDALL',
+      ].includes(fnName);
+
+    const isWindowOrRank =
+      fnDef.category === 'Janela e Ranking' ||
+      ['INDEX', 'OFFSET', 'WINDOW', 'RANK', 'ROWNUMBER', 'ORDERBY', 'PARTITIONBY', 'MATCHBY'].includes(fnName);
+
     const evaluatedArgs = node.args.map((arg, idx) => {
       if (!arg) return DAX_BLANK;
       if (isAgg && idx === 0 && arg.kind === 'ColumnRef') {
@@ -746,6 +808,22 @@ export class Evaluator {
         return arg.kind === 'VariableRef' ? { column: arg.name } : { table: arg.table, column: arg.column };
       }
       if (isTimeIntelligence && idx === 0 && (arg.kind === 'ColumnRef' || arg.kind === 'VariableRef')) {
+        return arg.kind === 'VariableRef' ? { column: arg.name } : { table: arg.table, column: arg.column };
+      }
+      if (isVisualCalc && (arg.kind === 'ColumnRef' || arg.kind === 'MeasureRef' || arg.kind === 'VariableRef')) {
+        return { column: (arg as any).column || (arg as any).measure || (arg as any).name };
+      }
+      if (fnName === 'RANK.EQ' && idx === 1 && (arg.kind === 'ColumnRef' || arg.kind === 'VariableRef')) {
+        return arg.kind === 'VariableRef' ? { column: arg.name } : { table: arg.table, column: arg.column };
+      }
+      if (isWindowOrRank && (arg.kind === 'ColumnRef' || arg.kind === 'VariableRef')) {
+        const name = arg.kind === 'VariableRef' ? arg.name : (arg.table || arg.column);
+        if (
+          this.context.model?.getTable(name) ||
+          this.context.tables?.some(t => t.name.toLowerCase() === name.toLowerCase() || t.id === name)
+        ) {
+          return this.resolveTableValue(arg);
+        }
         return arg.kind === 'VariableRef' ? { column: arg.name } : { table: arg.table, column: arg.column };
       }
       if (isTableFunction && (arg.kind === 'ColumnRef' || arg.kind === 'VariableRef')) {
@@ -765,6 +843,252 @@ export class Evaluator {
     }
 
     return DAX_BLANK;
+  }
+
+  /**
+   * Evaluates RANKX(table, expression, [value], [order], [ties])
+   * Implements row context, context transition, custom value expressions, and Skip vs Dense ties.
+   */
+  private evalRankX(node: FunctionCallNode): any {
+    if (node.args.length < 2 || !node.args[0] || !node.args[1]) {
+      throw new DaxError('Semantic', 'RANKX requer pelo menos 2 argumentos (tabela, expressão)');
+    }
+
+    const tableArg = node.args[0];
+    const exprArg = node.args[1];
+    const valueArg = node.args[2];
+    const orderArg = node.args[3];
+    const tiesArg = node.args[4];
+
+    // 1. Resolve table
+    const tableVal = this.resolveTableValue(tableArg);
+    if (!tableVal || tableVal.rows.length === 0) {
+      return DAX_BLANK;
+    }
+
+    // 2. Resolve order (default DESC / 0)
+    let order: 'ASC' | 'DESC' = 'DESC';
+    if (orderArg) {
+      let ordStr = '';
+      if (orderArg.kind === 'VariableRef') ordStr = orderArg.name.toUpperCase();
+      else if (orderArg.kind === 'Literal') ordStr = String(orderArg.value).toUpperCase();
+      else ordStr = String(this.evalNode(orderArg)).toUpperCase();
+
+      if (ordStr === '1' || ordStr === 'ASC') {
+        order = 'ASC';
+      }
+    }
+
+    // 3. Resolve ties (default SKIP / 0)
+    let ties: 'SKIP' | 'DENSE' = 'SKIP';
+    if (tiesArg) {
+      let tieStr = '';
+      if (tiesArg.kind === 'VariableRef') tieStr = tiesArg.name.toUpperCase();
+      else if (tiesArg.kind === 'Literal') tieStr = String(tiesArg.value).toUpperCase();
+      else tieStr = String(this.evalNode(tiesArg)).toUpperCase();
+
+      if (tieStr === '1' || tieStr === 'DENSE') {
+        ties = 'DENSE';
+      }
+    }
+
+    // 4. Determine target value (valueArg or evaluate exprArg under outer context)
+    let targetVal: any;
+    if (valueArg && (valueArg.kind !== 'Literal' || valueArg.literalType !== 'blank')) {
+      targetVal = this.evalNode(valueArg);
+    } else {
+      // Evaluate expression under current context
+      targetVal = this.evalNode(exprArg);
+    }
+
+    if (isBlank(targetVal) || targetVal === null || targetVal === undefined) {
+      return DAX_BLANK;
+    }
+
+    // 5. Evaluate exprArg for each row of table with context transition
+    const evaluatedValues: any[] = [];
+
+    for (let rIdx = 0; rIdx < tableVal.rows.length; rIdx++) {
+      const row = tableVal.rows[rIdx];
+
+      // Context transition: row values become column filters on filter context
+      const childFilterCtx = this.context.filterContext
+        ? this.context.filterContext.clone()
+        : new FilterContext();
+
+      for (const col of tableVal.columns) {
+        const lin = tableVal.lineage && tableVal.lineage[col];
+        const targetTableId = lin ? lin.tableId : (tableVal.tableId || '');
+        const targetCol = lin ? lin.column : col;
+        const val = row[col];
+
+        if (targetTableId) {
+          childFilterCtx.setColumnFilter(
+            targetTableId,
+            targetCol,
+            {
+              tableId: targetTableId,
+              column: targetCol,
+              allowedValues: new Set([val]),
+              isKeepFilters: false,
+            },
+            false
+          );
+        }
+      }
+
+      const childEval = new Evaluator({
+        ...this.context,
+        filterContext: childFilterCtx,
+        row,
+        rowIndex: rIdx,
+        tableId: tableVal.tableId,
+        tableName: tableVal.tableName,
+        rowContextStack: undefined,
+      });
+
+      const rowVal = childEval.evalNode(exprArg);
+      evaluatedValues.push(rowVal);
+    }
+
+    const isAsc = order === 'ASC';
+
+    if (ties === 'DENSE') {
+      // Distinct values
+      const distinctVals: any[] = [];
+      for (const v of evaluatedValues) {
+        if (!distinctVals.some(existing => daxEqual(existing, v))) {
+          distinctVals.push(v);
+        }
+      }
+
+      let countBetter = 0;
+      for (const dVal of distinctVals) {
+        const cmp = daxCompare(dVal, targetVal);
+        if (isAsc) {
+          if (cmp < 0) countBetter++;
+        } else {
+          if (cmp > 0) countBetter++;
+        }
+      }
+
+      return countBetter + 1;
+    } else {
+      // SKIP
+      let countBetter = 0;
+      for (const rVal of evaluatedValues) {
+        const cmp = daxCompare(rVal, targetVal);
+        if (isAsc) {
+          if (cmp < 0) countBetter++;
+        } else {
+          if (cmp > 0) countBetter++;
+        }
+      }
+
+      return countBetter + 1;
+    }
+  }
+
+  /**
+   * Evaluates RANK window function
+   */
+  private evalRank(node: FunctionCallNode): any {
+    let ties: 'SKIP' | 'DENSE' = 'SKIP';
+    let relNode: ASTNode | undefined;
+    let orderNode: ASTNode | undefined;
+
+    for (let i = 0; i < node.args.length; i++) {
+      const a = node.args[i];
+      if (!a) continue;
+      if (a.kind === 'VariableRef' && ['DENSE', 'SKIP'].includes(a.name.toUpperCase())) {
+        ties = a.name.toUpperCase() as any;
+      } else if (a.kind === 'FunctionCall' && a.name.toUpperCase() === 'ORDERBY') {
+        orderNode = a;
+      } else if (!relNode && (a.kind === 'FunctionCall' || a.kind === 'ColumnRef' || a.kind === 'VariableRef')) {
+        relNode = a;
+      }
+    }
+
+    const relVal = relNode ? this.resolveTableValue(relNode) : null;
+    if (!relVal || relVal.rows.length === 0) return DAX_BLANK;
+
+    const orderSpecs = orderNode ? this.evalNode(orderNode).specs : [];
+    const sorted = sortRowsBySpecs(relVal.rows, orderSpecs);
+
+    const curRow = this.context.row;
+    let curIdx = -1;
+    if (curRow) {
+      curIdx = sorted.findIndex(r => {
+        for (const c of relVal.columns) {
+          if (!daxEqual(r[c], curRow[c])) return false;
+        }
+        return true;
+      });
+    }
+
+    if (curIdx === -1) {
+      curIdx = this.context.visualRowIndex ?? 0;
+    }
+
+    return curIdx + 1;
+  }
+
+  /**
+   * Evaluates ROWNUMBER window function
+   */
+  private evalRowNumber(node: FunctionCallNode): any {
+    let relNode: ASTNode | undefined;
+    let orderNode: ASTNode | undefined;
+
+    for (let i = 0; i < node.args.length; i++) {
+      const a = node.args[i];
+      if (!a) continue;
+      if (a.kind === 'FunctionCall' && a.name.toUpperCase() === 'ORDERBY') {
+        orderNode = a;
+      } else if (!relNode && (a.kind === 'FunctionCall' || a.kind === 'ColumnRef' || a.kind === 'VariableRef')) {
+        relNode = a;
+      }
+    }
+
+    const relVal = relNode ? this.resolveTableValue(relNode) : null;
+    if (!relVal || relVal.rows.length === 0) return DAX_BLANK;
+
+    const orderSpecs = orderNode ? this.evalNode(orderNode).specs : [];
+    const sorted = sortRowsBySpecs(relVal.rows, orderSpecs);
+
+    // If evaluated at table level (no active row context)
+    if (!this.context.row && this.context.visualRowIndex === undefined) {
+      const resultRows = sorted.map((r, idx) => ({
+        ...r,
+        RowNumber: idx + 1,
+      }));
+      return {
+        __isDaxTable: true,
+        columns: [...relVal.columns, 'RowNumber'],
+        rows: resultRows,
+        tableId: relVal.tableId,
+        tableName: relVal.tableName,
+        lineage: relVal.lineage,
+      };
+    }
+
+    // Scalar evaluation in row context
+    const curRow = this.context.row;
+    let curIdx = -1;
+    if (curRow) {
+      curIdx = sorted.findIndex(r => {
+        for (const c of relVal.columns) {
+          if (!daxEqual(r[c], curRow[c])) return false;
+        }
+        return true;
+      });
+    }
+
+    if (curIdx === -1) {
+      curIdx = this.context.visualRowIndex ?? 0;
+    }
+
+    return curIdx + 1;
   }
 
   /**

@@ -56,12 +56,20 @@ export const FILTER_FUNCTIONS: Record<string, FunctionDefinition> = {
 
       if (args.length === 1 && !colName && table) {
         // ALL(Table): modifier to clear table filters, or returns entire table.rows
+        const cols = table.columns.map(c => c.name);
+        const lineage: Record<string, { tableId: string; tableName: string; column: string }> = {};
+        for (const c of cols) {
+          lineage[c] = { tableId: table.id, tableName: table.name, column: c };
+        }
         return {
+          __isDaxTable: true,
           __isModifier: true,
           type: 'ALL',
           tableId: table.id,
           tableName: table.name,
+          columns: cols,
           rows: table.rows || [],
+          lineage,
         };
       }
 
