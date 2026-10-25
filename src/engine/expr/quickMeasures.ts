@@ -14,19 +14,29 @@ export type QuickMeasureType =
   | 'rolling_avg'
   | 'running_total'
   | 'pct_of_total'
-  | 'ranking';
+  | 'ranking'
+  | 'vehicle_financing'
+  | 'investment_npv'
+  | 'investment_irr'
+  | 'cost_per_km';
 
 export interface QuickMeasureOptions {
   periods?: number;
   dateColumn?: string;
   yearEndDate?: string;
+  interestRate?: number;
+  months?: number;
+  loanAmount?: number;
+  discountRate?: number;
+  xColumn?: string;
+  yColumn?: string;
 }
 
 export interface QuickMeasureResult {
   name: string;
   formula: string;
   format: Measure['format'];
-  category: 'time_intelligence' | 'totals' | 'ranking';
+  category: 'time_intelligence' | 'totals' | 'ranking' | 'financial' | 'statistical';
   description: string;
 }
 
@@ -196,6 +206,55 @@ export function generateQuickMeasure(
         description: 'Classificação ordinal decrescente baseada na medida',
       };
       break;
+
+    case 'vehicle_financing': {
+      const rate = options?.interestRate ?? 0.015;
+      const nper = options?.months ?? 48;
+      const loan = options?.loanAmount ?? 50000;
+      result = {
+        name: `Parcela Financiamento Veículo`,
+        formula: `PMT(${rate}, ${nper}, -${loan})`,
+        format: 'currency',
+        category: 'financial',
+        description: `Prestação mensal constante para veículo (taxa ${(rate * 100).toFixed(1)}% a.m., ${nper} meses, valor R$ ${loan.toLocaleString('pt-BR')})`,
+      };
+      break;
+    }
+
+    case 'investment_npv': {
+      const discount = options?.discountRate ?? 0.1;
+      result = {
+        name: `VPL do Investimento`,
+        formula: `XNPV('${cleanTable}', '${cleanTable}'[${cleanMeasure}], ${dateRef}, ${discount})`,
+        format: 'currency',
+        category: 'financial',
+        description: `Valor Presente Líquido a uma taxa de desconto anual de ${(discount * 100).toFixed(1)}%`,
+      };
+      break;
+    }
+
+    case 'investment_irr':
+      result = {
+        name: `TIR do Investimento`,
+        formula: `XIRR('${cleanTable}', '${cleanTable}'[${cleanMeasure}], ${dateRef})`,
+        format: 'percentage',
+        category: 'financial',
+        description: 'Taxa Interna de Retorno anualizada sobre o fluxo de caixa do projeto',
+      };
+      break;
+
+    case 'cost_per_km': {
+      const xCol = options?.xColumn || dimensionCol || 'KmRodado';
+      const yCol = options?.yColumn || cleanMeasure || 'Custo';
+      result = {
+        name: `Custo por KM (Regressão Linear)`,
+        formula: `SELECTCOLUMNS(LINESTX('${cleanTable}', '${cleanTable}'[${yCol}], '${cleanTable}'[${xCol}]), "CustoKm", [Slope1])`,
+        format: 'currency',
+        category: 'statistical',
+        description: 'Custo marginal por quilômetro rodado estimado por regressão linear (método dos mínimos quadrados)',
+      };
+      break;
+    }
 
     default:
       result = {

@@ -31,7 +31,9 @@ export type FunctionCategory =
   | 'Tabela'
   | 'Inteligência de Tempo'
   | 'Janela e Ranking'
-  | 'Cálculo Visual';
+  | 'Cálculo Visual'
+  | 'Estatística'
+  | 'Financeira';
 
 export interface FunctionDefinition {
   name: string;
@@ -60,6 +62,8 @@ export interface FunctionDoc {
     | 'Inteligência de Tempo'
     | 'Janela e Ranking'
     | 'Cálculo Visual'
+    | 'Estatística'
+    | 'Financeira'
     | 'Informação';
   syntax: string;
   description: string;
@@ -911,6 +915,10 @@ export const POWER_BI_FUNCTIONS: FunctionDoc[] = Object.values(FUNCTION_REGISTRY
   else if (fn.category === 'Filtro') cat = 'Filtro';
   else if (fn.category === 'Tabela') cat = 'Tabela';
   else if (fn.category === 'Inteligência de Tempo') cat = 'Inteligência de Tempo';
+  else if (fn.category === 'Janela e Ranking') cat = 'Janela e Ranking';
+  else if (fn.category === 'Cálculo Visual') cat = 'Cálculo Visual';
+  else if (fn.category === 'Estatística') cat = 'Estatística';
+  else if (fn.category === 'Financeira') cat = 'Financeira';
   else if (fn.category === 'Informação') cat = 'Informação';
 
   return {

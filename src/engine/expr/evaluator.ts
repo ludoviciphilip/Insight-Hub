@@ -41,6 +41,17 @@ import { FilterContext } from '../model/filterContext';
 import { RowContextStack } from '../model/rowContext';
 import { toDaxTable } from '../functions/table';
 import { sortRowsBySpecs } from '../functions/windowAndRanking';
+import {
+  computeSampleStdev,
+  computePopulationStdev,
+  computeSampleVariance,
+  computePopulationVariance,
+  computePercentileInc,
+  computePercentileExc,
+  computeLinearRegression,
+} from '../functions/statistical';
+import { computeXNPV, computeXIRR, FINANCIAL_FUNCTIONS } from '../functions/financial';
+import { parseDateArg } from '../functions/dateTime';
 
 export interface EvalContext {
   dialect?: 'dax' | 'column';
@@ -495,8 +506,26 @@ export class Evaluator {
       'MEDIANX',
       'GEOMEANX',
       'CONCATENATEX',
+      'STDEVX.S',
+      'STDEVX.P',
+      'VARX.S',
+      'VARX.P',
+      'PERCENTILEX.INC',
+      'PERCENTILEX.EXC',
     ].includes(fnName)) {
       return this.evalIterator(node);
+    }
+
+    if (fnName === 'LINESTX') {
+      return this.evalLinestX(node);
+    }
+
+    if (fnName === 'XNPV') {
+      return this.evalXnpv(node);
+    }
+
+    if (fnName === 'XIRR') {
+      return this.evalXirr(node);
     }
 
     // 3. Iterative Table Functions & Constructors
@@ -705,6 +734,19 @@ export class Evaluator {
         'APPROXIMATEDISTINCTCOUNT',
         'PRODUCT',
         'MEDIAN',
+        'GEOMEAN',
+        'STDEV.S',
+        'STDEV.P',
+        'STDEV',
+        'STDEVP',
+        'VAR.S',
+        'VAR.P',
+        'VAR',
+        'VARP',
+        'PERCENTILE.INC',
+        'PERCENTILE.EXC',
+        'PERCENTILE',
+        'LINEST',
       ].includes(fnName);
 
     const isContextOrRel = [
@@ -801,8 +843,8 @@ export class Evaluator {
 
     const evaluatedArgs = node.args.map((arg, idx) => {
       if (!arg) return DAX_BLANK;
-      if (isAgg && idx === 0 && arg.kind === 'ColumnRef') {
-        return { table: arg.table, column: arg.column };
+      if (isAgg && (idx === 0 || (fnName === 'LINEST' && idx === 1)) && (arg.kind === 'ColumnRef' || arg.kind === 'VariableRef')) {
+        return arg.kind === 'VariableRef' ? { column: arg.name } : { table: arg.table, column: arg.column };
       }
       if (isContextOrRel && (arg.kind === 'ColumnRef' || arg.kind === 'VariableRef')) {
         return arg.kind === 'VariableRef' ? { column: arg.name } : { table: arg.table, column: arg.column };
@@ -2044,9 +2086,267 @@ export class Evaluator {
         return nonBlanks.join(delimiter);
       }
 
+      case 'STDEVX.S': {
+        const nums = evaluatedValues
+          .filter(v => !isBlank(v) && v !== null && v !== undefined && v !== '')
+          .map(v => daxToNumber(v))
+          .filter(n => !isNaN(n));
+        const res = computeSampleStdev(nums);
+        return res !== null ? res : DAX_BLANK;
+      }
+
+      case 'STDEVX.P': {
+        const nums = evaluatedValues
+          .filter(v => !isBlank(v) && v !== null && v !== undefined && v !== '')
+          .map(v => daxToNumber(v))
+          .filter(n => !isNaN(n));
+        const res = computePopulationStdev(nums);
+        return res !== null ? res : DAX_BLANK;
+      }
+
+      case 'VARX.S': {
+        const nums = evaluatedValues
+          .filter(v => !isBlank(v) && v !== null && v !== undefined && v !== '')
+          .map(v => daxToNumber(v))
+          .filter(n => !isNaN(n));
+        const res = computeSampleVariance(nums);
+        return res !== null ? res : DAX_BLANK;
+      }
+
+      case 'VARX.P': {
+        const nums = evaluatedValues
+          .filter(v => !isBlank(v) && v !== null && v !== undefined && v !== '')
+          .map(v => daxToNumber(v))
+          .filter(n => !isNaN(n));
+        const res = computePopulationVariance(nums);
+        return res !== null ? res : DAX_BLANK;
+      }
+
+      case 'PERCENTILEX.INC': {
+        const k = node.args[2] ? daxToNumber(this.evalNode(node.args[2]), true) : 0;
+        const nums = evaluatedValues
+          .filter(v => !isBlank(v) && v !== null && v !== undefined && v !== '')
+          .map(v => daxToNumber(v))
+          .filter(n => !isNaN(n));
+        if (nums.length === 0) return DAX_BLANK;
+        nums.sort((a, b) => a - b);
+        return computePercentileInc(nums, k);
+      }
+
+      case 'PERCENTILEX.EXC': {
+        const k = node.args[2] ? daxToNumber(this.evalNode(node.args[2]), true) : 0;
+        const nums = evaluatedValues
+          .filter(v => !isBlank(v) && v !== null && v !== undefined && v !== '')
+          .map(v => daxToNumber(v))
+          .filter(n => !isNaN(n));
+        if (nums.length === 0) return DAX_BLANK;
+        nums.sort((a, b) => a - b);
+        return computePercentileExc(nums, k);
+      }
+
       default:
         return DAX_BLANK;
     }
+  }
+
+  /**
+   * Evaluates LINESTX(table, y_expr, x_expr, [const])
+   */
+  private evalLinestX(node: FunctionCallNode): any {
+    if (node.args.length < 3 || !node.args[0] || !node.args[1] || !node.args[2]) {
+      throw new DaxError('Semantic', 'LINESTX requer pelo menos 3 argumentos (tabela, y_expr, x_expr, [const])');
+    }
+    const tableVal = this.resolveTableValue(node.args[0]);
+    const rows = tableVal.rows;
+    if (rows.length < 2) return DAX_BLANK;
+
+    const yExprNode = node.args[1];
+    const xExprNode = node.args[2];
+    const constNode = node.args[3];
+    const hasConst = constNode ? daxToBoolean(this.evalNode(constNode)) : true;
+
+    const stack = this.context.rowContextStack
+      ? new RowContextStack((this.context.rowContextStack as any).stack)
+      : new RowContextStack();
+
+    const yNums: number[] = [];
+    const xNums: number[] = [];
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      stack.push(tableVal.tableId || '', tableVal.tableName || '', row, i, tableVal.lineage);
+
+      const rowEval = new Evaluator({
+        ...this.context,
+        row,
+        rowIndex: i,
+        tableId: tableVal.tableId,
+        rowContextStack: stack,
+      });
+
+      const yVal = rowEval.evalNode(yExprNode);
+      const xVal = rowEval.evalNode(xExprNode);
+
+      if (!isBlank(yVal) && !isBlank(xVal) && yVal !== null && xVal !== null) {
+        const yn = daxToNumber(yVal);
+        const xn = daxToNumber(xVal);
+        if (!isNaN(yn) && !isNaN(xn)) {
+          yNums.push(yn);
+          xNums.push(xn);
+        }
+      }
+
+      stack.pop();
+    }
+
+    if (yNums.length < 2) return DAX_BLANK;
+
+    const reg = computeLinearRegression(yNums, xNums, hasConst);
+    const row = {
+      Slope1: reg.slope,
+      Intercept: reg.intercept,
+      StandardError1: reg.seSlope,
+      StandardErrorIntercept: reg.seIntercept,
+      CoefficientOfDetermination: reg.r2,
+      StandardError: reg.seY,
+      FStatistic: reg.fStat,
+      DegreesOfFreedom: reg.df,
+      RegressionSumOfSquares: reg.ssReg,
+      ResidualSumOfSquares: reg.ssRes,
+    };
+
+    return {
+      __isDaxTable: true,
+      columns: [
+        'Slope1',
+        'Intercept',
+        'StandardError1',
+        'StandardErrorIntercept',
+        'CoefficientOfDetermination',
+        'StandardError',
+        'FStatistic',
+        'DegreesOfFreedom',
+        'RegressionSumOfSquares',
+        'ResidualSumOfSquares',
+      ],
+      rows: [row],
+    };
+  }
+
+  /**
+   * Evaluates XNPV(table, values_expr, dates_expr, rate_expr) or XNPV(rate, values, dates)
+   */
+  private evalXnpv(node: FunctionCallNode): any {
+    if (node.args.length < 3) {
+      throw new DaxError('Semantic', 'XNPV requer tabela, valores, datas e taxa');
+    }
+
+    if (node.args.length === 4 && node.args[0]) {
+      const tableVal = this.resolveTableValue(node.args[0]);
+      const valNode = node.args[1]!;
+      const dateNode = node.args[2]!;
+      const rate = daxToNumber(this.evalNode(node.args[3]!), true);
+
+      const stack = this.context.rowContextStack
+        ? new RowContextStack((this.context.rowContextStack as any).stack)
+        : new RowContextStack();
+
+      const values: number[] = [];
+      const dates: Date[] = [];
+
+      for (let i = 0; i < tableVal.rows.length; i++) {
+        const row = tableVal.rows[i];
+        stack.push(tableVal.tableId || '', tableVal.tableName || '', row, i, tableVal.lineage);
+
+        const rowEval = new Evaluator({
+          ...this.context,
+          row,
+          rowIndex: i,
+          tableId: tableVal.tableId,
+          rowContextStack: stack,
+        });
+
+        const v = rowEval.evalNode(valNode);
+        const d = rowEval.evalNode(dateNode);
+        const parsedD = parseDateArg(d);
+
+        if (!isBlank(v) && parsedD) {
+          values.push(daxToNumber(v));
+          dates.push(parsedD);
+        }
+
+        stack.pop();
+      }
+
+      if (values.length === 0) return DAX_BLANK;
+      return computeXNPV(rate, values, dates);
+    }
+
+    const evaluatedArgs = node.args.map(a => (a ? this.evalNode(a) : DAX_BLANK));
+    return FINANCIAL_FUNCTIONS['XNPV'].evaluate!(evaluatedArgs, this.context);
+  }
+
+  /**
+   * Evaluates XIRR(table, values_expr, dates_expr, [guess_expr]) or XIRR(values, dates, [guess])
+   */
+  private evalXirr(node: FunctionCallNode): any {
+    if (node.args.length < 2) {
+      throw new DaxError('Semantic', 'XIRR requer tabela, valores, datas e [palpite]');
+    }
+
+    if (node.args.length >= 3 && node.args[0]) {
+      let isTable = false;
+      let tableVal: DaxTableValue | null = null;
+      try {
+        tableVal = this.resolveTableValue(node.args[0]);
+        isTable = Boolean(tableVal && tableVal.__isDaxTable);
+      } catch {
+        isTable = false;
+      }
+
+      if (isTable && tableVal) {
+        const valNode = node.args[1]!;
+        const dateNode = node.args[2]!;
+        const guess = node.args[3] ? daxToNumber(this.evalNode(node.args[3]!), true) : 0.1;
+
+        const stack = this.context.rowContextStack
+          ? new RowContextStack((this.context.rowContextStack as any).stack)
+          : new RowContextStack();
+
+        const values: number[] = [];
+        const dates: Date[] = [];
+
+        for (let i = 0; i < tableVal.rows.length; i++) {
+          const row = tableVal.rows[i];
+          stack.push(tableVal.tableId || '', tableVal.tableName || '', row, i, tableVal.lineage);
+
+          const rowEval = new Evaluator({
+            ...this.context,
+            row,
+            rowIndex: i,
+            tableId: tableVal.tableId,
+            rowContextStack: stack,
+          });
+
+          const v = rowEval.evalNode(valNode);
+          const d = rowEval.evalNode(dateNode);
+          const parsedD = parseDateArg(d);
+
+          if (!isBlank(v) && parsedD) {
+            values.push(daxToNumber(v));
+            dates.push(parsedD);
+          }
+
+          stack.pop();
+        }
+
+        if (values.length === 0) return DAX_BLANK;
+        return computeXIRR(values, dates, guess);
+      }
+    }
+
+    const evaluatedArgs = node.args.map(a => (a ? this.evalNode(a) : DAX_BLANK));
+    return FINANCIAL_FUNCTIONS['XIRR'].evaluate!(evaluatedArgs, this.context);
   }
 
   /**

@@ -9,6 +9,8 @@ import { TABLE_FUNCTIONS } from './table';
 import { TIME_INTELLIGENCE_FUNCTIONS } from './timeIntelligence';
 import { WINDOW_AND_RANKING_FUNCTIONS } from './windowAndRanking';
 import { VISUAL_CALCULATION_FUNCTIONS } from './visualCalculations';
+import { STATISTICAL_FUNCTIONS } from './statistical';
+import { FINANCIAL_FUNCTIONS } from './financial';
 import { FunctionDefinition } from '../expr/registry';
 
 export const ALL_SCALAR_FUNCTIONS: Record<string, FunctionDefinition> = {
@@ -23,6 +25,8 @@ export const ALL_SCALAR_FUNCTIONS: Record<string, FunctionDefinition> = {
   ...TIME_INTELLIGENCE_FUNCTIONS,
   ...WINDOW_AND_RANKING_FUNCTIONS,
   ...VISUAL_CALCULATION_FUNCTIONS,
+  ...STATISTICAL_FUNCTIONS,
+  ...FINANCIAL_FUNCTIONS,
 };
 
 export {
@@ -37,4 +41,6 @@ export {
   TIME_INTELLIGENCE_FUNCTIONS,
   WINDOW_AND_RANKING_FUNCTIONS,
   VISUAL_CALCULATION_FUNCTIONS,
+  STATISTICAL_FUNCTIONS,
+  FINANCIAL_FUNCTIONS,
 };

@@ -3,7 +3,7 @@ import { daxToNumber, daxToString, isBlank, DAX_BLANK } from '../expr/types';
 import { DaxError } from '../shared/errors';
 import { parseDate } from '../shared/valueParser';
 
-function parseDateArg(val: any): Date | null {
+export function parseDateArg(val: any): Date | null {
   if (isBlank(val)) return null;
   if (val instanceof Date) {
     return isNaN(val.getTime()) ? null : val;
@@ -12,14 +12,14 @@ function parseDateArg(val: any): Date | null {
   return res?.date || null;
 }
 
-function formatDateISO(d: Date): string {
+export function formatDateISO(d: Date): string {
   const y = d.getUTCFullYear();
   const m = String(d.getUTCMonth() + 1).padStart(2, '0');
   const day = String(d.getUTCDate()).padStart(2, '0');
   return `${y}-${m}-${day}`;
 }
 
-function daysInMonth(year: number, monthIndex: number): number {
+export function daysInMonth(year: number, monthIndex: number): number {
   return new Date(Date.UTC(year, monthIndex + 1, 0)).getUTCDate();
 }
 
@@ -58,7 +58,7 @@ function getSystem1Week(d: Date, weekStartDay: number): number {
 /**
  * Computes YEARFRAC according to basis 0-4
  */
-function calcYearFrac(d1: Date, d2: Date, basis: number): number {
+export function calcYearFrac(d1: Date, d2: Date, basis: number): number {
   let start = d1;
   let end = d2;
   if (start.getTime() > end.getTime()) {

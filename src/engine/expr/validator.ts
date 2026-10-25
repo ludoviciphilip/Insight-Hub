@@ -88,6 +88,19 @@ const AGGREGATION_FUNCTIONS = new Set([
   'APPROXIMATEDISTINCTCOUNT',
   'PRODUCT',
   'MEDIAN',
+  'GEOMEAN',
+  'STDEV.S',
+  'STDEV.P',
+  'STDEV',
+  'STDEVP',
+  'VAR.S',
+  'VAR.P',
+  'VAR',
+  'VARP',
+  'PERCENTILE.INC',
+  'PERCENTILE.EXC',
+  'PERCENTILE',
+  'LINEST',
 ]);
 
 const ROW_CONTEXT_ITERATORS = new Set([
@@ -99,7 +112,17 @@ const ROW_CONTEXT_ITERATORS = new Set([
   'COUNTAX',
   'PRODUCTX',
   'MEDIANX',
+  'GEOMEANX',
   'CONCATENATEX',
+  'STDEVX.S',
+  'STDEVX.P',
+  'VARX.S',
+  'VARX.P',
+  'PERCENTILEX.INC',
+  'PERCENTILEX.EXC',
+  'LINESTX',
+  'XNPV',
+  'XIRR',
   'FILTER',
 ]);
 

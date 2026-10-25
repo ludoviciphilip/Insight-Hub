@@ -94,6 +94,14 @@ export function daxToNumber(val: any, throwOnInvalid = false): number {
   if (typeof val === 'boolean') return val ? 1 : 0;
   if (val instanceof Date) return val.getTime();
 
+  if (val && typeof val === 'object' && val.__isDaxTable && Array.isArray(val.rows)) {
+    if (val.rows.length === 1) {
+      const row = val.rows[0];
+      if ('Slope1' in row) return daxToNumber(row.Slope1, throwOnInvalid);
+      if (val.columns.length === 1) return daxToNumber(row[val.columns[0]], throwOnInvalid);
+    }
+  }
+
   const parsed = parseNumber(val);
   if (parsed.value !== null && !isNaN(parsed.value)) {
     return parsed.value;
@@ -115,6 +123,13 @@ export function daxToString(val: any): string {
   if (typeof val === 'string') return val;
   if (typeof val === 'boolean') return val ? 'TRUE' : 'FALSE';
   if (val instanceof Date) return val.toISOString();
+  if (val && typeof val === 'object' && val.__isDaxTable && Array.isArray(val.rows)) {
+    if (val.rows.length === 1) {
+      const row = val.rows[0];
+      if ('Slope1' in row) return daxToString(row.Slope1);
+      if (val.columns.length === 1) return daxToString(row[val.columns[0]]);
+    }
+  }
   return String(val);
 }
 
