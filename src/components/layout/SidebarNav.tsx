@@ -7,23 +7,24 @@ import {
   LayoutDashboard,
   Search,
   ShieldCheck,
-  Settings,
   HelpCircle,
 } from 'lucide-react';
 import { useBiStore } from '../../store/useBiStore';
 import { ActiveView } from '../../types/bi';
+import { useTranslation } from '../../i18n';
 
 export const SidebarNav: React.FC = () => {
   const { activeView, setActiveView, setLimitationsModalOpen } = useBiStore();
+  const { t } = useTranslation();
 
   const navItems: { view: ActiveView; label: string; icon: any }[] = [
-    { view: 'report', label: 'Relatório', icon: BarChart3 },
-    { view: 'data', label: 'Dados', icon: Table },
-    { view: 'model', label: 'Modelo', icon: Layers },
-    { view: 'query', label: 'Power Query', icon: Sliders },
-    { view: 'metabase', label: 'Pergunta (Metabase)', icon: Search },
-    { view: 'dashboard', label: 'Dashboards & Metas', icon: LayoutDashboard },
-    { view: 'governance', label: 'Workspaces & Governança', icon: ShieldCheck },
+    { view: 'report', label: t.nav.report, icon: BarChart3 },
+    { view: 'data', label: t.nav.data, icon: Table },
+    { view: 'model', label: t.nav.model, icon: Layers },
+    { view: 'query', label: t.nav.query, icon: Sliders },
+    { view: 'metabase', label: t.nav.metabase, icon: Search },
+    { view: 'dashboard', label: t.nav.dashboard, icon: LayoutDashboard },
+    { view: 'governance', label: t.nav.governance, icon: ShieldCheck },
   ];
 
   return (
@@ -57,7 +58,7 @@ export const SidebarNav: React.FC = () => {
       <div className="flex flex-col items-center gap-2">
         <button
           onClick={() => setLimitationsModalOpen(true)}
-          title="Avisos e Limitações do Sistema"
+          title={t.nav.limitations}
           className="w-9 h-9 flex items-center justify-center rounded-lg text-slate-400 hover:text-amber-400 hover:bg-slate-800 transition-colors"
         >
           <HelpCircle className="w-5 h-5" />

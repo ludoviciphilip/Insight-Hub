@@ -17,9 +17,10 @@ import {
 } from 'lucide-react';
 import { Visual } from '../../types/bi';
 import { useBiStore } from '../../store/useBiStore';
-import { globalDataEngine, formatValue, formatCurrency, formatNumber, formatPercent } from '../../engine/dataEngine';
+import { globalDataEngine, formatValue, formatCurrency, formatNumber, formatPercent, getCurrencySymbol } from '../../engine/dataEngine';
 import { ErrorBoundary } from '../shared/ErrorBoundary';
 import { VisualCalculationModal } from '../modals/VisualCalculationModal';
+import { useTranslation } from '../../i18n';
 
 interface VisualCardProps {
   visual: Visual;
@@ -47,6 +48,9 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual, isSelected, onSe
     snapToGrid,
   } = useBiStore();
 
+  const { t, language, currency } = useTranslation();
+  const currSymbol = getCurrencySymbol(currency);
+
   const [isFocused, setIsFocused] = useState(false);
   const [showRawTable, setShowRawTable] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -67,6 +71,15 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual, isSelected, onSe
       lower.includes('ticket') ||
       lower.includes('salario') ||
       lower.includes('pagamento') ||
+      lower.includes('price') ||
+      lower.includes('revenue') ||
+      lower.includes('cost') ||
+      lower.includes('profit') ||
+      lower.includes('salary') ||
+      lower.includes('payment') ||
+      lower.includes('precio') ||
+      lower.includes('ingreso') ||
+      lower.includes('sueldo') ||
       (lower.includes('total') && !lower.includes('qtd') && !lower.includes('quantidade') && !lower.includes('count'))
     ) {
       return true;
@@ -247,7 +260,7 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual, isSelected, onSe
             axisLabel: {
               fontSize: 10,
               color: '#64748b',
-              formatter: (v: number) => (isYCurrency ? (v >= 1000 ? `R$ ${(v / 1000).toFixed(0)}k` : `R$ ${v}`) : (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v)),
+              formatter: (v: number) => (isYCurrency ? (v >= 1000 ? `${currSymbol} ${(v / 1000).toFixed(0)}k` : `${currSymbol} ${v}`) : (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v)),
             },
             splitLine: { lineStyle: { type: 'dashed', color: '#f1f5f9' } },
           },
@@ -293,7 +306,7 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual, isSelected, onSe
             axisLabel: {
               fontSize: 10,
               color: '#64748b',
-              formatter: (v: number) => (isYCurrency ? (v >= 1000 ? `R$ ${(v / 1000).toFixed(0)}k` : `R$ ${v}`) : (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v)),
+              formatter: (v: number) => (isYCurrency ? (v >= 1000 ? `${currSymbol} ${(v / 1000).toFixed(0)}k` : `${currSymbol} ${v}`) : (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v)),
             },
             splitLine: { lineStyle: { type: 'dashed', color: '#f1f5f9' } },
           },
@@ -348,7 +361,7 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual, isSelected, onSe
             axisLabel: {
               fontSize: 10,
               color: '#64748b',
-              formatter: (v: number) => (isYCurrency ? (v >= 1000 ? `R$ ${(v / 1000).toFixed(0)}k` : `R$ ${v}`) : (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v)),
+              formatter: (v: number) => (isYCurrency ? (v >= 1000 ? `${currSymbol} ${(v / 1000).toFixed(0)}k` : `${currSymbol} ${v}`) : (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v)),
             },
             splitLine: { lineStyle: { type: 'dashed', color: '#f1f5f9' } },
           },
@@ -372,7 +385,7 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual, isSelected, onSe
           const rawVal = series[0]?.data[i] ?? 0;
           const numVal = typeof rawVal === 'number' && !isNaN(rawVal) ? rawVal : Number(rawVal) || 0;
           return {
-            name: cat || 'Sem categoria',
+            name: cat || t.common.uncategorized,
             value: Math.abs(numVal), // Magnitude for geometric sector angles and percentage shares
             rawValue: numVal,        // Original signed value preserved for tooltips and labels
           };
@@ -383,7 +396,7 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual, isSelected, onSe
         const nonZeroSlices = hasNonZero ? rawPieData.filter(p => p.value > 0) : rawPieData;
         const pieData = nonZeroSlices.length > 0
           ? nonZeroSlices
-          : [{ name: 'Sem dados', value: 0, rawValue: 0 }];
+          : [{ name: t.common.noData, value: 0, rawValue: 0 }];
 
         // Find measure or column format
         const yFieldName = visual.dataConfig.yAxisFields?.[0] || '';
@@ -412,14 +425,14 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual, isSelected, onSe
           tooltip: {
             trigger: 'item',
             formatter: (p: any) => {
-              if (p.name === 'Sem dados') {
-                return `<div style="font-weight:600;color:#64748b;padding:2px 4px;">Sem dados para exibir</div>`;
+              if (p.name === t.common.noData) {
+                return `<div style="font-weight:600;color:#64748b;padding:2px 4px;">${t.visualCard.noDataToDisplay}</div>`;
               }
               const actualVal = p.data?.rawValue !== undefined ? p.data.rawValue : p.value;
               const valStr = formatVal(actualVal);
               const percentStr = typeof p.percent === 'number' ? `${p.percent.toFixed(1)}%` : '';
               return `<div style="font-weight:600;color:#1e293b;margin-bottom:2px;">${p.name}</div>
-                      <div style="font-size:12px;color:#475569;">Valor: <b style="color:#0f172a;">${valStr}</b> ${percentStr ? `(${percentStr})` : ''}</div>`;
+                      <div style="font-size:12px;color:#475569;">${t.common.value}: <b style="color:#0f172a;">${valStr}</b> ${percentStr ? `(${percentStr})` : ''}</div>`;
             },
           },
           legend: {
@@ -664,7 +677,7 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual, isSelected, onSe
               e.stopPropagation();
               setShowRawTable(!showRawTable);
             }}
-            title={showRawTable ? 'Ver Gráfico' : 'Exibir como Tabela'}
+            title={showRawTable ? t.visualCard.viewChart : t.visualCard.viewTable}
             className="p-1 text-slate-500 hover:text-slate-800 hover:bg-slate-200/60 rounded"
           >
             {showRawTable ? <BarChart3 className="w-3.5 h-3.5" /> : <TableIcon className="w-3.5 h-3.5" />}
@@ -674,7 +687,7 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual, isSelected, onSe
               e.stopPropagation();
               pinVisualToDashboard(visual.id, activePageId, visual.title);
             }}
-            title="Fixar no Dashboard"
+            title="Dashboard"
             className="p-1 text-slate-500 hover:text-amber-600 hover:bg-slate-200/60 rounded"
           >
             <Pin className="w-3.5 h-3.5" />
@@ -684,7 +697,7 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual, isSelected, onSe
               e.stopPropagation();
               handleExportCSV();
             }}
-            title="Exportar CSV"
+            title={t.visualCard.exportCsv}
             className="p-1 text-slate-500 hover:text-slate-800 hover:bg-slate-200/60 rounded"
           >
             <Download className="w-3.5 h-3.5" />
@@ -696,7 +709,7 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual, isSelected, onSe
               const primaryVal = queryResult.categories[0] || 'Geral';
               setDrillPop(prev => (prev ? null : { field: primaryField, value: primaryVal }));
             }}
-            title="Detalhamento / Drill-Through"
+            title={t.visualCard.drillthrough}
             className={`p-1 rounded transition-colors ${
               drillPop ? 'text-amber-600 bg-amber-100 font-bold' : 'text-slate-500 hover:text-amber-600 hover:bg-slate-200/60'
             }`}
@@ -708,7 +721,7 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual, isSelected, onSe
               e.stopPropagation();
               setIsVisualCalcModalOpen(true);
             }}
-            title="Cálculos Visuais (Visual Calculations)"
+            title={t.visualCard.openCalcModal}
             className={`p-1 rounded transition-colors ${
               ((visual.dataConfig?.visualCalculations?.length ?? 0) > 0 || (visual.visualCalculations?.length ?? 0) > 0)
                 ? 'text-amber-600 bg-amber-100 font-bold ring-1 ring-amber-300'
@@ -722,7 +735,7 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual, isSelected, onSe
               e.stopPropagation();
               setIsFocused(!isFocused);
             }}
-            title={isFocused ? 'Restaurar Tamanho' : 'Modo Foco / Tela Cheia'}
+            title={isFocused ? t.visualCard.restoreSize : t.visualCard.focusMode}
             className="p-1 text-slate-500 hover:text-slate-800 hover:bg-slate-200/60 rounded"
           >
             {isFocused ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
@@ -732,7 +745,7 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual, isSelected, onSe
               e.stopPropagation();
               deleteVisual(visual.id);
             }}
-            title="Excluir Visual"
+            title={t.visualCard.deleteVisual}
             className="p-1 text-slate-400 hover:text-red-600 hover:bg-slate-200/60 rounded"
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -788,14 +801,26 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual, isSelected, onSe
                 if (visual.title.includes('%') || yField.toLowerCase().includes('pct') || yField.toLowerCase().includes('percent')) {
                   return formatPercent(val);
                 }
-                if (isCurrencyField(yField) || visual.title.toLowerCase().includes('r$') || visual.title.toLowerCase().includes('faturamento') || visual.title.toLowerCase().includes('lucro') || visual.title.toLowerCase().includes('custo')) {
+                if (
+                  isCurrencyField(yField) ||
+                  visual.title.toLowerCase().includes('r$') ||
+                  visual.title.toLowerCase().includes('$') ||
+                  visual.title.toLowerCase().includes('€') ||
+                  visual.title.toLowerCase().includes('faturamento') ||
+                  visual.title.toLowerCase().includes('lucro') ||
+                  visual.title.toLowerCase().includes('custo') ||
+                  visual.title.toLowerCase().includes('revenue') ||
+                  visual.title.toLowerCase().includes('profit') ||
+                  visual.title.toLowerCase().includes('cost') ||
+                  visual.title.toLowerCase().includes('precio')
+                ) {
                   return formatCurrency(val);
                 }
                 return formatNumber(val);
               })()}
             </span>
             <span className="text-xs font-medium text-slate-500 mt-1">
-              {visual.dataConfig.tableId} • {visual.dataConfig.yAxisFields?.[0] || 'Total'} ({visual.dataConfig.aggregation || 'SUM'})
+              {visual.dataConfig.tableId} • {visual.dataConfig.yAxisFields?.[0] || t.common.total} ({visual.dataConfig.aggregation || 'SUM'})
             </span>
           </div>
         ) : visual.type === 'slicer' ? (
@@ -817,14 +842,14 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual, isSelected, onSe
               <div className="flex flex-col h-full justify-center p-2 space-y-2">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-medium text-slate-600 flex items-center gap-1">
-                    <Filter className="w-3 h-3 text-amber-500" /> Selecionar {slicerCol}:
+                    <Filter className="w-3 h-3 text-amber-500" /> {t.visualCard.selectField} {slicerCol}:
                   </label>
                   {activeVal !== 'TODOS' && (
                     <button
                       onClick={() => setCrossFilter(visual.dataConfig.tableId, slicerCol, '')}
                       className="text-[10px] text-amber-600 hover:text-amber-800 font-semibold"
                     >
-                      Limpar
+                      {t.common.clear}
                     </button>
                   )}
                 </div>
@@ -836,7 +861,7 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual, isSelected, onSe
                     setCrossFilter(visual.dataConfig.tableId, slicerCol, val === 'TODOS' ? '' : val);
                   }}
                 >
-                  <option value="TODOS">(Todos os Registros)</option>
+                  <option value="TODOS">{t.visualCard.allRecords}</option>
                   {queryResult.categories.map(c => (
                     <option key={c} value={c}>
                       {c}

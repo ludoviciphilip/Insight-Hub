@@ -16,8 +16,10 @@ import {
 } from 'lucide-react';
 import { useBiStore } from '../../store/useBiStore';
 import { Column, Measure } from '../../types/bi';
+import { useTranslation } from '../../i18n';
 
 export const FieldsPane: React.FC = () => {
+  const { t } = useTranslation();
   const {
     tables,
     measures,
@@ -140,13 +142,13 @@ export const FieldsPane: React.FC = () => {
       <div className="p-2.5 border-b border-slate-200 bg-slate-50 flex items-center justify-between font-semibold text-slate-700">
         <div className="flex items-center gap-1.5">
           <Database className="w-4 h-4 text-slate-500" />
-          <span>Dados</span>
+          <span>{t.panes.fields.title}</span>
         </div>
         <div className="flex items-center gap-1">
           <button
             onClick={() => setCustomMeasureModalOpen(true)}
             className="flex items-center gap-1 text-[11px] text-purple-700 hover:text-purple-800 font-semibold px-1.5 py-0.5 rounded hover:bg-purple-50 transition-colors"
-            title="Escrever Medida Personalizada (Fórmula DAX)"
+            title={t.panes.fields.newMeasure}
           >
             <Sigma className="w-3 h-3 text-purple-600" />
             <span>+ Medida</span>
@@ -154,7 +156,7 @@ export const FieldsPane: React.FC = () => {
           <button
             onClick={() => setQuickMeasureModalOpen(true)}
             className="flex items-center gap-0.5 text-[11px] text-amber-700 hover:text-amber-800 font-medium px-1 py-0.5 rounded hover:bg-amber-50 transition-colors"
-            title="Assistente de Medida Rápida"
+            title={t.ribbonActions.quickMeasure}
           >
             <Plus className="w-3 h-3 text-amber-600" />
             <span>Rápida</span>
@@ -168,7 +170,7 @@ export const FieldsPane: React.FC = () => {
           <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2 top-2" />
           <input
             type="text"
-            placeholder="Pesquisar campos..."
+            placeholder={t.panes.fields.search}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full bg-slate-50 border border-slate-200 rounded pl-7 pr-2 py-1 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-500 text-[11px]"

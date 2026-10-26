@@ -26,9 +26,12 @@ import {
   Palette,
   FolderOpen,
   Grid,
+  Globe,
+  Coins,
 } from 'lucide-react';
 import { useBiStore } from '../../store/useBiStore';
 import { exportProjectToFile } from '../../engine/storage';
+import { useTranslation } from '../../i18n';
 
 export const Ribbon: React.FC<{
   showFiltersPane: boolean;
@@ -48,6 +51,8 @@ export const Ribbon: React.FC<{
   const [activeRibbonTab, setActiveRibbonTab] = useState<'inicio' | 'inserir' | 'modelagem' | 'exibir' | 'ajuda'>('inicio');
   const [showNewProjectModal, setShowNewProjectModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { t, language, currency, setLanguage, setCurrency } = useTranslation();
 
   const {
     setActiveView,
@@ -134,51 +139,83 @@ export const Ribbon: React.FC<{
             type="text"
             value={projectName}
             onChange={(e) => setProjectName(e.target.value)}
-            className="bg-transparent text-slate-200 font-medium hover:bg-slate-800 px-1.5 py-0.5 rounded focus:bg-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-400 max-w-[280px] truncate"
+            className="bg-transparent text-slate-200 font-medium hover:bg-slate-800 px-1.5 py-0.5 rounded focus:bg-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-400 max-w-[200px] truncate"
           />
           <button
             onClick={() => setShowNewProjectModal(true)}
             className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-medium transition-colors text-[10px]"
-            title="Criar um novo projeto do zero"
+            title={t.topBar.newProjectTooltip}
           >
-            + Novo Projeto
+            {t.topBar.newProject}
           </button>
           <button
             onClick={() => fileInputRef.current?.click()}
             className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-medium transition-colors text-[10px] flex items-center gap-1"
-            title="Abrir arquivo de projeto .insight"
+            title={t.topBar.openInsightTooltip}
           >
             <FolderOpen className="w-3 h-3 text-amber-400" />
-            <span>Abrir .insight</span>
+            <span>{t.topBar.openInsight}</span>
           </button>
         </div>
 
-        <div className="flex items-center gap-3 text-[11px] text-slate-300">
+        <div className="flex items-center gap-2.5 text-[11px] text-slate-300">
+          {/* Language Selector */}
+          <div className="flex items-center gap-1 bg-slate-800 rounded px-1.5 py-0.5 border border-slate-700/70" title={t.common.language}>
+            <Globe className="w-3 h-3 text-amber-400 shrink-0" />
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value as any)}
+              className="bg-transparent text-slate-200 text-[10px] font-medium focus:outline-none cursor-pointer pr-0.5"
+              aria-label={t.common.language}
+            >
+              <option value="pt-BR" className="bg-slate-900 text-white">🇧🇷 PT</option>
+              <option value="en-US" className="bg-slate-900 text-white">🇺🇸 EN</option>
+              <option value="es-ES" className="bg-slate-900 text-white">🇪🇸 ES</option>
+            </select>
+          </div>
+
+          {/* Currency Selector */}
+          <div className="flex items-center gap-1 bg-slate-800 rounded px-1.5 py-0.5 border border-slate-700/70" title={t.common.currency}>
+            <Coins className="w-3 h-3 text-amber-400 shrink-0" />
+            <select
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value as any)}
+              className="bg-transparent text-slate-200 text-[10px] font-medium focus:outline-none cursor-pointer pr-0.5"
+              aria-label={t.common.currency}
+            >
+              <option value="BRL" className="bg-slate-900 text-white">R$ BRL</option>
+              <option value="USD" className="bg-slate-900 text-white">$ USD</option>
+              <option value="EUR" className="bg-slate-900 text-white">€ EUR</option>
+            </select>
+          </div>
+
+          <span className="text-slate-700">|</span>
+
           {lastSavedAt && (
-            <span className={lastSavedAt === 'Falha ao salvar' ? 'text-red-400 font-bold text-[10px]' : 'text-slate-400 text-[10px]'}>
-              {lastSavedAt.startsWith('Salvo') || lastSavedAt === 'Falha ao salvar' ? lastSavedAt : `Salvo às ${lastSavedAt}`}
+            <span className={lastSavedAt === t.common.saveFailed ? 'text-red-400 font-bold text-[10px]' : 'text-slate-400 text-[10px]'}>
+              {lastSavedAt.startsWith(t.common.savedAt) || lastSavedAt === t.common.saveFailed ? lastSavedAt : `${t.common.savedAt} ${lastSavedAt}`}
             </span>
           )}
           <button
             onClick={() => handleExportProject()}
             className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-medium transition-colors flex items-center gap-1 text-[10px]"
-            title="Exportar projeto para arquivo .insight"
+            title={t.topBar.exportInsightTooltip}
           >
             <FileDown className="w-3 h-3 text-amber-400" />
-            <span>Exportar .insight</span>
+            <span>{t.topBar.exportInsight}</span>
           </button>
           <button
             onClick={() => saveProject()}
             className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 font-medium transition-colors"
           >
-            Salvar
+            {t.common.save}
           </button>
           <button
             onClick={() => setAiModalOpen(true)}
             className="flex items-center gap-1 bg-linear-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 px-2 py-0.5 rounded font-bold transition-all shadow-xs"
           >
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Copilot IA</span>
+            <span>{t.topBar.copilotAi}</span>
           </button>
         </div>
       </div>
@@ -186,11 +223,11 @@ export const Ribbon: React.FC<{
       {/* Ribbon Navigation Tabs */}
       <div className="flex items-center px-2 bg-slate-100 border-b border-slate-200 text-xs">
         {[
-          { id: 'inicio', label: 'Início' },
-          { id: 'inserir', label: 'Inserir' },
-          { id: 'modelagem', label: 'Modelagem' },
-          { id: 'exibir', label: 'Exibir' },
-          { id: 'ajuda', label: 'Ajuda' },
+          { id: 'inicio', label: t.ribbonTabs.home },
+          { id: 'inserir', label: t.ribbonTabs.insert },
+          { id: 'modelagem', label: t.ribbonTabs.modeling },
+          { id: 'exibir', label: t.ribbonTabs.view },
+          { id: 'ajuda', label: t.ribbonTabs.help },
         ].map(tab => (
           <button
             key={tab.id}
@@ -216,12 +253,12 @@ export const Ribbon: React.FC<{
               <button
                 onClick={() => setShowNewProjectModal(true)}
                 className="flex flex-col items-center p-1 rounded hover:bg-slate-100 text-slate-700 group transition-all"
-                title="Limpar tudo e iniciar um novo projeto do zero"
+                title={t.topBar.newProjectTooltip}
               >
                 <div className="p-1 rounded bg-slate-100 group-hover:bg-slate-200 text-slate-800">
                   <FilePlus className="w-5 h-5 text-amber-500" />
                 </div>
-                <span className="text-[10px] font-semibold mt-0.5">Novo Projeto</span>
+                <span className="text-[10px] font-semibold mt-0.5">{t.topBar.newProject}</span>
               </button>
             </div>
 
@@ -234,7 +271,7 @@ export const Ribbon: React.FC<{
                 <div className="p-1 rounded bg-amber-50 group-hover:bg-amber-100 text-amber-600">
                   <Database className="w-5 h-5" />
                 </div>
-                <span className="text-[10px] font-semibold mt-0.5">Obter Dados</span>
+                <span className="text-[10px] font-semibold mt-0.5">{t.ribbonActions.getData}</span>
               </button>
             </div>
 
@@ -247,7 +284,7 @@ export const Ribbon: React.FC<{
                 <div className="p-1 rounded bg-blue-50 group-hover:bg-blue-100 text-blue-600">
                   <Sliders className="w-5 h-5" />
                 </div>
-                <span className="text-[10px] font-semibold mt-0.5">Transformar</span>
+                <span className="text-[10px] font-semibold mt-0.5">{t.ribbonActions.transformData}</span>
               </button>
             </div>
 
@@ -258,23 +295,22 @@ export const Ribbon: React.FC<{
                 className="flex flex-col items-center p-1 rounded hover:bg-slate-100 text-slate-700"
               >
                 <PlusCircle className="w-5 h-5 text-emerald-600" />
-                <span className="text-[10px] font-semibold mt-0.5">Novo Visual</span>
+                <span className="text-[10px] font-semibold mt-0.5">{t.ribbonActions.newVisual}</span>
               </button>
               <button
                 onClick={() => setCustomMeasureModalOpen(true)}
                 className="flex flex-col items-center p-1 rounded hover:bg-slate-100 text-slate-700"
-                title="Escrever uma nova medida DAX personalizada"
+                title={t.panes.fields.newMeasure}
               >
                 <Sigma className="w-5 h-5 text-purple-600" />
-                <span className="text-[10px] font-semibold mt-0.5">Nova Medida</span>
+                <span className="text-[10px] font-semibold mt-0.5">{t.ribbonActions.newMeasure}</span>
               </button>
               <button
                 onClick={() => setQuickMeasureModalOpen(true)}
                 className="flex flex-col items-center p-1 rounded hover:bg-slate-100 text-slate-700"
-                title="Assistente de medidas rápidas sem código"
               >
                 <Zap className="w-5 h-5 text-amber-600" />
-                <span className="text-[10px] font-semibold mt-0.5">Medida Rápida</span>
+                <span className="text-[10px] font-semibold mt-0.5">{t.ribbonActions.quickMeasure}</span>
               </button>
             </div>
 
@@ -283,10 +319,9 @@ export const Ribbon: React.FC<{
               <button
                 onClick={() => loadInitialSampleData()}
                 className="flex flex-col items-center p-1 rounded hover:bg-slate-100 text-slate-700"
-                title="Recarregar datasets de exemplo brasileiros (Vendas, DRE, Logística, RH)"
               >
                 <RefreshCw className="w-5 h-5 text-slate-600" />
-                <span className="text-[10px] font-semibold mt-0.5">Atualizar</span>
+                <span className="text-[10px] font-semibold mt-0.5">{t.ribbonActions.refresh}</span>
               </button>
             </div>
 
@@ -295,18 +330,16 @@ export const Ribbon: React.FC<{
               <button
                 onClick={() => setActiveView('metabase')}
                 className="flex flex-col items-center p-1 rounded hover:bg-slate-100 text-slate-700"
-                title="Modo Pergunta sem código e Editor SQL estilo Metabase"
               >
                 <Search className="w-5 h-5 text-blue-600" />
-                <span className="text-[10px] font-semibold mt-0.5">Nova Pergunta</span>
+                <span className="text-[10px] font-semibold mt-0.5">{t.nav.metabase}</span>
               </button>
               <button
                 onClick={() => setAiModalOpen(true)}
                 className="flex flex-col items-center p-1 rounded hover:bg-amber-50 text-amber-800"
-                title="Assistente de Perguntas em Linguagem Natural com Gemini"
               >
                 <Sparkles className="w-5 h-5 text-amber-500" />
-                <span className="text-[10px] font-semibold mt-0.5">Pergunte à IA</span>
+                <span className="text-[10px] font-semibold mt-0.5">{t.topBar.copilotAi}</span>
               </button>
             </div>
 
@@ -315,10 +348,9 @@ export const Ribbon: React.FC<{
               <button
                 onClick={() => setThemeModalOpen(true)}
                 className="flex flex-col items-center p-1 rounded hover:bg-slate-100 text-slate-700"
-                title="Gerenciador de temas e paletas de cores do relatório"
               >
                 <Palette className="w-5 h-5 text-indigo-600" />
-                <span className="text-[10px] font-semibold mt-0.5">Temas</span>
+                <span className="text-[10px] font-semibold mt-0.5">{t.ribbonActions.themeManager}</span>
               </button>
             </div>
 
@@ -327,18 +359,18 @@ export const Ribbon: React.FC<{
               <button
                 onClick={handleExportProject}
                 className="flex flex-col items-center p-1 rounded hover:bg-slate-100 text-slate-700"
-                title="Exportar projeto completo em formato .insight"
+                title={t.topBar.exportInsightTooltip}
               >
                 <FileDown className="w-5 h-5 text-slate-600" />
-                <span className="text-[10px] font-semibold mt-0.5">Exportar .insight</span>
+                <span className="text-[10px] font-semibold mt-0.5">{t.topBar.exportInsight}</span>
               </button>
               <button
                 onClick={() => window.print()}
                 className="flex flex-col items-center p-1 rounded hover:bg-slate-100 text-slate-700"
-                title="Imprimir ou Exportar para PDF (A4)"
+                title="PDF / Print"
               >
                 <Share2 className="w-5 h-5 text-slate-600" />
-                <span className="text-[10px] font-semibold mt-0.5">Imprimir / PDF</span>
+                <span className="text-[10px] font-semibold mt-0.5">PDF</span>
               </button>
             </div>
           </>
@@ -374,7 +406,7 @@ export const Ribbon: React.FC<{
                 className="flex flex-col items-center p-1 rounded hover:bg-slate-100 text-slate-700"
               >
                 <span className="text-base font-bold text-purple-600">📉</span>
-                <span className="text-[10px] font-medium">Cascata (DRE)</span>
+                <span className="text-[10px] font-medium">Cascata</span>
               </button>
               <button
                 onClick={() => addVisual('card')}
@@ -408,39 +440,37 @@ export const Ribbon: React.FC<{
               <button
                 onClick={() => setCustomMeasureModalOpen(true)}
                 className="flex flex-col items-center p-1 rounded hover:bg-slate-100 text-slate-700"
-                title="Escrever uma nova medida DAX personalizada"
               >
                 <Sigma className="w-5 h-5 text-purple-600" />
-                <span className="text-[10px] font-semibold mt-0.5">Nova Medida</span>
+                <span className="text-[10px] font-semibold mt-0.5">{t.ribbonActions.newMeasure}</span>
               </button>
               <button
                 onClick={() => setQuickMeasureModalOpen(true)}
                 className="flex flex-col items-center p-1 rounded hover:bg-slate-100 text-slate-700"
               >
                 <Zap className="w-5 h-5 text-amber-600" />
-                <span className="text-[10px] font-semibold mt-0.5">Medida Rápida</span>
+                <span className="text-[10px] font-semibold mt-0.5">{t.ribbonActions.quickMeasure}</span>
               </button>
               <button
                 onClick={() => generateCalendar('2025-01-01', '2026-12-31')}
                 className="flex flex-col items-center p-1 rounded hover:bg-slate-100 text-slate-700"
-                title="Gera tabela de datas d_Calendario automática com Ano, Mês, Trimestre"
               >
                 <Calendar className="w-5 h-5 text-emerald-600" />
-                <span className="text-[10px] font-semibold mt-0.5">Tabela Calendário</span>
+                <span className="text-[10px] font-semibold mt-0.5">Calendário</span>
               </button>
               <button
                 onClick={() => setActiveView('model')}
                 className="flex flex-col items-center p-1 rounded hover:bg-slate-100 text-slate-700"
               >
                 <Layers className="w-5 h-5 text-blue-600" />
-                <span className="text-[10px] font-semibold mt-0.5">Gerenciar Relações</span>
+                <span className="text-[10px] font-semibold mt-0.5">{t.nav.model}</span>
               </button>
               <button
                 onClick={() => setActiveView('governance')}
                 className="flex flex-col items-center p-1 rounded hover:bg-slate-100 text-slate-700"
               >
                 <ShieldCheck className="w-5 h-5 text-indigo-600" />
-                <span className="text-[10px] font-semibold mt-0.5">Segurança (RLS)</span>
+                <span className="text-[10px] font-semibold mt-0.5">{t.nav.governance}</span>
               </button>
             </div>
           </>
@@ -457,7 +487,7 @@ export const Ribbon: React.FC<{
                   showFiltersPane ? 'bg-amber-100 font-bold' : 'hover:bg-slate-100'
                 }`}
               >
-                <span className="text-[10px]">Filtros</span>
+                <span className="text-[10px]">{t.panes.filters.title}</span>
               </button>
               <button
                 onClick={() => setShowVisualsPane(!showVisualsPane)}
@@ -465,7 +495,7 @@ export const Ribbon: React.FC<{
                   showVisualsPane ? 'bg-amber-100 font-bold' : 'hover:bg-slate-100'
                 }`}
               >
-                <span className="text-[10px]">Visualizações</span>
+                <span className="text-[10px]">{t.panes.visualizations.title}</span>
               </button>
               <button
                 onClick={() => setShowFieldsPane(!showFieldsPane)}
@@ -473,7 +503,7 @@ export const Ribbon: React.FC<{
                   showFieldsPane ? 'bg-amber-100 font-bold' : 'hover:bg-slate-100'
                 }`}
               >
-                <span className="text-[10px]">Dados</span>
+                <span className="text-[10px]">{t.panes.fields.title}</span>
               </button>
             </div>
 
@@ -484,20 +514,18 @@ export const Ribbon: React.FC<{
                 className={`flex flex-col items-center p-1 rounded text-slate-700 ${
                   layoutMode === 'mobile' ? 'bg-amber-100 font-bold' : 'hover:bg-slate-100'
                 }`}
-                title="Alternar entre modo Desktop e Mobile layout"
               >
                 {layoutMode === 'desktop' ? <Smartphone className="w-5 h-5 text-slate-600" /> : <Monitor className="w-5 h-5 text-amber-600" />}
                 <span className="text-[10px] font-semibold mt-0.5">
-                  {layoutMode === 'desktop' ? 'Layout Celular' : 'Layout Desktop'}
+                  {layoutMode === 'desktop' ? t.ribbonActions.mobileLayout : t.ribbonActions.desktopLayout}
                 </span>
               </button>
               <button
                 onClick={() => setIsPresentationMode(!isPresentationMode)}
                 className="flex flex-col items-center p-1 rounded hover:bg-slate-100 text-slate-700"
-                title="Modo Apresentação (Tela cheia)"
               >
                 <Maximize className="w-5 h-5 text-slate-600" />
-                <span className="text-[10px] font-semibold mt-0.5">Apresentação</span>
+                <span className="text-[10px] font-semibold mt-0.5">{t.ribbonActions.presentationMode}</span>
               </button>
             </div>
 
@@ -506,10 +534,9 @@ export const Ribbon: React.FC<{
               <button
                 onClick={() => setThemeModalOpen(true)}
                 className="flex flex-col items-center p-1 rounded hover:bg-slate-100 text-slate-700"
-                title="Alterar tema visual e paleta de cores do relatório"
               >
                 <Palette className="w-5 h-5 text-indigo-600" />
-                <span className="text-[10px] font-semibold mt-0.5">Temas</span>
+                <span className="text-[10px] font-semibold mt-0.5">{t.ribbonActions.themeManager}</span>
               </button>
             </div>
 
@@ -523,7 +550,6 @@ export const Ribbon: React.FC<{
                     value={gridSize}
                     onChange={(e) => setGridSize(Number(e.target.value))}
                     className="border border-slate-300 rounded px-1.5 py-0.5 text-[10px] bg-slate-50 font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-500"
-                    title="Tamanho da grade do relatório em pixels"
                   >
                     {[8, 10, 16, 20, 24, 32].map(size => (
                       <option key={size} value={size}>
@@ -549,7 +575,7 @@ export const Ribbon: React.FC<{
                       onChange={(e) => setSnapToGrid(e.target.checked)}
                       className="rounded border-slate-300 text-amber-500 focus:ring-amber-400 w-3 h-3"
                     />
-                    <span>Ajustar</span>
+                    <span>{t.ribbonActions.snapToGrid}</span>
                   </label>
                 </div>
               </div>
@@ -560,7 +586,6 @@ export const Ribbon: React.FC<{
               <button
                 onClick={() => setCanvasZoom(canvasZoom - 10)}
                 className="p-1 rounded hover:bg-slate-100 text-slate-600"
-                title="Diminuir Zoom"
               >
                 <ZoomOut className="w-4 h-4" />
               </button>
@@ -570,7 +595,6 @@ export const Ribbon: React.FC<{
               <button
                 onClick={() => setCanvasZoom(canvasZoom + 10)}
                 className="p-1 rounded hover:bg-slate-100 text-slate-600"
-                title="Aumentar Zoom"
               >
                 <ZoomIn className="w-4 h-4" />
               </button>
@@ -587,14 +611,14 @@ export const Ribbon: React.FC<{
                 className="flex flex-col items-center p-1 rounded hover:bg-amber-50 text-amber-800"
               >
                 <Info className="w-5 h-5 text-amber-600" />
-                <span className="text-[10px] font-semibold mt-0.5">Limitações do App</span>
+                <span className="text-[10px] font-semibold mt-0.5">{t.nav.limitations}</span>
               </button>
               <button
                 onClick={() => setActiveView('governance')}
                 className="flex flex-col items-center p-1 rounded hover:bg-slate-100 text-slate-700"
               >
                 <ShieldCheck className="w-5 h-5 text-blue-600" />
-                <span className="text-[10px] font-semibold mt-0.5">Performance & Auditoria</span>
+                <span className="text-[10px] font-semibold mt-0.5">{t.nav.governance}</span>
               </button>
             </div>
           </>
@@ -610,9 +634,9 @@ export const Ribbon: React.FC<{
                 <FilePlus className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="font-bold text-slate-900 text-base">Iniciar Novo Projeto em Branco?</h3>
+                <h3 className="font-bold text-slate-900 text-base">{t.topBar.confirmNewProjectTitle}</h3>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Todas as tabelas, gráficos e medidas atuais serão limpos e você começará com um modelo em branco pronto para novas importações.
+                  {t.topBar.confirmNewProjectMessage}
                 </p>
               </div>
             </div>
@@ -623,7 +647,7 @@ export const Ribbon: React.FC<{
                 onClick={() => setShowNewProjectModal(false)}
                 className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 font-medium text-xs transition-colors"
               >
-                Cancelar
+                {t.common.cancel}
               </button>
               <button
                 type="button"
@@ -633,7 +657,7 @@ export const Ribbon: React.FC<{
                 }}
                 className="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs shadow-xs transition-colors"
               >
-                Sim, Criar Novo Projeto
+                {t.common.confirm}
               </button>
             </div>
           </div>

@@ -11,9 +11,25 @@ import {
   formatNumber,
   formatPercent,
   formatDateBR,
+  getGlobalLocale,
+  setGlobalLocale,
+  getGlobalCurrency,
+  setGlobalCurrency,
+  getCurrencySymbol,
 } from './shared/formatter';
 
-export { formatValue, formatCurrency, formatNumber, formatPercent, formatDateBR };
+export {
+  formatValue,
+  formatCurrency,
+  formatNumber,
+  formatPercent,
+  formatDateBR,
+  getGlobalLocale,
+  setGlobalLocale,
+  getGlobalCurrency,
+  setGlobalCurrency,
+  getCurrencySymbol,
+};
 
 import { Evaluator } from './expr/evaluator';
 import { isDaxTable } from './expr/types';

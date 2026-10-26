@@ -24,6 +24,12 @@ import { EtlEngine } from '../engine/etlEngine';
 import { saveProjectToStorage, loadProjectFromStorage, ProjectState } from '../engine/storage';
 import { migrateProjectState, syncWhatIfWithModel } from '../engine/migrations';
 import { globalDuckDb } from '../engine/duckdbEngine';
+import {
+  SupportedLocale,
+  SupportedCurrency,
+  setGlobalLocale,
+  setGlobalCurrency,
+} from '../engine/shared/formatter';
 
 export const PRESET_THEMES: BiTheme[] = [
   {
@@ -218,6 +224,12 @@ interface BiState {
   setLimitationsModalOpen: (open: boolean) => void;
   aiModalOpen: boolean;
   setAiModalOpen: (open: boolean) => void;
+
+  // Language & Currency (i18n)
+  language: SupportedLocale;
+  currency: SupportedCurrency;
+  setLanguage: (lang: SupportedLocale) => void;
+  setCurrency: (currency: SupportedCurrency) => void;
 
   // State actions
   newProject: (name?: string) => void;
@@ -507,12 +519,38 @@ const initialWhatIf: WhatIfParameter[] = [
   },
 ];
 
+const savedLang = (typeof localStorage !== 'undefined' ? localStorage.getItem('insighthub_language') : null) as SupportedLocale | null;
+const initialLanguage: SupportedLocale = savedLang && (savedLang === 'pt-BR' || savedLang === 'en-US' || savedLang === 'es-ES') ? savedLang : 'pt-BR';
+
+const savedCurr = (typeof localStorage !== 'undefined' ? localStorage.getItem('insighthub_currency') : null) as SupportedCurrency | null;
+const initialCurrency: SupportedCurrency = savedCurr && (savedCurr === 'BRL' || savedCurr === 'USD' || savedCurr === 'EUR') ? savedCurr : 'BRL';
+
+setGlobalLocale(initialLanguage);
+setGlobalCurrency(initialCurrency);
+
 export const useBiStore = create<BiState>((set, get) => {
   const initialData = getSampleDatasets();
   const initialSynced = syncWhatIfWithModel(initialWhatIf, initialData.tables, initialData.measures);
   globalDataEngine.setSchema(initialSynced.tables, initialData.relationships, initialSynced.measures);
 
   return {
+    language: initialLanguage,
+    currency: initialCurrency,
+    setLanguage: (lang: SupportedLocale) => {
+      setGlobalLocale(lang);
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('insighthub_language', lang);
+      }
+      set({ language: lang });
+    },
+    setCurrency: (currency: SupportedCurrency) => {
+      setGlobalCurrency(currency);
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('insighthub_currency', currency);
+      }
+      set({ currency });
+    },
+
     activeView: 'report',
     setActiveView: (view) => set({ activeView: view }),
 
@@ -1445,6 +1483,8 @@ export const useBiStore = create<BiState>((set, get) => {
         gridSize: get().gridSize,
         showGrid: get().showGrid,
         snapToGrid: get().snapToGrid,
+        language: get().language,
+        currency: get().currency,
         updatedAt: new Date().toISOString(),
       };
     },
@@ -1472,7 +1512,16 @@ export const useBiStore = create<BiState>((set, get) => {
       const allThemes = [...PRESET_THEMES, ...(state.customThemes || [])];
       const matchedTheme = allThemes.find(t => t.id === state.activeThemeId) || PRESET_THEMES[0];
 
+      if (state.language) {
+        setGlobalLocale(state.language as SupportedLocale);
+      }
+      if (state.currency) {
+        setGlobalCurrency(state.currency as SupportedCurrency);
+      }
+
       set({
+        language: (state.language as SupportedLocale) || get().language,
+        currency: (state.currency as SupportedCurrency) || get().currency,
         projectName: state.projectName || 'Projeto InsightHub',
         tables: state.tables || [],
         relationships: state.relationships || [],

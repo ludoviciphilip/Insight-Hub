@@ -34,6 +34,8 @@ export interface ProjectState {
   gridSize?: number;
   showGrid?: boolean;
   snapToGrid?: boolean;
+  language?: string;
+  currency?: string;
   updatedAt: string;
 }
 

@@ -2,8 +2,10 @@ import React, { useRef } from 'react';
 import { Plus, Copy, Trash2, Edit2, Smartphone, ArrowLeft, Target, X } from 'lucide-react';
 import { useBiStore } from '../../store/useBiStore';
 import { VisualCard } from './VisualCard';
+import { useTranslation } from '../../i18n';
 
 export const ReportView: React.FC = () => {
+  const { t } = useTranslation();
   const {
     pages,
     activePageId,
@@ -139,8 +141,8 @@ export const ReportView: React.FC = () => {
 
             {(!activePage?.visuals || activePage?.visuals.length === 0) && (
               <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 pointer-events-none">
-                <p className="text-sm font-semibold">Esta página ainda não possui visuais</p>
-                <p className="text-xs mt-1">Clique em "Novo Visual" na barra superior ou selecione campos à direita.</p>
+                <p className="text-sm font-semibold">{t.report.emptyPageTitle}</p>
+                <p className="text-xs mt-1">{t.report.emptyPageSubtitle}</p>
               </div>
             )}
           </div>
@@ -174,7 +176,7 @@ export const ReportView: React.FC = () => {
                         if (newName) renamePage(page.id, newName);
                       }}
                       className="p-0.5 hover:text-amber-700"
-                      title="Renomear página"
+                      title={t.report.renamePage}
                     >
                       <Edit2 className="w-2.5 h-2.5" />
                     </button>
@@ -184,7 +186,7 @@ export const ReportView: React.FC = () => {
                         duplicatePage(page.id);
                       }}
                       className="p-0.5 hover:text-amber-700"
-                      title="Duplicar página"
+                      title={t.report.duplicatePage}
                     >
                       <Copy className="w-2.5 h-2.5" />
                     </button>
@@ -197,7 +199,7 @@ export const ReportView: React.FC = () => {
                           }
                         }}
                         className="p-0.5 hover:text-red-600"
-                        title="Excluir página"
+                        title={t.report.deletePage}
                       >
                         <Trash2 className="w-2.5 h-2.5" />
                       </button>
@@ -211,10 +213,10 @@ export const ReportView: React.FC = () => {
           <button
             onClick={() => addPage()}
             className="flex items-center gap-1 text-[11px] font-medium text-slate-600 hover:text-amber-600 px-2 py-1 rounded hover:bg-slate-100 transition-colors ml-1"
-            title="Adicionar Nova Página"
+            title={t.report.addPage}
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>Nova Página</span>
+            <span>{t.report.addPage}</span>
           </button>
         </div>
 

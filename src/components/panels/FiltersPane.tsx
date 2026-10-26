@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { Filter as FilterIcon, X, Trash2, Plus, Check } from 'lucide-react';
 import { useBiStore } from '../../store/useBiStore';
 import { Filter } from '../../types/bi';
+import { useTranslation } from '../../i18n';
 
 export const FiltersPane: React.FC = () => {
   const { filters, removeFilter, clearFilters, tables, addFilter } = useBiStore();
+  const { t } = useTranslation();
   const [showAddFilter, setShowAddFilter] = useState(false);
   const [selectedTableId, setSelectedTableId] = useState(tables[0]?.id || '');
   const [selectedColumn, setSelectedColumn] = useState('');
@@ -35,22 +37,22 @@ export const FiltersPane: React.FC = () => {
       <div className="p-2.5 border-b border-slate-200 bg-slate-50 flex items-center justify-between font-semibold text-slate-700">
         <div className="flex items-center gap-1.5">
           <FilterIcon className="w-4 h-4 text-amber-500" />
-          <span>Filtros do Relatório</span>
+          <span>{t.panes.filters.title}</span>
         </div>
         <div className="flex items-center gap-1">
           <button
             onClick={() => setShowAddFilter(!showAddFilter)}
             className="p-1 rounded hover:bg-slate-200 text-slate-700 flex items-center gap-0.5 text-[11px] font-medium"
-            title="Adicionar Novo Filtro"
+            title={t.panes.filters.title}
           >
             <Plus className="w-3.5 h-3.5 text-amber-600" />
-            <span>Filtro</span>
+            <span>+</span>
           </button>
           {filters.length > 0 && (
             <button
               onClick={clearFilters}
               className="p-1 rounded text-red-600 hover:bg-red-50 flex items-center gap-0.5 text-[11px]"
-              title="Remover todos os filtros"
+              title={t.panes.filters.clearAll}
             >
               <Trash2 className="w-3.5 h-3.5" />
             </button>
@@ -136,7 +138,7 @@ export const FiltersPane: React.FC = () => {
         {filters.length === 0 ? (
           <div className="p-4 text-center text-slate-400 flex flex-col items-center justify-center">
             <FilterIcon className="w-6 h-6 mb-2 text-slate-300" />
-            <p className="font-medium text-slate-500 text-[11px]">Nenhum filtro aplicado</p>
+            <p className="font-medium text-slate-500 text-[11px]">{t.panes.filters.noFilters}</p>
             <p className="text-[10px] text-slate-400 mt-1">
               Clique em barras ou fatias dos gráficos para filtro cruzado automático, ou adicione um filtro acima.
             </p>

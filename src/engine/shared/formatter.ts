@@ -1,11 +1,45 @@
 import { isBlank } from '../expr/types';
 
-export type SupportedLocale = 'pt-BR' | 'en-US';
+export type SupportedLocale = 'pt-BR' | 'en-US' | 'es-ES';
+export type SupportedCurrency = 'BRL' | 'USD' | 'EUR';
 
 export interface FormatValueOptions {
   locale?: SupportedLocale;
+  currency?: SupportedCurrency;
   showBlankAsZero?: boolean;
   isLegacyColumn?: boolean;
+}
+
+// Global active locale and currency settings
+let activeGlobalLocale: SupportedLocale = 'pt-BR';
+let activeGlobalCurrency: SupportedCurrency = 'BRL';
+
+export function getGlobalLocale(): SupportedLocale {
+  return activeGlobalLocale;
+}
+
+export function setGlobalLocale(locale: SupportedLocale): void {
+  activeGlobalLocale = locale;
+}
+
+export function getGlobalCurrency(): SupportedCurrency {
+  return activeGlobalCurrency;
+}
+
+export function setGlobalCurrency(currency: SupportedCurrency): void {
+  activeGlobalCurrency = currency;
+}
+
+export function getCurrencySymbol(currency: SupportedCurrency = activeGlobalCurrency): string {
+  switch (currency) {
+    case 'USD':
+      return '$';
+    case 'EUR':
+      return '€';
+    case 'BRL':
+    default:
+      return 'R$';
+  }
 }
 
 /**
@@ -31,7 +65,7 @@ function toDateObj(val: any): Date | null {
   const parsed = new Date(str);
   if (!isNaN(parsed.getTime())) return parsed;
 
-  // Check BR format DD/MM/YYYY
+  // Check BR/ES format DD/MM/YYYY
   const brMatch = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})(?:\s+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?$/);
   if (brMatch) {
     const day = parseInt(brMatch[1], 10);
@@ -68,6 +102,14 @@ function formatDatePattern(date: Date, pattern: string, locale: SupportedLocale)
   const dayNamesPt = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
   const dayShortPt = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
+  const monthNamesEs = [
+    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+  ];
+  const monthShortEs = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+  const dayNamesEs = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+  const dayShortEs = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+
   const monthNamesEn = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
@@ -76,23 +118,36 @@ function formatDatePattern(date: Date, pattern: string, locale: SupportedLocale)
   const dayNamesEn = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const dayShortEn = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-  const isPt = locale === 'pt-BR';
-  const monthNames = isPt ? monthNamesPt : monthNamesEn;
-  const monthShort = isPt ? monthShortPt : monthShortEn;
-  const dayNames = isPt ? dayNamesPt : dayNamesEn;
-  const dayShort = isPt ? dayShortPt : dayShortEn;
+  let monthNames = monthNamesPt;
+  let monthShort = monthShortPt;
+  let dayNames = dayNamesPt;
+  let dayShort = dayShortPt;
+
+  if (locale === 'es-ES') {
+    monthNames = monthNamesEs;
+    monthShort = monthShortEs;
+    dayNames = dayNamesEs;
+    dayShort = dayShortEs;
+  } else if (locale === 'en-US') {
+    monthNames = monthNamesEn;
+    monthShort = monthShortEn;
+    dayNames = dayNamesEn;
+    dayShort = dayShortEn;
+  }
 
   // Check common presets
   const lower = pattern.toLowerCase().trim();
   if (lower === 'short date') {
-    return isPt
-      ? `${String(utcDate).padStart(2, '0')}/${String(utcMonth + 1).padStart(2, '0')}/${utcYear}`
-      : `${utcMonth + 1}/${utcDate}/${utcYear}`;
+    if (locale === 'en-US') {
+      return `${utcMonth + 1}/${utcDate}/${utcYear}`;
+    }
+    return `${String(utcDate).padStart(2, '0')}/${String(utcMonth + 1).padStart(2, '0')}/${utcYear}`;
   }
   if (lower === 'long date') {
-    return isPt
-      ? `${dayNames[utcDay]}, ${utcDate} de ${monthNames[utcMonth]} de ${utcYear}`
-      : `${dayNames[utcDay]}, ${monthNames[utcMonth]} ${utcDate}, ${utcYear}`;
+    if (locale === 'en-US') {
+      return `${dayNames[utcDay]}, ${monthNames[utcMonth]} ${utcDate}, ${utcYear}`;
+    }
+    return `${dayNames[utcDay]}, ${utcDate} de ${monthNames[utcMonth]} de ${utcYear}`;
   }
   if (lower === 'short time') {
     return `${String(utcHours).padStart(2, '0')}:${String(utcMinutes).padStart(2, '0')}`;
@@ -102,7 +157,6 @@ function formatDatePattern(date: Date, pattern: string, locale: SupportedLocale)
   }
 
   // Token replacement
-  // Replace tokens with placeholders to avoid double-replacement
   let res = pattern;
 
   // Years
@@ -144,9 +198,9 @@ function formatDatePattern(date: Date, pattern: string, locale: SupportedLocale)
  * Formats a number according to a DAX number pattern
  */
 function formatNumberPattern(val: number, pattern: string, locale: SupportedLocale): string {
-  const isPt = locale === 'pt-BR';
-  const thousandsSep = isPt ? '.' : ',';
-  const decimalSep = isPt ? ',' : '.';
+  const isPointDecimal = locale === 'en-US';
+  const thousandsSep = isPointDecimal ? ',' : '.';
+  const decimalSep = isPointDecimal ? '.' : ',';
 
   // Check if pattern is a percentage
   const isPercent = pattern.includes('%');
@@ -156,8 +210,6 @@ function formatNumberPattern(val: number, pattern: string, locale: SupportedLoca
   if (!isFinite(effectiveVal)) return String(val);
 
   // Check decimal digits in pattern
-  // Matches e.g. "0.00", "#,##0.00", "#,0.00", "0.0%"
-  // In DAX format patterns, "." is the decimal placeholder and "," is the thousands grouping placeholder
   let decimals = 0;
   const decMatch = pattern.match(/\.([0#]+)/);
   if (decMatch) {
@@ -185,10 +237,11 @@ function formatNumberPattern(val: number, pattern: string, locale: SupportedLoca
     return `${formattedNumber}%`;
   }
 
-  // Handle prefix / suffix like "R$ #,##0.00" or "$#,##0.00"
-  // If the pattern has prefix or suffix around the number template
-  if (pattern.includes('R$') || pattern.startsWith('$')) {
-    const prefix = pattern.includes('R$') ? 'R$ ' : '$';
+  // Handle prefix / suffix like "R$ #,##0.00", "$#,##0.00", "€ #,##0.00"
+  if (pattern.includes('R$') || pattern.startsWith('$') || pattern.includes('€')) {
+    let prefix = 'R$ ';
+    if (pattern.includes('€')) prefix = '€ ';
+    else if (pattern.startsWith('$')) prefix = '$';
     return `${prefix}${formattedNumber}`;
   }
 
@@ -201,14 +254,15 @@ function formatNumberPattern(val: number, pattern: string, locale: SupportedLoca
 export function formatValue(
   value: any,
   formatString?: string,
-  optionsOrLocale: SupportedLocale | FormatValueOptions = 'pt-BR'
+  optionsOrLocale: SupportedLocale | FormatValueOptions = activeGlobalLocale
 ): string {
   const options: FormatValueOptions =
     typeof optionsOrLocale === 'string'
       ? { locale: optionsOrLocale }
       : optionsOrLocale || {};
 
-  const locale = options.locale || 'pt-BR';
+  const locale = options.locale || activeGlobalLocale;
+  const currency = options.currency || activeGlobalCurrency;
   const showBlankAsZero = options.showBlankAsZero ?? false;
   const isLegacyColumn = options.isLegacyColumn ?? false;
 
@@ -222,8 +276,10 @@ export function formatValue(
 
   if (typeof value === 'boolean') {
     const fmtLower = (formatString || '').toLowerCase().trim();
-    if (fmtLower === 'yes/no' || fmtLower === 'sim/não' || fmtLower === 'sim/nao') {
-      return value ? (locale === 'pt-BR' ? 'Sim' : 'Yes') : (locale === 'pt-BR' ? 'Não' : 'No');
+    if (fmtLower === 'yes/no' || fmtLower === 'sim/não' || fmtLower === 'sim/nao' || fmtLower === 'si/no') {
+      if (locale === 'pt-BR') return value ? 'Sim' : 'Não';
+      if (locale === 'es-ES') return value ? 'Sí' : 'No';
+      return value ? 'Yes' : 'No';
     }
     if (fmtLower === 'on/off') {
       return value ? 'On' : 'Off';
@@ -238,9 +294,9 @@ export function formatValue(
   if (!fmt) {
     if (typeof value === 'number') {
       if (Number.isInteger(value)) return String(value);
-      return locale === 'pt-BR'
-        ? String(value).replace('.', ',')
-        : String(value);
+      return locale === 'en-US'
+        ? String(value)
+        : String(value).replace('.', ',');
     }
     if (value instanceof Date) {
       return formatDatePattern(value, 'short date', locale);
@@ -254,7 +310,7 @@ export function formatValue(
     case 'moeda':
       return new Intl.NumberFormat(locale, {
         style: 'currency',
-        currency: locale === 'pt-BR' ? 'BRL' : 'USD',
+        currency,
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }).format(Number(value) || 0);
@@ -263,7 +319,7 @@ export function formatValue(
     case 'percentage':
     case 'percentual': {
       let num = Number(value);
-      if (isNaN(num)) return '0,0%';
+      if (isNaN(num)) return locale === 'en-US' ? '0.0%' : '0,0%';
       if (isLegacyColumn && Math.abs(num) > 1) {
         num = num / 100;
       }
@@ -337,22 +393,47 @@ export function formatValue(
 // Backwards-Compatible Wrappers
 // ==========================================
 
-export function formatCurrency(value: number | null | undefined): string {
-  if (isBlank(value) || isNaN(value as number)) return 'R$ 0,00';
-  return formatValue(value, 'Currency', 'pt-BR');
+export function formatCurrency(
+  value: number | null | undefined,
+  currencyOverride?: SupportedCurrency,
+  localeOverride?: SupportedLocale
+): string {
+  const curr = currencyOverride || activeGlobalCurrency;
+  const loc = localeOverride || activeGlobalLocale;
+  if (isBlank(value) || isNaN(value as number)) {
+    if (curr === 'BRL' && loc === 'pt-BR') return 'R$ 0,00';
+    return new Intl.NumberFormat(loc, {
+      style: 'currency',
+      currency: curr,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(0);
+  }
+  return formatValue(value, 'Currency', { locale: loc, currency: curr });
 }
 
-export function formatNumber(value: number | null | undefined, decimals = 0): string {
+export function formatNumber(
+  value: number | null | undefined,
+  decimals = 0,
+  localeOverride?: SupportedLocale
+): string {
+  const loc = localeOverride || activeGlobalLocale;
   if (isBlank(value) || isNaN(value as number)) return '0';
-  return formatValue(value, `#,##0${decimals > 0 ? '.' + '0'.repeat(decimals) : ''}`, 'pt-BR');
+  return formatValue(value, `#,##0${decimals > 0 ? '.' + '0'.repeat(decimals) : ''}`, loc);
 }
 
-export function formatPercent(value: number | null | undefined, isLegacyColumn = true): string {
-  if (isBlank(value) || isNaN(value as number)) return '0,0%';
-  return formatValue(value, 'Percent', { locale: 'pt-BR', isLegacyColumn });
+export function formatPercent(
+  value: number | null | undefined,
+  isLegacyColumn = true,
+  localeOverride?: SupportedLocale
+): string {
+  const loc = localeOverride || activeGlobalLocale;
+  if (isBlank(value) || isNaN(value as number)) return loc === 'en-US' ? '0.0%' : '0,0%';
+  return formatValue(value, 'Percent', { locale: loc, isLegacyColumn });
 }
 
-export function formatDateBR(dateVal: any): string {
+export function formatDateBR(dateVal: any, localeOverride?: SupportedLocale): string {
+  const loc = localeOverride || activeGlobalLocale;
   if (isBlank(dateVal)) return '';
-  return formatValue(dateVal, 'Short Date', 'pt-BR');
+  return formatValue(dateVal, 'Short Date', loc);
 }

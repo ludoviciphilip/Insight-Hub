@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { VisualType, Visual } from '../../types/bi';
 import { useBiStore } from '../../store/useBiStore';
+import { useTranslation } from '../../i18n';
 
 const visualTypes: { type: VisualType; label: string; icon: any }[] = [
   { type: 'column', label: 'Colunas', icon: BarChart },
@@ -28,7 +29,7 @@ const visualTypes: { type: VisualType; label: string; icon: any }[] = [
   { type: 'pie', label: 'Pizza', icon: PieChart },
   { type: 'donut', label: 'Rosca', icon: PieChart },
   { type: 'treemap', label: 'Treemap', icon: Grid },
-  { type: 'waterfall', label: 'Cascata (DRE)', icon: BarChart2 },
+  { type: 'waterfall', label: 'Cascata', icon: BarChart2 },
   { type: 'funnel', label: 'Funil', icon: Filter },
   { type: 'card', label: 'Cartão KPI', icon: Hash },
   { type: 'table', label: 'Tabela', icon: TableIcon },
@@ -36,6 +37,7 @@ const visualTypes: { type: VisualType; label: string; icon: any }[] = [
 ];
 
 export const VisualizationsPane: React.FC = () => {
+  const { t } = useTranslation();
   const { pages, activePageId, selectedVisualId, updateVisual, tables, measures, relationships } = useBiStore();
   const [activeTab, setActiveTab] = useState<'build' | 'format'>('build');
 
@@ -157,7 +159,7 @@ export const VisualizationsPane: React.FC = () => {
     return (
       <div className="w-64 border-l border-slate-200 bg-white flex flex-col h-full text-xs">
         <div className="p-3 border-b border-slate-200 font-semibold text-slate-700 bg-slate-50 flex items-center justify-between">
-          <span>Visualizações</span>
+          <span>{t.panes.visualizations.title}</span>
         </div>
         <div className="p-3 grid grid-cols-4 gap-1.5 border-b border-slate-200">
           {visualTypes.map(v => {
@@ -186,7 +188,7 @@ export const VisualizationsPane: React.FC = () => {
     <div className="w-68 border-l border-slate-200 bg-white flex flex-col h-full text-xs select-none shadow-xs">
       {/* Pane Header */}
       <div className="p-2 border-b border-slate-200 bg-slate-50 flex items-center justify-between font-semibold text-slate-700">
-        <span>Visualizações</span>
+        <span>{t.panes.visualizations.title}</span>
         <div className="flex bg-slate-200/70 p-0.5 rounded text-[11px]">
           <button
             onClick={() => setActiveTab('build')}
@@ -194,7 +196,7 @@ export const VisualizationsPane: React.FC = () => {
               activeTab === 'build' ? 'bg-white text-slate-800 shadow-xs' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            Campos
+            {t.panes.visualizations.buildVisual}
           </button>
           <button
             onClick={() => setActiveTab('format')}
@@ -202,7 +204,7 @@ export const VisualizationsPane: React.FC = () => {
               activeTab === 'format' ? 'bg-white text-slate-800 shadow-xs' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            Formatar
+            {t.panes.visualizations.formatVisual}
           </button>
         </div>
       </div>
