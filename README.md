@@ -1,4 +1,4 @@
-# InsightHub - 0.5.0
+# InsightHub - 0.6.0
 
 **Open-source Business Intelligence & Data Analytics Platform**
 
