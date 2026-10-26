@@ -53,6 +53,31 @@ export function getColumnValuesFromContext(
     return { values: [], count: 0 };
   }
 
+  // Object-Level Security (OLS) check
+  if (context?.olsHiddenTables) {
+    const tId = table.id.toLowerCase().trim();
+    const tName = table.name.toLowerCase().trim();
+    if (context.olsHiddenTables.has(tId) || context.olsHiddenTables.has(tName)) {
+      throw new DaxError('Reference', `Acesso negado pela segurança de nível de objeto (OLS) à tabela '${table.name}'`);
+    }
+  }
+
+  if (context?.olsHiddenColumns) {
+    const cName = columnName.toLowerCase().trim();
+    const key1 = `${table.id.toLowerCase().trim()}::${cName}`;
+    const key2 = `${table.name.toLowerCase().trim()}::${cName}`;
+    if (
+      context.olsHiddenColumns.has(key1) ||
+      context.olsHiddenColumns.has(key2) ||
+      context.olsHiddenColumns.has(cName)
+    ) {
+      throw new DaxError(
+        'Reference',
+        `Acesso negado pela segurança de nível de objeto (OLS) à coluna [${columnName}] da tabela '${table.name}'`
+      );
+    }
+  }
+
   // Use FilterContext to get visible rows
   const filterContext: FilterContext | undefined = context?.filterContext;
   let rows: Record<string, any>[] = [];
@@ -335,6 +360,15 @@ export const AGGREGATION_FUNCTIONS: Record<string, FunctionDefinition> = {
         : (context?.tables?.[0] || model?.getTables()?.[0]);
 
       if (!table) return 0;
+
+      // Object-Level Security (OLS) check
+      if (context?.olsHiddenTables) {
+        const tId = table.id.toLowerCase().trim();
+        const tName = table.name.toLowerCase().trim();
+        if (context.olsHiddenTables.has(tId) || context.olsHiddenTables.has(tName)) {
+          throw new DaxError('Reference', `Acesso negado pela segurança de nível de objeto (OLS) à tabela '${table.name}'`);
+        }
+      }
 
       const filterContext: FilterContext | undefined = context?.filterContext;
       if (filterContext && model) {

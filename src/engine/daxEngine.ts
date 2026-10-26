@@ -1,4 +1,4 @@
-import { Table, Measure, Filter } from '../types/bi';
+import { Table, Measure, Filter, RlsRole, CalculationGroup } from '../types/bi';
 import { ModelAccess, InMemoryModelAccess } from './model/modelAccess';
 import { FilterContext, filterContextFromUIFilters } from './model/filterContext';
 import { parseNumber } from './shared/valueParser';
@@ -7,10 +7,94 @@ import { validateDax } from './expr/validator';
 import type { DaxValidationResult } from './expr/validator';
 import { generateQuickMeasure } from './expr/quickMeasures';
 import type { QuickMeasureType, QuickMeasureResult } from './expr/quickMeasures';
-import { evaluateExpression } from './expr/evaluator';
+import { evaluateExpression, Evaluator } from './expr/evaluator';
 import { isBlank, DAX_BLANK } from './expr/types';
 
 export type { DaxValidationResult, QuickMeasureType, QuickMeasureResult };
+
+export function applyRlsRoleToFilterContext(
+  role: RlsRole,
+  filterContext: FilterContext,
+  model: ModelAccess
+): { olsHiddenTables: Set<string>; olsHiddenColumns: Set<string> } {
+  const olsHiddenTables = new Set<string>();
+  const olsHiddenColumns = new Set<string>();
+
+  // Process OLS rules
+  if (Array.isArray(role.olsRules)) {
+    for (const rule of role.olsRules) {
+      if (rule.access === 'none') {
+        const table = model.getTable(rule.tableId);
+        const normTableId = (table?.id || rule.tableId).toLowerCase().trim();
+        const normTableName = (table?.name || rule.tableId).toLowerCase().trim();
+
+        if (rule.column) {
+          const normCol = rule.column.toLowerCase().trim();
+          olsHiddenColumns.add(`${normTableId}::${normCol}`);
+          olsHiddenColumns.add(`${normTableName}::${normCol}`);
+          olsHiddenColumns.add(normCol);
+        } else {
+          olsHiddenTables.add(normTableId);
+          olsHiddenTables.add(normTableName);
+        }
+      }
+    }
+  }
+
+  // Process RLS rules
+  if (Array.isArray(role.rules)) {
+    for (const rule of role.rules) {
+      if (!rule.filterExpression || !rule.filterExpression.trim()) continue;
+      const table = model.getTable(rule.tableId);
+      if (!table) continue;
+
+      const colMatch = rule.filterExpression.match(/\[([a-zA-Z_][a-zA-Z0-9_]*)\]/);
+      const filteredColName = colMatch ? colMatch[1] : (table.columns[0]?.name || 'ID');
+
+      const allowedValues = new Set<any>();
+      for (let i = 0; i < table.rows.length; i++) {
+        const row = table.rows[i];
+        try {
+          const evaluator = new Evaluator({
+            dialect: 'column',
+            row,
+            rowIndex: i,
+            tableId: table.id,
+            tableName: table.name,
+            model,
+            tables: model.getTables(),
+            measures: model.getMeasures(),
+          });
+          const res = evaluator.evaluate(rule.filterExpression);
+          if (
+            res === true ||
+            (typeof res === 'number' && res !== 0) ||
+            (typeof res === 'string' && res.toLowerCase() === 'true')
+          ) {
+            allowedValues.add(row[filteredColName]);
+          }
+        } catch {
+          // If evaluation fails, row is not allowed
+        }
+      }
+
+      filterContext.setColumnFilter(
+        table.id,
+        filteredColName,
+        {
+          tableId: table.id,
+          column: filteredColName,
+          allowedValues,
+          isRls: true,
+          isPermanent: true,
+        },
+        true
+      );
+    }
+  }
+
+  return { olsHiddenTables, olsHiddenColumns };
+}
 
 export class DaxEngine {
   private static activeModelAccess: ModelAccess | null = null;
@@ -85,6 +169,46 @@ export class DaxEngine {
     return res.value ?? 0;
   }
 
+  private static activeRole: RlsRole | null = null;
+  private static activeUser: {
+    username?: string;
+    userPrincipalName?: string;
+    userObjectId?: string;
+    userCulture?: string;
+    customData?: string;
+  } | null = null;
+  private static calculationGroups: CalculationGroup[] = [];
+
+  public static setActiveRole(role: RlsRole | null): void {
+    DaxEngine.activeRole = role;
+  }
+
+  public static getActiveRole(): RlsRole | null {
+    return DaxEngine.activeRole;
+  }
+
+  public static setActiveUser(user: {
+    username?: string;
+    userPrincipalName?: string;
+    userObjectId?: string;
+    userCulture?: string;
+    customData?: string;
+  } | null): void {
+    DaxEngine.activeUser = user;
+  }
+
+  public static getActiveUser() {
+    return DaxEngine.activeUser;
+  }
+
+  public static setCalculationGroups(groups: CalculationGroup[]): void {
+    DaxEngine.calculationGroups = groups;
+  }
+
+  public static getCalculationGroups(): CalculationGroup[] {
+    return DaxEngine.calculationGroups;
+  }
+
   /**
    * Evaluates a DAX expression with explicit FilterContext and ModelAccess.
    * Preserves BLANK and typed return values without truncation.
@@ -94,13 +218,36 @@ export class DaxEngine {
     model: ModelAccess,
     filterContext?: FilterContext,
     callStack?: Set<string>,
-    measureCache?: Map<string, any>
+    measureCache?: Map<string, any>,
+    user?: { username?: string; userPrincipalName?: string; userObjectId?: string; userCulture?: string; customData?: string },
+    activeRole?: RlsRole | null,
+    calculationGroups?: CalculationGroup[]
   ): any {
     const trimmed = (formula || '').trim();
     if (!trimmed) return DAX_BLANK;
 
     const cache = measureCache || new Map<string, any>();
-    const effectiveFilterContext = filterContext || new FilterContext();
+    const effectiveFilterContext = (filterContext || new FilterContext()).clone();
+
+    const effRole = activeRole !== undefined ? activeRole : DaxEngine.activeRole;
+    let olsHiddenTables: Set<string> | undefined;
+    let olsHiddenColumns: Set<string> | undefined;
+
+    if (effRole) {
+      const ols = applyRlsRoleToFilterContext(effRole, effectiveFilterContext, model);
+      olsHiddenTables = ols.olsHiddenTables;
+      olsHiddenColumns = ols.olsHiddenColumns;
+    }
+
+    const effUser = user || DaxEngine.activeUser || {
+      username: 'Admin',
+      userPrincipalName: 'admin@insighthub.local',
+      userObjectId: '00000000-0000-0000-0000-000000000001',
+      userCulture: 'pt-BR',
+      customData: '',
+    };
+
+    const effCalcGroups = calculationGroups || DaxEngine.calculationGroups;
 
     return evaluateExpression(trimmed, {
       dialect: 'dax',
@@ -110,6 +257,11 @@ export class DaxEngine {
       filterContext: effectiveFilterContext,
       measureCache: cache,
       callStack,
+      user: effUser,
+      activeRole: effRole,
+      calculationGroups: effCalcGroups,
+      olsHiddenTables,
+      olsHiddenColumns,
       resolveMeasure: (name: string) => {
         const rawName = name.trim();
         const targetM =
@@ -125,7 +277,16 @@ export class DaxEngine {
           }
           const nextStack = new Set(stack);
           nextStack.add(normKey);
-          return DaxEngine.evaluateWithContext(targetM.formula, model, effectiveFilterContext, nextStack, cache);
+          return DaxEngine.evaluateWithContext(
+            targetM.formula,
+            model,
+            effectiveFilterContext,
+            nextStack,
+            cache,
+            effUser,
+            effRole,
+            effCalcGroups
+          );
         }
         return undefined;
       },

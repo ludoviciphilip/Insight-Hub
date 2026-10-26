@@ -11,6 +11,11 @@ import { WINDOW_AND_RANKING_FUNCTIONS } from './windowAndRanking';
 import { VISUAL_CALCULATION_FUNCTIONS } from './visualCalculations';
 import { STATISTICAL_FUNCTIONS } from './statistical';
 import { FINANCIAL_FUNCTIONS } from './financial';
+import { SECURITY_FUNCTIONS } from './security';
+import { PARENT_CHILD_FUNCTIONS } from './parentChild';
+import { CALCULATION_GROUP_FUNCTIONS } from './calculationGroups';
+import { UTILITY_FUNCTIONS } from './utility';
+import { INFO_FUNCTIONS } from './info';
 import { FunctionDefinition } from '../expr/registry';
 
 export const ALL_SCALAR_FUNCTIONS: Record<string, FunctionDefinition> = {
@@ -27,6 +32,11 @@ export const ALL_SCALAR_FUNCTIONS: Record<string, FunctionDefinition> = {
   ...VISUAL_CALCULATION_FUNCTIONS,
   ...STATISTICAL_FUNCTIONS,
   ...FINANCIAL_FUNCTIONS,
+  ...SECURITY_FUNCTIONS,
+  ...PARENT_CHILD_FUNCTIONS,
+  ...CALCULATION_GROUP_FUNCTIONS,
+  ...UTILITY_FUNCTIONS,
+  ...INFO_FUNCTIONS,
 };
 
 export {
@@ -43,4 +53,9 @@ export {
   VISUAL_CALCULATION_FUNCTIONS,
   STATISTICAL_FUNCTIONS,
   FINANCIAL_FUNCTIONS,
+  SECURITY_FUNCTIONS,
+  PARENT_CHILD_FUNCTIONS,
+  CALCULATION_GROUP_FUNCTIONS,
+  UTILITY_FUNCTIONS,
+  INFO_FUNCTIONS,
 };

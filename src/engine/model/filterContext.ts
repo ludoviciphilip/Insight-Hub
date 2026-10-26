@@ -13,6 +13,8 @@ export interface ColumnFilter {
   rawValues?: any;
   value?: any;
   isKeepFilters?: boolean;
+  isRls?: boolean;
+  isPermanent?: boolean;
 }
 
 export class FilterContext {
@@ -29,7 +31,7 @@ export class FilterContext {
   /**
    * Applies or replaces a filter on a specific column.
    * By default in DAX (CALCULATE), filters on the same column REPLACE existing filters,
-   * unless isKeepFilters is true (which intersects).
+   * unless isKeepFilters is true (which intersects), OR existing filter is RLS/permanent.
    */
   public setColumnFilter(
     tableId: string,
@@ -38,9 +40,13 @@ export class FilterContext {
     isKeepFilters = false
   ): void {
     const key = FilterContext.makeKey(tableId, column);
+    const existing = this.columnFilters.get(key);
 
-    if (isKeepFilters && this.columnFilters.has(key)) {
-      const existing = this.columnFilters.get(key)!;
+    const shouldIntersect = isKeepFilters || (existing && (existing.isRls || existing.isPermanent));
+
+    if (shouldIntersect && existing) {
+      const isRls = Boolean(existing.isRls || filter.isRls);
+      const isPermanent = Boolean(existing.isPermanent || filter.isPermanent);
 
       // 1. Both have allowedValues
       if (existing.allowedValues && filter.allowedValues) {
@@ -55,6 +61,8 @@ export class FilterContext {
           allowedValues: intersected,
           predicate: undefined,
           isKeepFilters: true,
+          isRls,
+          isPermanent,
         });
         return;
       }
@@ -72,6 +80,8 @@ export class FilterContext {
           allowedValues: intersected,
           predicate: undefined,
           isKeepFilters: true,
+          isRls,
+          isPermanent,
         });
         return;
       }
@@ -89,6 +99,8 @@ export class FilterContext {
           allowedValues: intersected,
           predicate: undefined,
           isKeepFilters: true,
+          isRls,
+          isPermanent,
         });
         return;
       }
@@ -101,6 +113,8 @@ export class FilterContext {
           ...filter,
           predicate: val => p1(val) && p2(val),
           isKeepFilters: true,
+          isRls,
+          isPermanent,
         });
         return;
       }
@@ -117,21 +131,27 @@ export class FilterContext {
   }
 
   /**
-   * Removes a specific column filter (REMOVEFILTERS, ALL(Table[Column]))
+   * Removes a specific column filter (REMOVEFILTERS, ALL(Table[Column])).
+   * Permanent/RLS filters are preserved and CANNOT be stripped by ALL/REMOVEFILTERS.
    */
   public removeColumnFilter(tableId: string, column: string): void {
     const key = FilterContext.makeKey(tableId, column);
+    const existing = this.columnFilters.get(key);
+    if (existing && (existing.isRls || existing.isPermanent)) {
+      return; // RLS filters persist
+    }
     this.columnFilters.delete(key);
   }
 
   /**
-   * Removes all filters on a specific table (ALL(Table), REMOVEFILTERS(Table))
+   * Removes all filters on a specific table (ALL(Table), REMOVEFILTERS(Table)).
+   * Permanent/RLS filters are preserved.
    */
   public removeTableFilters(tableId: string): void {
     const prefix = `${tableId.trim().toLowerCase()}::`;
     const toDelete: string[] = [];
-    this.columnFilters.forEach((_, key) => {
-      if (key.startsWith(prefix)) {
+    this.columnFilters.forEach((filter, key) => {
+      if (key.startsWith(prefix) && !filter.isRls && !filter.isPermanent) {
         toDelete.push(key);
       }
     });
@@ -139,10 +159,17 @@ export class FilterContext {
   }
 
   /**
-   * Clears all filters across the entire model (ALL())
+   * Clears all filters across the entire model (ALL()).
+   * Permanent/RLS filters are preserved.
    */
   public clearAll(): void {
-    this.columnFilters.clear();
+    const toDelete: string[] = [];
+    this.columnFilters.forEach((filter, key) => {
+      if (!filter.isRls && !filter.isPermanent) {
+        toDelete.push(key);
+      }
+    });
+    toDelete.forEach(k => this.columnFilters.delete(k));
     this.relationshipOverrides = [];
   }
 
@@ -198,8 +225,10 @@ export class FilterContext {
   /**
    * Computes a canonical hash string for caching measures and evaluation plans
    */
-  public hash(): string {
+  public hash(roleId?: string, username?: string): string {
     const parts: string[] = [];
+    if (roleId) parts.push(`__role=${roleId}`);
+    if (username) parts.push(`__user=${username}`);
     const sortedKeys = Array.from(this.columnFilters.keys()).sort();
 
     for (const key of sortedKeys) {

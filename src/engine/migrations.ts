@@ -1,7 +1,43 @@
 import { ProjectState } from './storage';
-import { Table, Relationship, Measure, WhatIfParameter } from '../types/bi';
+import { Table, Relationship, Measure, WhatIfParameter, RlsRole, CalculationGroup } from '../types/bi';
 
-export const CURRENT_ENGINE_VERSION = '2.0.0';
+export const CURRENT_ENGINE_VERSION = '2.1.0';
+
+/**
+ * Migrates legacy RLS filter expressions (e.g. "Regiao = 'Sudeste'") to standard DAX syntax ("[Regiao] = \"Sudeste\"").
+ */
+export function migrateRlsFilterExpression(expr: string): string {
+  if (!expr) return '';
+  const trimmed = expr.trim();
+  // Match unbracketed "Column = 'Value'" or "Column == 'Value'"
+  const simpleMatch = trimmed.match(/^([a-zA-Z_][a-zA-Z0-9_]*)\s*(==|=|!=|<>)\s*['"]([^'"]*)['"]$/);
+  if (simpleMatch) {
+    const col = simpleMatch[1];
+    const op = simpleMatch[2] === '==' ? '=' : (simpleMatch[2] === '!=' ? '<>' : simpleMatch[2]);
+    const val = simpleMatch[3];
+    return `[${col}] ${op} "${val}"`;
+  }
+  return trimmed;
+}
+
+/**
+ * Normalizes RLS roles and their filter expressions.
+ */
+export function migrateRlsRoles(rawRoles: any[]): RlsRole[] {
+  if (!Array.isArray(rawRoles)) return [];
+  return rawRoles.map(r => ({
+    id: r.id || `role_${Math.random().toString(36).substring(2, 9)}`,
+    name: r.name || 'Papel RLS',
+    rules: Array.isArray(r.rules)
+      ? r.rules.map((rule: any) => ({
+          tableId: rule.tableId,
+          filterExpression: migrateRlsFilterExpression(rule.filterExpression || ''),
+        }))
+      : [],
+    olsRules: Array.isArray(r.olsRules) ? r.olsRules : [],
+    members: Array.isArray(r.members) ? r.members : [],
+  }));
+}
 
 /**
  * Synchronizes WhatIfParameters with backing calculated tables (GENERATESERIES)
@@ -155,8 +191,9 @@ export function migrateProjectState(rawState: any): ProjectState {
     bookmarks: Array.isArray(rawState.bookmarks) ? rawState.bookmarks : [],
     dashboardTiles: Array.isArray(rawState.dashboardTiles) ? rawState.dashboardTiles : [],
     goals: Array.isArray(rawState.goals) ? rawState.goals : [],
-    rlsRoles: Array.isArray(rawState.rlsRoles) ? rawState.rlsRoles : [],
+    rlsRoles: migrateRlsRoles(rawState.rlsRoles),
     whatIfParameters: rawWhatIf,
+    calculationGroups: Array.isArray(rawState.calculationGroups) ? rawState.calculationGroups : [],
     theme: rawState.theme || 'powerbi-light',
     activeThemeId: rawState.activeThemeId || 'powerbi-classic',
     customThemes: Array.isArray(rawState.customThemes) ? rawState.customThemes : [],

@@ -35,7 +35,7 @@ import {
   isDaxTable,
 } from './types';
 import { DaxError } from '../shared/errors';
-import { Table, Measure, Filter, Column, Relationship } from '../../types/bi';
+import { Table, Measure, Filter, Column, Relationship, RlsRole, CalculationGroup } from '../../types/bi';
 import { ModelAccess } from '../model/modelAccess';
 import { FilterContext } from '../model/filterContext';
 import { RowContextStack } from '../model/rowContext';
@@ -52,6 +52,8 @@ import {
 } from '../functions/statistical';
 import { computeXNPV, computeXIRR, FINANCIAL_FUNCTIONS } from '../functions/financial';
 import { parseDateArg } from '../functions/dateTime';
+import { computePathForRow } from '../functions/parentChild';
+import { getInfoMetadataTable } from '../functions/info';
 
 export interface EvalContext {
   dialect?: 'dax' | 'column';
@@ -75,6 +77,20 @@ export interface EvalContext {
   isVisualCalculation?: boolean;
   visualRows?: Record<string, any>[];
   visualRowIndex?: number;
+  user?: {
+    username?: string;
+    userPrincipalName?: string;
+    userObjectId?: string;
+    userCulture?: string;
+    customData?: string;
+  };
+  activeRole?: RlsRole | null;
+  rlsRoles?: RlsRole[];
+  selectedMeasure?: Measure | null;
+  selectedMeasureValue?: any;
+  calculationGroups?: CalculationGroup[];
+  olsHiddenTables?: Set<string>;
+  olsHiddenColumns?: Set<string>;
 }
 
 export class Evaluator {
@@ -186,13 +202,49 @@ export class Evaluator {
       activeFilterCtx = base;
     }
 
-    // Measure cache lookup
+    // Measure cache lookup segmented by role and user
+    const roleId = this.context.activeRole?.id;
+    const username = this.context.user?.username;
     const cacheKey = activeFilterCtx
-      ? `${normName}@${activeFilterCtx.hash()}`
-      : `${normName}@global`;
+      ? `${normName}@${activeFilterCtx.hash(roleId, username)}`
+      : `${normName}@global@${roleId || ''}@${username || ''}`;
 
     if (this.context.measureCache && this.context.measureCache.has(cacheKey)) {
       return this.context.measureCache.get(cacheKey);
+    }
+
+    // Check if a calculation group item should be applied
+    if (!this.context.selectedMeasure && this.context.calculationGroups && this.context.calculationGroups.length > 0) {
+      const sortedGroups = [...this.context.calculationGroups].sort((a, b) => b.precedence - a.precedence);
+      for (const group of sortedGroups) {
+        const colName = group.columnName || 'Calculation Item';
+        const groupFilter =
+          activeFilterCtx?.getColumnFilter(group.id, colName) ||
+          activeFilterCtx?.getColumnFilter(group.name, colName);
+        if (groupFilter && groupFilter.allowedValues && groupFilter.allowedValues.size > 0) {
+          const selectedItemName = Array.from(groupFilter.allowedValues)[0];
+          const calcItem = group.calculationItems.find(
+            item => item.name.toLowerCase() === String(selectedItemName).toLowerCase()
+          );
+          if (calcItem) {
+            const childEval = new Evaluator({
+              ...this.context,
+              dialect: 'dax',
+              filterContext: activeFilterCtx,
+              selectedMeasure: measure,
+              row: undefined,
+              rowIndex: undefined,
+              rowContextStack: undefined,
+              callStack: nextStack,
+            });
+            const result = childEval.evaluate(calcItem.expression);
+            if (this.context.measureCache) {
+              this.context.measureCache.set(cacheKey, result);
+            }
+            return result;
+          }
+        }
+      }
     }
 
     const childEval = new Evaluator({
@@ -215,6 +267,26 @@ export class Evaluator {
   }
 
   private evalColumnRef(node: ColumnRefNode): any {
+    // OLS (Object Level Security) validation
+    if (this.context.olsHiddenTables && node.table) {
+      const normT = node.table.toLowerCase().trim();
+      if (this.context.olsHiddenTables.has(normT)) {
+        throw new DaxError(
+          'Reference',
+          `Acesso negado pela segurança de nível de objeto (OLS) à tabela '${node.table}'`
+        );
+      }
+    }
+    if (this.context.olsHiddenColumns) {
+      const normCol = node.column.toLowerCase().trim();
+      const fullKey = node.table ? `${node.table.toLowerCase().trim()}::${normCol}` : normCol;
+      if (this.context.olsHiddenColumns.has(fullKey) || this.context.olsHiddenColumns.has(normCol)) {
+        throw new DaxError(
+          'Reference',
+          `Acesso negado pela segurança de nível de objeto (OLS) à coluna [${node.column}]${node.table ? ` da tabela '${node.table}'` : ''}`
+        );
+      }
+    }
     // 0. Visual Calculation Context: direct resolution to visual row field
     if (this.context.isVisualCalculation && this.context.visualRows && this.context.visualRowIndex !== undefined) {
       const vRow = this.context.visualRows[this.context.visualRowIndex];
@@ -372,6 +444,24 @@ export class Evaluator {
       }
     }
 
+    // Check if it's a table name in model or context (e.g. COLUMNSTATISTICS(d_Produtos))
+    const tbl =
+      this.context.model?.getTable?.(node.name) ||
+      this.context.tables?.find(t => t.name.toLowerCase() === vName || t.id.toLowerCase() === vName);
+    if (tbl) {
+      if (this.context.olsHiddenTables) {
+        const tId = tbl.id.toLowerCase().trim();
+        const tName = tbl.name.toLowerCase().trim();
+        if (this.context.olsHiddenTables.has(tId) || this.context.olsHiddenTables.has(tName)) {
+          throw new DaxError(
+            'Reference',
+            `Acesso negado pela segurança de nível de objeto (OLS) à tabela '${tbl.name}'`
+          );
+        }
+      }
+      return toDaxTable(tbl.rows, this.context.model || undefined, this.context.filterContext);
+    }
+
     throw new DaxError('Reference', `A variável VAR "${node.name}" não está definida no escopo`);
   }
 
@@ -457,6 +547,135 @@ export class Evaluator {
 
   private evalFunctionCall(node: FunctionCallNode): any {
     const fnName = node.name.toUpperCase();
+
+    // Object-Level Security (OLS) validation on function arguments
+    if (this.context.olsHiddenTables || this.context.olsHiddenColumns) {
+      for (const arg of node.args) {
+        if (!arg) continue;
+        if (arg.kind === 'ColumnRef') {
+          if (arg.table && this.context.olsHiddenTables?.has(arg.table.toLowerCase().trim())) {
+            throw new DaxError(
+              'Reference',
+              `Acesso negado pela segurança de nível de objeto (OLS) à tabela '${arg.table}'`
+            );
+          }
+          if (arg.column && this.context.olsHiddenColumns) {
+            const col = arg.column.toLowerCase().trim();
+            const fullKey = arg.table ? `${arg.table.toLowerCase().trim()}::${col}` : col;
+            if (this.context.olsHiddenColumns.has(fullKey) || this.context.olsHiddenColumns.has(col)) {
+              throw new DaxError(
+                'Reference',
+                `Acesso negado pela segurança de nível de objeto (OLS) à coluna [${arg.column}]${arg.table ? ` da tabela '${arg.table}'` : ''}`
+              );
+            }
+          }
+        } else if (arg.kind === 'VariableRef' && this.context.olsHiddenTables) {
+          const varName = arg.name.toLowerCase().trim();
+          if (this.context.olsHiddenTables.has(varName)) {
+            throw new DaxError(
+              'Reference',
+              `Acesso negado pela segurança de nível de objeto (OLS) à tabela '${arg.name}'`
+            );
+          }
+        }
+      }
+    }
+
+    // 0. V0.8 Special Functions & Calculation Groups
+    if (fnName === 'SELECTEDMEASURE') {
+      if (this.context.selectedMeasure) {
+        const baseMeasure = this.context.selectedMeasure;
+        const baseEval = new Evaluator({
+          ...this.context,
+          selectedMeasure: null,
+          callStack: new Set(),
+        });
+        return baseEval.evaluate(baseMeasure.formula);
+      }
+      return this.context.selectedMeasureValue !== undefined ? this.context.selectedMeasureValue : DAX_BLANK;
+    }
+    if (fnName === 'SELECTEDMEASURENAME') {
+      return this.context.selectedMeasure?.name || '';
+    }
+    if (fnName === 'SELECTEDMEASUREFORMATSTRING') {
+      return this.context.selectedMeasure?.formatString || this.context.selectedMeasure?.format || '#,##0.00';
+    }
+    if (fnName === 'ISSELECTEDMEASURE') {
+      const currentName = (this.context.selectedMeasure?.name || '').trim().toLowerCase();
+      if (!currentName) return false;
+      for (const argNode of node.args) {
+        if (!argNode) continue;
+        let argStr = '';
+        if (argNode.kind === 'MeasureRef') argStr = argNode.measure;
+        else if (argNode.kind === 'ColumnRef') argStr = argNode.column;
+        else if (argNode.kind === 'VariableRef') argStr = argNode.name;
+        else if (argNode.kind === 'Literal') argStr = String(argNode.value);
+        else argStr = String(this.evalNode(argNode));
+
+        argStr = argStr.replace(/^\[|\]$/g, '').trim().toLowerCase();
+        if (argStr === currentName) return true;
+      }
+      return false;
+    }
+
+    if (fnName === 'NAMEOF') {
+      if (node.args.length === 0) return '';
+      const argNode = node.args[0];
+      if (!argNode) return '';
+      if (argNode.kind === 'ColumnRef') {
+        return argNode.column || (argNode.table ? argNode.table : '');
+      }
+      if (argNode.kind === 'MeasureRef') {
+        return argNode.measure;
+      }
+      if (argNode.kind === 'VariableRef') {
+        return argNode.name;
+      }
+      if (argNode.kind === 'Literal') {
+        return String(argNode.value);
+      }
+      return '';
+    }
+
+    if (fnName === 'DEPENDON') {
+      if (node.args.length < 2) {
+        throw new DaxError('Execution', 'A função DEPENDON requer pelo menos 2 argumentos: a expressão de resultado e dependências');
+      }
+      for (let i = 1; i < node.args.length; i++) {
+        const depNode = node.args[i];
+        if (depNode) this.evalNode(depNode);
+      }
+      const firstArg = node.args[0];
+      return firstArg ? this.evalNode(firstArg) : DAX_BLANK;
+    }
+
+    if (fnName === 'PATH') {
+      if (node.args.length !== 2) {
+        throw new DaxError('Execution', 'A função PATH requer exatamente 2 argumentos: a coluna de ID e a coluna de ID pai');
+      }
+      const idNode = node.args[0];
+      const parentIdNode = node.args[1];
+      if (!idNode || !parentIdNode) {
+        throw new DaxError('Execution', 'Os argumentos de PATH não podem ser nulos');
+      }
+
+      const idVal = this.evalNode(idNode);
+      const parentIdVal = this.evalNode(parentIdNode);
+
+      const idCol = idNode.kind === 'ColumnRef' ? idNode.column : undefined;
+      const parentCol = parentIdNode.kind === 'ColumnRef' ? parentIdNode.column : undefined;
+
+      const tblName = (idNode.kind === 'ColumnRef' && idNode.table) || this.context.tableId || this.context.tableName;
+      const tbl = tblName && this.context.model ? this.context.model.getTable(tblName) : undefined;
+      const rows = tbl ? tbl.rows : (this.context.currentGroupRows || this.context.visualRows);
+
+      return computePathForRow(idVal, parentIdVal, rows, idCol, parentCol);
+    }
+
+    if (fnName.startsWith('INFO.')) {
+      const viewName = fnName.slice(5).trim();
+      return getInfoMetadataTable(viewName, this.context);
+    }
 
     // 1. CALCULATE & CALCULATETABLE
     if (fnName === 'CALCULATE' || fnName === 'CALCULATETABLE') {

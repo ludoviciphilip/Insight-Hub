@@ -11,6 +11,7 @@ import {
   WhatIfParameter,
   BiTheme,
   Column,
+  CalculationGroup,
 } from '../types/bi';
 import { migrateProjectState, CURRENT_ENGINE_VERSION } from './migrations';
 
@@ -28,6 +29,7 @@ export interface ProjectState {
   goals: Goal[];
   rlsRoles: RlsRole[];
   whatIfParameters: WhatIfParameter[];
+  calculationGroups?: CalculationGroup[];
   theme: string;
   activeThemeId?: string;
   customThemes?: BiTheme[];

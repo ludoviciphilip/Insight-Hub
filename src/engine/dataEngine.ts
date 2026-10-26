@@ -1,6 +1,6 @@
 import alasql from 'alasql';
 import { Table, Column, DataType, Relationship, Filter, Measure, Visual } from '../types/bi';
-import { DaxEngine } from './daxEngine';
+import { DaxEngine, applyRlsRoleToFilterContext } from './daxEngine';
 import { ModelAccess } from './model/modelAccess';
 import { globalColumnStore } from './model/columnStore';
 import { filterContextFromUIFilters } from './model/filterContext';
@@ -226,9 +226,15 @@ export class DataEngine implements ModelAccess {
   public getFilteredRows(targetTableId: string, activeFilters: Filter[]): Record<string, any>[] {
     const targetTable = this.getTable(targetTableId);
     if (!targetTable) return [];
-    if (!activeFilters || activeFilters.length === 0) return [...targetTable.rows];
 
-    const filterContext = filterContextFromUIFilters(activeFilters, this);
+    const filterContext = filterContextFromUIFilters(activeFilters || [], this);
+    const activeRole = DaxEngine.getActiveRole();
+    if (activeRole) {
+      applyRlsRoleToFilterContext(activeRole, filterContext, this);
+    } else if (!activeFilters || activeFilters.length === 0) {
+      return [...targetTable.rows];
+    }
+
     return filterContext.getFilteredRows(targetTable.id, this);
   }
 

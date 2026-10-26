@@ -300,13 +300,37 @@ export interface Goal {
   history: { date: string; value: number }[];
 }
 
+export interface CalculationItem {
+  id: string;
+  name: string;
+  expression: string; // DAX expression using SELECTEDMEASURE()
+  formatStringExpression?: string;
+  ordinal?: number;
+  description?: string;
+}
+
+export interface CalculationGroup {
+  id: string;
+  name: string;
+  precedence: number;
+  columnName?: string; // default: "Calculation Item"
+  calculationItems: CalculationItem[];
+  description?: string;
+}
+
 export interface RlsRole {
   id: string;
   name: string;
   rules: {
     tableId: string;
-    filterExpression: string; // e.g. "Regiao = 'Sudeste'"
+    filterExpression: string; // e.g. "[Regiao] = \"Sudeste\""
   }[];
+  olsRules?: {
+    tableId: string;
+    column?: string; // if omitted, entire table is restricted
+    access: 'none' | 'read';
+  }[];
+  members?: string[];
 }
 
 export interface WhatIfParameter {

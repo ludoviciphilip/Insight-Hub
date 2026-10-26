@@ -17,9 +17,11 @@ import {
   PerformanceMetric,
   BiTheme,
   ActiveDrillthrough,
+  CalculationGroup,
 } from '../types/bi';
 import { getSampleDatasets, generateCalendarTable } from '../data/sampleDatasets';
 import { globalDataEngine } from '../engine/dataEngine';
+import { DaxEngine } from '../engine/daxEngine';
 import { EtlEngine } from '../engine/etlEngine';
 import { saveProjectToStorage, loadProjectFromStorage, ProjectState } from '../engine/storage';
 import { migrateProjectState, syncWhatIfWithModel } from '../engine/migrations';
@@ -185,6 +187,22 @@ interface BiState {
   rlsRoles: RlsRole[];
   activeRole: string | null;
   setActiveRole: (roleId: string | null) => void;
+  calculationGroups: CalculationGroup[];
+  setCalculationGroups: (groups: CalculationGroup[]) => void;
+  activeUser: {
+    username: string;
+    userPrincipalName: string;
+    userObjectId: string;
+    userCulture: string;
+    customData: string;
+  };
+  setActiveUser: (user: {
+    username: string;
+    userPrincipalName: string;
+    userObjectId: string;
+    userCulture: string;
+    customData: string;
+  }) => void;
   whatIfParameters: WhatIfParameter[];
   updateWhatIfValue: (id: string, value: number) => void;
   addWhatIfParameter: (param: WhatIfParameter) => void;
@@ -1302,16 +1320,36 @@ export const useBiStore = create<BiState>((set, get) => {
       {
         id: 'role_vendedor_sp',
         name: 'Vendedor Regional (São Paulo)',
-        rules: [{ tableId: 'f_Vendas', filterExpression: "Estado = 'SP'" }],
+        rules: [{ tableId: 'f_Vendas', filterExpression: '[Estado] = "SP"' }],
       },
       {
         id: 'role_gestor_sul',
         name: 'Gerente Comercial (Região Sul)',
-        rules: [{ tableId: 'f_Vendas', filterExpression: "Regiao = 'Sul'" }],
+        rules: [{ tableId: 'f_Vendas', filterExpression: '[Regiao] = "Sul"' }],
       },
     ],
     activeRole: null,
-    setActiveRole: (roleId) => set({ activeRole: roleId }),
+    setActiveRole: (roleId) => {
+      const foundRole = roleId ? get().rlsRoles.find(r => r.id === roleId) || null : null;
+      DaxEngine.setActiveRole(foundRole);
+      set({ activeRole: roleId });
+    },
+    calculationGroups: [],
+    setCalculationGroups: (groups) => {
+      DaxEngine.setCalculationGroups(groups);
+      set({ calculationGroups: groups });
+    },
+    activeUser: {
+      username: 'Admin',
+      userPrincipalName: 'admin@insighthub.local',
+      userObjectId: '00000000-0000-0000-0000-000000000001',
+      userCulture: 'pt-BR',
+      customData: '',
+    },
+    setActiveUser: (user) => {
+      DaxEngine.setActiveUser(user);
+      set({ activeUser: user });
+    },
 
     whatIfParameters: initialWhatIf,
     updateWhatIfValue: (id, val) => {
@@ -1477,6 +1515,7 @@ export const useBiStore = create<BiState>((set, get) => {
         goals: get().goals,
         rlsRoles: get().rlsRoles,
         whatIfParameters: get().whatIfParameters,
+        calculationGroups: get().calculationGroups,
         theme: get().theme,
         activeThemeId: get().activeThemeId,
         customThemes: get().customThemes,
@@ -1534,6 +1573,7 @@ export const useBiStore = create<BiState>((set, get) => {
         goals: state.goals || [],
         rlsRoles: state.rlsRoles || [],
         whatIfParameters: state.whatIfParameters || [],
+        calculationGroups: state.calculationGroups || [],
         theme: state.theme || 'powerbi-light',
         activeThemeId: state.activeThemeId || matchedTheme.id,
         customThemes: state.customThemes || [],
