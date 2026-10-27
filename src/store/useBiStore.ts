@@ -18,6 +18,8 @@ import {
   BiTheme,
   ActiveDrillthrough,
   CalculationGroup,
+  UserDefinedFunction,
+  DaxQueryTab,
 } from '../types/bi';
 import { getSampleDatasets, generateCalendarTable } from '../data/sampleDatasets';
 import { globalDataEngine } from '../engine/dataEngine';
@@ -206,6 +208,22 @@ interface BiState {
   whatIfParameters: WhatIfParameter[];
   updateWhatIfValue: (id: string, value: number) => void;
   addWhatIfParameter: (param: WhatIfParameter) => void;
+
+  // User Defined Functions (UDF)
+  userDefinedFunctions: UserDefinedFunction[];
+  setUserDefinedFunctions: (udfs: UserDefinedFunction[]) => void;
+  addUserDefinedFunction: (udf: UserDefinedFunction) => void;
+  updateUserDefinedFunction: (id: string, partial: Partial<UserDefinedFunction>) => void;
+  deleteUserDefinedFunction: (id: string) => void;
+
+  // DAX Query Tabs
+  daxQueries: DaxQueryTab[];
+  activeDaxQueryTabId: string;
+  setDaxQueries: (queries: DaxQueryTab[]) => void;
+  setActiveDaxQueryTabId: (id: string) => void;
+  addDaxQueryTab: (title?: string, initialQuery?: string) => string;
+  closeDaxQueryTab: (id: string) => void;
+  updateDaxQueryText: (id: string, query: string) => void;
 
   // Performance Analyzer
   performanceMetrics: PerformanceMetric[];
@@ -663,6 +681,24 @@ export const useBiStore = create<BiState>((set, get) => {
     },
 
     updateMeasure: (id, partial) => {
+      const target = get().measures.find(m => m.id === id);
+      if (target && partial.name && partial.name.trim() !== target.name.trim()) {
+        const oldName = target.name.trim();
+        const newName = partial.name.trim();
+        const allVisuals = get().pages.flatMap(p => p.visuals);
+        const { updatedMeasures, updatedVisuals } = DaxEngine.renameMeasure(oldName, newName, get().measures, allVisuals);
+        const finalMeasures = updatedMeasures.map(m => (m.id === id ? { ...m, ...partial, name: newName } : m));
+
+        const updatedPages = get().pages.map(p => ({
+          ...p,
+          visuals: p.visuals.map(v => updatedVisuals.find(uv => uv.id === v.id) || v),
+        }));
+
+        set({ measures: finalMeasures, pages: updatedPages });
+        globalDataEngine.setSchema(get().tables, get().relationships, finalMeasures);
+        return;
+      }
+
       const newMeasures = get().measures.map(m => (m.id === id ? { ...m, ...partial } : m));
       set({ measures: newMeasures });
       globalDataEngine.setSchema(get().tables, get().relationships, newMeasures);
@@ -1374,6 +1410,82 @@ export const useBiStore = create<BiState>((set, get) => {
       globalDataEngine.setSchema(synced.tables, get().relationships, synced.measures);
     },
 
+    // User Defined Functions (UDF)
+    userDefinedFunctions: [
+      {
+        id: 'udf_default_margin',
+        name: 'MargemPercentual',
+        parameters: ['receita', 'custo'],
+        body: 'DIVIDE(receita - custo, receita, 0)',
+        description: 'Calcula o percentual de margem bruta entre receita e custo',
+        category: 'Financeiro',
+        returnType: 'Percentage',
+      },
+      {
+        id: 'udf_default_ticket',
+        name: 'TicketMedio',
+        parameters: ['faturamento', 'qtdPedidos'],
+        body: 'DIVIDE(faturamento, qtdPedidos, 0)',
+        description: 'Calcula o ticket médio por pedido',
+        category: 'Comercial',
+        returnType: 'Currency',
+      },
+    ],
+    setUserDefinedFunctions: (udfs) => {
+      DaxEngine.setUserDefinedFunctions(udfs);
+      set({ userDefinedFunctions: udfs });
+    },
+    addUserDefinedFunction: (udf) => {
+      const updated = [...get().userDefinedFunctions.filter(u => u.name.toLowerCase() !== udf.name.toLowerCase()), udf];
+      DaxEngine.setUserDefinedFunctions(updated);
+      set({ userDefinedFunctions: updated });
+    },
+    updateUserDefinedFunction: (id, partial) => {
+      const updated = get().userDefinedFunctions.map(u => (u.id === id ? { ...u, ...partial } : u));
+      DaxEngine.setUserDefinedFunctions(updated);
+      set({ userDefinedFunctions: updated });
+    },
+    deleteUserDefinedFunction: (id) => {
+      const updated = get().userDefinedFunctions.filter(u => u.id !== id);
+      DaxEngine.setUserDefinedFunctions(updated);
+      set({ userDefinedFunctions: updated });
+    },
+
+    // DAX Query Tabs
+    daxQueries: [
+      {
+        id: 'query_1',
+        title: 'Consulta 1',
+        query: `DEFINE\n  MEASURE f_Vendas[Margem] = [Faturamento Total] - [Custo Total]\n\nEVALUATE\n  SUMMARIZECOLUMNS(\n    'd_Calendario'[Ano],\n    "Faturamento", [Faturamento Total],\n    "Margem", [Margem]\n  )\nORDER BY\n  'd_Calendario'[Ano] ASC`,
+      },
+    ],
+    activeDaxQueryTabId: 'query_1',
+    setDaxQueries: (queries) => set({ daxQueries: queries }),
+    setActiveDaxQueryTabId: (id) => set({ activeDaxQueryTabId: id }),
+    addDaxQueryTab: (title, initialQuery) => {
+      const id = 'query_' + Math.random().toString(36).substring(2, 8);
+      const newTab: DaxQueryTab = {
+        id,
+        title: title || `Consulta ${get().daxQueries.length + 1}`,
+        query: initialQuery || `EVALUATE\n  SUMMARIZECOLUMNS(\n    'd_Produtos'[Categoria],\n    "Total", [Faturamento Total]\n  )\nORDER BY\n  [Total] DESC`,
+      };
+      set({ daxQueries: [...get().daxQueries, newTab], activeDaxQueryTabId: id });
+      return id;
+    },
+    closeDaxQueryTab: (id) => {
+      if (get().daxQueries.length <= 1) return;
+      const remaining = get().daxQueries.filter(q => q.id !== id);
+      set({
+        daxQueries: remaining,
+        activeDaxQueryTabId: get().activeDaxQueryTabId === id ? remaining[0].id : get().activeDaxQueryTabId,
+      });
+    },
+    updateDaxQueryText: (id, query) => {
+      set({
+        daxQueries: get().daxQueries.map(q => (q.id === id ? { ...q, query, isDirty: true } : q)),
+      });
+    },
+
     // Performance Analyzer
     performanceMetrics: [],
     recordPerformanceMetric: (metric) => {
@@ -1516,6 +1628,8 @@ export const useBiStore = create<BiState>((set, get) => {
         rlsRoles: get().rlsRoles,
         whatIfParameters: get().whatIfParameters,
         calculationGroups: get().calculationGroups,
+        userDefinedFunctions: get().userDefinedFunctions,
+        daxQueries: get().daxQueries,
         theme: get().theme,
         activeThemeId: get().activeThemeId,
         customThemes: get().customThemes,
@@ -1558,6 +1672,11 @@ export const useBiStore = create<BiState>((set, get) => {
         setGlobalCurrency(state.currency as SupportedCurrency);
       }
 
+      const udfs = state.userDefinedFunctions || [];
+      DaxEngine.setUserDefinedFunctions(udfs);
+
+      const daxQueries = (state.daxQueries && state.daxQueries.length > 0) ? state.daxQueries : get().daxQueries;
+
       set({
         language: (state.language as SupportedLocale) || get().language,
         currency: (state.currency as SupportedCurrency) || get().currency,
@@ -1574,6 +1693,9 @@ export const useBiStore = create<BiState>((set, get) => {
         rlsRoles: state.rlsRoles || [],
         whatIfParameters: state.whatIfParameters || [],
         calculationGroups: state.calculationGroups || [],
+        userDefinedFunctions: udfs,
+        daxQueries,
+        activeDaxQueryTabId: daxQueries[0]?.id || 'query_1',
         theme: state.theme || 'powerbi-light',
         activeThemeId: state.activeThemeId || matchedTheme.id,
         customThemes: state.customThemes || [],

@@ -8,6 +8,7 @@ import {
   Search,
   ShieldCheck,
   HelpCircle,
+  Code2,
 } from 'lucide-react';
 import { useBiStore } from '../../store/useBiStore';
 import { ActiveView } from '../../types/bi';
@@ -22,6 +23,7 @@ export const SidebarNav: React.FC = () => {
     { view: 'data', label: t.nav.data, icon: Table },
     { view: 'model', label: t.nav.model, icon: Layers },
     { view: 'query', label: t.nav.query, icon: Sliders },
+    { view: 'daxquery', label: t.nav.daxquery, icon: Code2 },
     { view: 'metabase', label: t.nav.metabase, icon: Search },
     { view: 'dashboard', label: t.nav.dashboard, icon: LayoutDashboard },
     { view: 'governance', label: t.nav.governance, icon: ShieldCheck },

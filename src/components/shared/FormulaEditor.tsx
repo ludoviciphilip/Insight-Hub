@@ -17,6 +17,7 @@ import { Table, Measure, Column } from '../../types/bi';
 import { FUNCTION_REGISTRY, getAllFunctionNames, POWER_BI_FUNCTIONS, FunctionDoc } from '../../engine/expr/registry';
 import { validateDax, DaxValidationResult } from '../../engine/expr/validator';
 import { PowerBiColumnEngine } from '../../engine/powerBiColumnEngine';
+import { UdfManager } from '../../engine/model/udfManager';
 
 export interface FormulaEditorProps {
   value: string;
@@ -104,6 +105,18 @@ export const FormulaEditor: React.FC<FormulaEditorProps> = ({
           category: isIter ? 'Iterador' : fn.category,
         });
       }
+    }
+
+    // User Defined Functions (UDF)
+    for (const udf of UdfManager.getFunctions()) {
+      list.push({
+        label: udf.name,
+        insertText: `${udf.name}(`,
+        kind: 'function',
+        detail: `UDF: ${udf.description || udf.body}`,
+        syntax: `${udf.name}(${udf.parameters.join(', ')})`,
+        category: 'Função do Usuário (UDF)',
+      });
     }
 
     // Measures

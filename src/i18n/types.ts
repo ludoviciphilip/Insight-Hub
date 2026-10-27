@@ -83,6 +83,7 @@ export interface Translations {
     data: string;
     model: string;
     query: string;
+    daxquery: string;
     metabase: string;
     dashboard: string;
     governance: string;

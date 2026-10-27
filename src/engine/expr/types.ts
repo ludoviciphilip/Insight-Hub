@@ -37,6 +37,8 @@ export interface DaxTableValue {
   lineage?: Record<string, ColumnLineage>;
 }
 
+export type DaxTable = DaxTableValue;
+
 export function isDaxTable(val: any): val is DaxTableValue {
   return Boolean(
     val &&

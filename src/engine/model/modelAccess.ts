@@ -67,6 +67,11 @@ export class InMemoryModelAccess implements ModelAccess {
     return Array.from(this.measuresById.values());
   }
 
+  public addMeasure(m: Measure): void {
+    this.measuresById.set(m.id, m);
+    this.measureNamesToId.set(m.name.toLowerCase().trim(), m.id);
+  }
+
   public getMeasure(idOrName: string): Measure | undefined {
     if (!idOrName) return undefined;
     if (this.measuresById.has(idOrName)) {

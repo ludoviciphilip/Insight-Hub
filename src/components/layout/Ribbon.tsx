@@ -286,6 +286,16 @@ export const Ribbon: React.FC<{
                 </div>
                 <span className="text-[10px] font-semibold mt-0.5">{t.ribbonActions.transformData}</span>
               </button>
+              <button
+                onClick={() => setActiveView('daxquery')}
+                className="flex flex-col items-center p-1 rounded hover:bg-slate-100 text-slate-700 group transition-all"
+                title="Abrir editor de consultas DAX (EVALUATE, DEFINE)"
+              >
+                <div className="p-1 rounded bg-amber-50 group-hover:bg-amber-100 text-amber-600">
+                  <Code className="w-5 h-5" />
+                </div>
+                <span className="text-[10px] font-semibold mt-0.5">DAX Query</span>
+              </button>
             </div>
 
             {/* Novo Visual e Medidas */}

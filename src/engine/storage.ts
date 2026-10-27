@@ -12,6 +12,8 @@ import {
   BiTheme,
   Column,
   CalculationGroup,
+  UserDefinedFunction,
+  DaxQueryTab,
 } from '../types/bi';
 import { migrateProjectState, CURRENT_ENGINE_VERSION } from './migrations';
 
@@ -30,6 +32,8 @@ export interface ProjectState {
   rlsRoles: RlsRole[];
   whatIfParameters: WhatIfParameter[];
   calculationGroups?: CalculationGroup[];
+  userDefinedFunctions?: UserDefinedFunction[];
+  daxQueries?: DaxQueryTab[];
   theme: string;
   activeThemeId?: string;
   customThemes?: BiTheme[];

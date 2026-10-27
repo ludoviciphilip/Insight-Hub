@@ -142,26 +142,35 @@ Mantenha o tom profissional e direto, estilo relatório de diretoria. Finalize c
 // DAX Assistant (Generate, Explain, Optimize)
 app.post('/api/ai/dax', async (req: Request, res: Response) => {
   try {
-    const { task, description, existingFormula } = req.body;
+    const { task, description, existingFormula, schemaContext } = req.body;
 
     if (!ai) {
       return res.json({
         success: true,
         isFallback: true,
-        dax: task === 'explain' ? 'Fórmula padrão de agregação' : 'CALCULATE(SUM(f_Vendas[ValorTotal]), ALL(d_Calendario))',
-        explanation: 'Exemplo de DAX calculado localmente com context transition.'
+        suggestedMeasureName: 'Margem Percentual',
+        targetTable: 'f_Vendas',
+        dax: task === 'explain'
+          ? (existingFormula || 'CALCULATE(SUM(f_Vendas[ValorTotal]), ALL(d_Calendario))')
+          : 'DIVIDE([Faturamento Total] - [Custo Total], [Faturamento Total], 0)',
+        explanation: 'Fórmula DAX gerada localmente. Conecte sua chave Gemini para assistência semântica avançada.',
+        performanceTips: 'Use DIVIDE em vez do operador "/" para tratamento automático de divisão por zero.'
       });
     }
 
     const systemInstruction = `Você é um especialista em DAX (Data Analysis Expressions) do Power BI e InsightHub.
-Seu objetivo é gerar fórmulas DAX válidas, precisas e otimizadas com explicações pedagógicas em português do Brasil.`;
+Seu objetivo é gerar fórmulas DAX válidas, precisas e otimizadas com explicações pedagógicas em português do Brasil.
+Esquema do modelo atual:
+${schemaContext || 'f_Vendas (ValorTotal, Quantidade, CustoTotal, MargemLucro), d_Calendario (Data, Ano, Mes), d_Produtos (Nome, Categoria, PrecoUnitario)'}`;
 
-    const prompt = `Tarefa: ${task}
-Descrição do cálculo desejado: "${description}"
-${existingFormula ? `Fórmula atual: ${existingFormula}` : ''}
+    const prompt = `Tarefa: ${task} (gerar, explicar ou otimizar fórmula DAX)
+Descrição do cálculo: "${description || ''}"
+${existingFormula ? `Fórmula existente: ${existingFormula}` : ''}
 
 Retorne estritamente um JSON:
 {
+  "suggestedMeasureName": "Nome curto e profissional para a medida (ex: Margem Bruta %)",
+  "targetTable": "Nome da tabela para alocar a medida (ex: f_Vendas)",
   "dax": "Fórmula DAX formatada",
   "explanation": "Explicação passo a passo do cálculo e dos contextos de linha/filtro",
   "performanceTips": "Dica de performance"

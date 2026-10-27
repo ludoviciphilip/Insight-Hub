@@ -52,6 +52,10 @@ export class DataEngine implements ModelAccess {
     DaxEngine.setModelAccess(this);
   }
 
+  public getModelAccess(): ModelAccess {
+    return this;
+  }
+
   public recomputeCalculatedTables(tables: Table[], measures: Measure[]): Table[] {
     const calcTables = tables.filter(t => t.isCalculated && t.expression);
     if (calcTables.length === 0) return tables;

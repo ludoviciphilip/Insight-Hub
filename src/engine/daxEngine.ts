@@ -1,4 +1,4 @@
-import { Table, Measure, Filter, RlsRole, CalculationGroup } from '../types/bi';
+import { Table, Measure, Filter, RlsRole, CalculationGroup, UserDefinedFunction, Visual, DaxQueryExecutionResult } from '../types/bi';
 import { ModelAccess, InMemoryModelAccess } from './model/modelAccess';
 import { FilterContext, filterContextFromUIFilters } from './model/filterContext';
 import { parseNumber } from './shared/valueParser';
@@ -9,8 +9,11 @@ import { generateQuickMeasure } from './expr/quickMeasures';
 import type { QuickMeasureType, QuickMeasureResult } from './expr/quickMeasures';
 import { evaluateExpression, Evaluator } from './expr/evaluator';
 import { isBlank, DAX_BLANK } from './expr/types';
+import { DaxQueryExecutor, DaxQueryExecutionOptions } from './query/daxQueryExecutor';
+import { UdfManager } from './model/udfManager';
+import { renameMeasureReferences } from './model/dependencyGraph';
 
-export type { DaxValidationResult, QuickMeasureType, QuickMeasureResult };
+export type { DaxValidationResult, QuickMeasureType, QuickMeasureResult, DaxQueryExecutionOptions };
 
 export function applyRlsRoleToFilterContext(
   role: RlsRole,
@@ -118,8 +121,8 @@ export class DaxEngine {
    */
   public static validate(
     formula: string,
-    availableTables: Table[],
-    availableMeasures: Measure[]
+    availableTables: Table[] = [],
+    availableMeasures: Measure[] = []
   ): DaxValidationResult {
     return validateDax(formula, availableTables, availableMeasures);
   }
@@ -209,6 +212,45 @@ export class DaxEngine {
     return DaxEngine.calculationGroups;
   }
 
+  public static setUserDefinedFunctions(udfs: UserDefinedFunction[]): void {
+    UdfManager.setFunctions(udfs);
+  }
+
+  public static getUserDefinedFunctions(): UserDefinedFunction[] {
+    return UdfManager.getFunctions();
+  }
+
+  /**
+   * Executes a complete DAX query with DEFINE, EVALUATE, ORDER BY, START AT.
+   */
+  public static executeDaxQuery(
+    queryText: string,
+    model: ModelAccess,
+    options: DaxQueryExecutionOptions = {}
+  ): DaxQueryExecutionResult {
+    return DaxQueryExecutor.execute(queryText, model, {
+      ...options,
+      activeUser: options.activeUser || DaxEngine.activeUser || undefined,
+      calculationGroups: options.calculationGroups || DaxEngine.calculationGroups,
+    });
+  }
+
+  /**
+   * Renames a measure across the model, updating all dependent measure formulas and visuals.
+   */
+  public static renameMeasure(
+    oldName: string,
+    newName: string,
+    measures: Measure[],
+    visuals: Visual[] = []
+  ): {
+    updatedMeasures: Measure[];
+    updatedVisuals: Visual[];
+    affectedCount: number;
+  } {
+    return renameMeasureReferences(oldName, newName, measures, visuals);
+  }
+
   /**
    * Evaluates a DAX expression with explicit FilterContext and ModelAccess.
    * Preserves BLANK and typed return values without truncation.
@@ -262,6 +304,7 @@ export class DaxEngine {
       calculationGroups: effCalcGroups,
       olsHiddenTables,
       olsHiddenColumns,
+      userDefinedFunctions: UdfManager.getFunctions(),
       resolveMeasure: (name: string) => {
         const rawName = name.trim();
         const targetM =

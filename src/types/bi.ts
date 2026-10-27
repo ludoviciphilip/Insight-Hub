@@ -369,4 +369,72 @@ export interface PerformanceMetric {
   rowCount: number;
 }
 
-export type ActiveView = 'report' | 'data' | 'model' | 'query' | 'metabase' | 'dashboard' | 'governance';
+export type ActiveView = 'report' | 'data' | 'model' | 'query' | 'metabase' | 'dashboard' | 'governance' | 'daxquery';
+
+export interface UserDefinedFunction {
+  id: string;
+  name: string;
+  parameters: string[];
+  body: string;
+  description?: string;
+  category?: string;
+  returnType?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface DaxQueryExecutionStage {
+  name: string;
+  durationMs: number;
+  details?: string;
+  status: 'success' | 'warning' | 'error';
+}
+
+export interface DaxQueryResultItem {
+  statementIndex: number;
+  table?: any; // DaxTable
+  scalar?: any;
+  rowCount?: number;
+  columns?: string[];
+  rows?: Record<string, any>[];
+}
+
+export interface DaxQueryExecutionResult {
+  success: boolean;
+  results: DaxQueryResultItem[];
+  executionPlan: DaxQueryExecutionStage[];
+  totalDurationMs: number;
+  error?: string;
+  definedObjects?: {
+    measures: { table: string; name: string; formula: string }[];
+    columns: { table: string; name: string; formula: string }[];
+    tables: { name: string; formula: string }[];
+    functions: { name: string; parameters: string[]; body: string }[];
+    variables: { name: string; formula: string }[];
+  };
+}
+
+export interface DaxQueryTab {
+  id: string;
+  title: string;
+  query: string;
+  isDirty?: boolean;
+}
+
+export interface DaxQueryHistoryItem {
+  id: string;
+  timestamp: string;
+  query: string;
+  success: boolean;
+  durationMs: number;
+  rowCount: number;
+  error?: string;
+}
+
+export interface DaxSnippet {
+  id: string;
+  title: string;
+  category: 'Time Intelligence' | 'Ranking' | 'ABC / Pareto' | 'Growth' | 'Security';
+  description: string;
+  template: string;
+}

@@ -35,7 +35,7 @@ import {
   isDaxTable,
 } from './types';
 import { DaxError } from '../shared/errors';
-import { Table, Measure, Filter, Column, Relationship, RlsRole, CalculationGroup } from '../../types/bi';
+import { Table, Measure, Filter, Column, Relationship, RlsRole, CalculationGroup, UserDefinedFunction } from '../../types/bi';
 import { ModelAccess } from '../model/modelAccess';
 import { FilterContext } from '../model/filterContext';
 import { RowContextStack } from '../model/rowContext';
@@ -54,6 +54,7 @@ import { computeXNPV, computeXIRR, FINANCIAL_FUNCTIONS } from '../functions/fina
 import { parseDateArg } from '../functions/dateTime';
 import { computePathForRow } from '../functions/parentChild';
 import { getInfoMetadataTable } from '../functions/info';
+import { UdfManager } from '../model/udfManager';
 
 export interface EvalContext {
   dialect?: 'dax' | 'column';
@@ -91,7 +92,10 @@ export interface EvalContext {
   calculationGroups?: CalculationGroup[];
   olsHiddenTables?: Set<string>;
   olsHiddenColumns?: Set<string>;
+  userDefinedFunctions?: UserDefinedFunction[];
 }
+
+export type EvaluationContext = EvalContext;
 
 export class Evaluator {
   private context: EvalContext;
@@ -117,7 +121,7 @@ export class Evaluator {
     return this.evalNode(node);
   }
 
-  private evalNode(node: ASTNode): any {
+  public evalNode(node: ASTNode): any {
     switch (node.kind) {
       case 'Literal':
         return this.evalLiteral(node);
@@ -914,6 +918,15 @@ export class Evaluator {
       const arg = node.args[0];
       const tableVal = this.resolveTableValue(arg);
       return tableVal.rows.length;
+    }
+
+    // 4.9 User Defined Functions (UDF)
+    const udf =
+      this.context.userDefinedFunctions?.find(u => u.name.toUpperCase().trim() === fnName) ||
+      UdfManager.getFunction(fnName);
+    if (udf) {
+      const evaluatedArgs = node.args.map(a => (a ? this.evalNode(a) : DAX_BLANK));
+      return UdfManager.evaluate(udf, evaluatedArgs, this.context);
     }
 
     // 5. Functions in Registry (Aggregation, Filter, Relationship, Math, Text, Date)

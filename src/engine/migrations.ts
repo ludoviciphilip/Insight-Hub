@@ -1,7 +1,7 @@
 import { ProjectState } from './storage';
 import { Table, Relationship, Measure, WhatIfParameter, RlsRole, CalculationGroup } from '../types/bi';
 
-export const CURRENT_ENGINE_VERSION = '2.1.0';
+export const CURRENT_ENGINE_VERSION = '2.2.0';
 
 /**
  * Migrates legacy RLS filter expressions (e.g. "Regiao = 'Sudeste'") to standard DAX syntax ("[Regiao] = \"Sudeste\"").
@@ -194,6 +194,8 @@ export function migrateProjectState(rawState: any): ProjectState {
     rlsRoles: migrateRlsRoles(rawState.rlsRoles),
     whatIfParameters: rawWhatIf,
     calculationGroups: Array.isArray(rawState.calculationGroups) ? rawState.calculationGroups : [],
+    userDefinedFunctions: Array.isArray(rawState.userDefinedFunctions) ? rawState.userDefinedFunctions : [],
+    daxQueries: Array.isArray(rawState.daxQueries) ? rawState.daxQueries : [],
     theme: rawState.theme || 'powerbi-light',
     activeThemeId: rawState.activeThemeId || 'powerbi-classic',
     customThemes: Array.isArray(rawState.customThemes) ? rawState.customThemes : [],
