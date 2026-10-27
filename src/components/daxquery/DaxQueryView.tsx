@@ -18,6 +18,7 @@ import {
   Layers,
   History,
   FileSpreadsheet,
+  Upload,
 } from 'lucide-react';
 import { useBiStore } from '../../store/useBiStore';
 import { DaxEngine } from '../../engine/daxEngine';
@@ -27,6 +28,7 @@ import { DAX_SNIPPETS, getSignatureHelpAtOffset, getDaxGuideUrl } from '../../en
 import { UdfLibraryModal } from './UdfLibraryModal';
 import { DependencyGraphModal } from './DependencyGraphModal';
 import { DaxAiAssistantModal } from './DaxAiAssistantModal';
+import { DaxImportModal } from './DaxImportModal';
 import { formatNumber } from '../../engine/shared/formatter';
 
 export const DaxQueryView: React.FC = () => {
@@ -61,6 +63,7 @@ export const DaxQueryView: React.FC = () => {
   const [isUdfModalOpen, setIsUdfModalOpen] = useState(false);
   const [isGraphModalOpen, setIsGraphModalOpen] = useState(false);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   // Signature help
   const [signatureHelp, setSignatureHelp] = useState<{
@@ -354,6 +357,16 @@ export const DaxQueryView: React.FC = () => {
           >
             <Network className="w-3.5 h-3.5 text-teal-400" />
             <span>Dependências</span>
+          </button>
+
+          {/* Import Script (Power BI / DAX Studio) */}
+          <button
+            onClick={() => setIsImportModalOpen(true)}
+            className="px-3 py-1.5 border border-slate-800 hover:bg-slate-800 text-slate-300 text-xs font-medium rounded-lg flex items-center gap-1.5"
+            title="Importar Medidas do Power BI Desktop ou DAX Studio"
+          >
+            <Upload className="w-3.5 h-3.5 text-amber-400" />
+            <span>Importar Script</span>
           </button>
 
           {/* AI Assistant */}
@@ -771,6 +784,10 @@ export const DaxQueryView: React.FC = () => {
             updateDaxQueryText(activeTab.id, queryWithDef);
           }
         }}
+      />
+      <DaxImportModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
       />
     </div>
   );

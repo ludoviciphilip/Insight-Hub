@@ -86,6 +86,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       metabase: 'Pergunta (Metabase)',
       dashboard: 'Dashboards & Metas',
       governance: 'Workspaces & Governança',
+      daxcompliance: 'Conformidade DAX',
       limitations: 'Avisos e Limitações do Sistema',
     },
     panes: {
@@ -211,6 +212,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       metabase: 'Question (Metabase)',
       dashboard: 'Dashboards & Goals',
       governance: 'Workspaces & Governance',
+      daxcompliance: 'DAX Compliance',
       limitations: 'System Limitations & Notes',
     },
     panes: {
@@ -336,6 +338,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       metabase: 'Pregunta (Metabase)',
       dashboard: 'Paneles y Metas',
       governance: 'Espacios y Gobernanza',
+      daxcompliance: 'Conformidad DAX',
       limitations: 'Avisos y Limitaciones del Sistema',
     },
     panes: {

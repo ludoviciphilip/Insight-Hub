@@ -73,6 +73,7 @@ export interface Measure {
   id: string;
   name: string;
   tableName: string;
+  tableId?: string;
   formula: string;
   format: 'currency' | 'number' | 'percentage' | 'integer';
   formatString?: string;
@@ -369,7 +370,7 @@ export interface PerformanceMetric {
   rowCount: number;
 }
 
-export type ActiveView = 'report' | 'data' | 'model' | 'query' | 'metabase' | 'dashboard' | 'governance' | 'daxquery';
+export type ActiveView = 'report' | 'data' | 'model' | 'query' | 'metabase' | 'dashboard' | 'governance' | 'daxquery' | 'daxcompliance';
 
 export interface UserDefinedFunction {
   id: string;

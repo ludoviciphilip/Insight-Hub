@@ -236,6 +236,32 @@ export class DaxEngine {
   }
 
   /**
+   * Facade for query execution accepting either ModelAccess or table/measure options.
+   */
+  public static executeQuery(
+    queryText: string,
+    modelOrOptions?: ModelAccess | {
+      tables?: Table[];
+      measures?: Measure[];
+      activeFilters?: Filter[];
+      activeRole?: RlsRole;
+      calculationGroups?: CalculationGroup[];
+      udfs?: UserDefinedFunction[];
+    }
+  ): DaxQueryExecutionResult {
+    let model: ModelAccess;
+    if (modelOrOptions && 'getTables' in modelOrOptions && typeof (modelOrOptions as any).getTables === 'function') {
+      model = modelOrOptions as ModelAccess;
+    } else {
+      const opts = (modelOrOptions as any) || {};
+      const tables = opts.tables || [];
+      const measures = opts.measures || [];
+      model = DaxEngine.activeModelAccess || new InMemoryModelAccess(tables, [], measures);
+    }
+    return DaxEngine.executeDaxQuery(queryText, model);
+  }
+
+  /**
    * Renames a measure across the model, updating all dependent measure formulas and visuals.
    */
   public static renameMeasure(
@@ -345,8 +371,15 @@ export class DaxEngine {
     tablesOrModel: Table[] | ModelAccess,
     measures?: Measure[],
     activeFilters: Filter[] = [],
-    callStack?: Set<string>
+    callStack?: Set<string>,
+    activeRole?: RlsRole,
+    calculationGroups?: CalculationGroup[],
+    udfs?: UserDefinedFunction[]
   ): number {
+    if (activeRole !== undefined) DaxEngine.activeRole = activeRole;
+    if (calculationGroups !== undefined) DaxEngine.calculationGroups = calculationGroups;
+    if (udfs !== undefined) UdfManager.setFunctions(udfs);
+
     let model: ModelAccess;
     let tables: Table[];
     let measuresList: Measure[];

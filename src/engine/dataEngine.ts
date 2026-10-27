@@ -291,6 +291,21 @@ export class DataEngine implements ModelAccess {
     const planner = new QueryPlanner(this);
     return planner.query(visual, activeFilters);
   }
+
+  /**
+   * Batch evaluates multiple visuals with shared schema and planner
+   */
+  public batchEvaluateVisuals(
+    visuals: Visual[],
+    activeFilters: Filter[] = []
+  ): Map<string, ReturnType<DataEngine['queryVisualData']>> {
+    const results = new Map<string, ReturnType<DataEngine['queryVisualData']>>();
+    const planner = new QueryPlanner(this);
+    for (const visual of visuals) {
+      results.set(visual.id, planner.query(visual, activeFilters));
+    }
+    return results;
+  }
 }
 
 export const globalDataEngine = new DataEngine();

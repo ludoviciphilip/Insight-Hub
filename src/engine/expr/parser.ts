@@ -147,11 +147,12 @@ export class Parser {
     return expr;
   }
 
-  private parseVarReturn(): VarReturnNode {
+  private parseVarReturn(firstVarConsumed = false): VarReturnNode {
     const startTok = this.peek();
     const variables: VarDeclaration[] = [];
 
-    while (this.match('KW_VAR')) {
+    let hasVar = firstVarConsumed || this.match('KW_VAR');
+    while (hasVar) {
       const varNameTok = this.consume('IDENTIFIER', 'Esperado nome da variável após VAR');
       this.consume('OP_EQ', 'Esperado "=" após nome da variável em declaração VAR');
       const expr = this.parseExpression(Precedence.Lowest);
@@ -159,6 +160,7 @@ export class Parser {
         name: varNameTok.value,
         expr,
       });
+      hasVar = this.match('KW_VAR');
     }
 
     if (!this.match('KW_RETURN')) {
@@ -329,6 +331,9 @@ export class Parser {
           loc,
         };
       }
+
+      case 'KW_VAR':
+        return this.parseVarReturn(true);
 
       case 'IDENTIFIER': {
         const id = tok.value;

@@ -15,6 +15,7 @@ import { MetabaseQuestionView } from './components/metabase/MetabaseQuestionView
 import { DashboardsView } from './components/dashboards/DashboardsView';
 import { GovernanceView } from './components/governance/GovernanceView';
 import { DaxQueryView } from './components/daxquery/DaxQueryView';
+import { DaxComplianceView } from './components/compliance/DaxComplianceView';
 import { VisualizationsPane } from './components/panels/VisualizationsPane';
 import { FieldsPane } from './components/panels/FieldsPane';
 import { FiltersPane } from './components/panels/FiltersPane';
@@ -67,6 +68,7 @@ export default function App() {
           {activeView === 'dashboard' && <DashboardsView />}
           {activeView === 'governance' && <GovernanceView />}
           {activeView === 'daxquery' && <DaxQueryView />}
+          {activeView === 'daxcompliance' && <DaxComplianceView />}
 
           {/* Right Collapsible Panes (only visible in Report View) */}
           {activeView === 'report' && !isPresentationMode && (

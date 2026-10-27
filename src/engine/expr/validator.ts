@@ -6,7 +6,9 @@ import { DaxError } from '../shared/errors';
 
 export interface DaxValidationResult {
   isValid: boolean;
+  valid?: boolean;
   errorMessage?: string;
+  error?: string;
   referencedTables: string[];
   referencedColumns: string[];
   referencedMeasures: string[];
@@ -166,7 +168,9 @@ export class SemanticValidator {
     if (!trimmed) {
       return {
         isValid: false,
+        valid: false,
         errorMessage: 'Fórmula vazia',
+        error: 'Fórmula vazia',
         referencedTables: [],
         referencedColumns: [],
         referencedMeasures: [],
@@ -180,7 +184,9 @@ export class SemanticValidator {
       const msg = err instanceof DaxError ? err.message : err.message || 'Erro de sintaxe';
       return {
         isValid: false,
+        valid: false,
         errorMessage: msg,
+        error: msg,
         referencedTables: [],
         referencedColumns: [],
         referencedMeasures: [],
@@ -196,7 +202,9 @@ export class SemanticValidator {
     } catch (err: any) {
       return {
         isValid: false,
+        valid: false,
         errorMessage: err.message,
+        error: err.message,
         referencedTables: Array.from(referencedTables),
         referencedColumns: Array.from(referencedColumns),
         referencedMeasures: Array.from(referencedMeasures),
@@ -210,9 +218,12 @@ export class SemanticValidator {
         Array.from(referencedMeasures)
       );
       if (cyclePath) {
+        const cycleMsg = `Referência circular detectada entre medidas: ${cyclePath.join(' -> ')}`;
         return {
           isValid: false,
-          errorMessage: `Referência circular detectada entre medidas: ${cyclePath.join(' -> ')}`,
+          valid: false,
+          errorMessage: cycleMsg,
+          error: cycleMsg,
           referencedTables: Array.from(referencedTables),
           referencedColumns: Array.from(referencedColumns),
           referencedMeasures: Array.from(referencedMeasures),
@@ -222,6 +233,7 @@ export class SemanticValidator {
 
     return {
       isValid: true,
+      valid: true,
       referencedTables: Array.from(referencedTables),
       referencedColumns: Array.from(referencedColumns),
       referencedMeasures: Array.from(referencedMeasures),

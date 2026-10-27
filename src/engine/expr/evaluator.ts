@@ -55,6 +55,7 @@ import { parseDateArg } from '../functions/dateTime';
 import { computePathForRow } from '../functions/parentChild';
 import { getInfoMetadataTable } from '../functions/info';
 import { UdfManager } from '../model/udfManager';
+import { globalDaxLruCache, hashFilterContext } from '../perf/lruCache';
 
 export interface EvalContext {
   dialect?: 'dax' | 'column';
@@ -93,6 +94,12 @@ export interface EvalContext {
   olsHiddenTables?: Set<string>;
   olsHiddenColumns?: Set<string>;
   userDefinedFunctions?: UserDefinedFunction[];
+  recursionDepth?: number;
+  maxRecursionDepth?: number;
+  deadline?: number;
+  timeoutMs?: number;
+  maxCartesianProductRows?: number;
+  useCache?: boolean;
 }
 
 export type EvaluationContext = EvalContext;
@@ -122,6 +129,10 @@ export class Evaluator {
   }
 
   public evalNode(node: ASTNode): any {
+    if (this.context.deadline && Date.now() > this.context.deadline) {
+      throw new DaxError('Execution', `Tempo limite da avaliação DAX excedido (${this.context.timeoutMs || 15000}ms)`);
+    }
+
     switch (node.kind) {
       case 'Literal':
         return this.evalLiteral(node);
@@ -165,6 +176,12 @@ export class Evaluator {
   private evaluateMeasure(measure: Measure): any {
     const normName = measure.name.toLowerCase();
     const stack = this.context.callStack || new Set<string>();
+
+    const currentDepth = (this.context.recursionDepth || 0) + 1;
+    const maxDepth = this.context.maxRecursionDepth || 100;
+    if (currentDepth > maxDepth) {
+      throw new DaxError('Execution', `Profundidade máxima de recursão excedida (${maxDepth} níveis) na avaliação da medida [${measure.name}]`);
+    }
 
     if (stack.has(normName)) {
       throw new DaxError('Execution', `Referência circular detectada entre medidas: [${measure.name}]`);
@@ -259,12 +276,16 @@ export class Evaluator {
       rowIndex: undefined,
       rowContextStack: undefined,
       callStack: nextStack,
+      recursionDepth: currentDepth,
     });
 
     const result = childEval.evaluate(measure.formula);
 
     if (this.context.measureCache) {
       this.context.measureCache.set(cacheKey, result);
+    }
+    if (this.context.useCache !== false) {
+      globalDaxLruCache.set(cacheKey, result);
     }
 
     return result;

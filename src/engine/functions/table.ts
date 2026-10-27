@@ -389,6 +389,11 @@ export const TABLE_FUNCTIONS: Record<string, FunctionDefinition> = {
 
       for (const t of tables) {
         const nextRows: Record<string, any>[] = [];
+        const maxCartesian = (context as any)?.maxCartesianProductRows || 500000;
+        const projectedSize = resultRows.length * t.rows.length;
+        if (projectedSize > maxCartesian) {
+          throw new DaxError('Execution', `Limite de produto cartesiano excedido: ${projectedSize} linhas projetadas (máximo permitido: ${maxCartesian})`);
+        }
         for (const curr of resultRows) {
           for (const row of t.rows) {
             nextRows.push({ ...curr, ...row });

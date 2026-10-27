@@ -87,6 +87,7 @@ export interface Translations {
     metabase: string;
     dashboard: string;
     governance: string;
+    daxcompliance?: string;
     limitations: string;
   };
   panes: {
