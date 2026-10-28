@@ -1,6 +1,6 @@
 import { FunctionDefinition } from '../expr/registry';
 import { DaxError } from '../shared/errors';
-import { DAX_BLANK, isBlank, daxEqual, isDaxTable, DaxTableValue } from '../expr/types';
+import { DAX_BLANK, isBlank, daxEqual, isDaxTable } from '../expr/types';
 import { ModelAccess } from '../model/modelAccess';
 import { FilterContext } from '../model/filterContext';
 
@@ -149,7 +149,7 @@ export const FILTER_FUNCTIONS: Record<string, FunctionDefinition> = {
     example: 'CALCULATE([Total], ALLSELECTED(f_Vendas))',
     minArgs: 0,
     maxArgs: 1,
-    evaluate: (args, context) => {
+    evaluate: (args, _context) => {
       return {
         __isModifier: true,
         type: 'ALL',
@@ -166,7 +166,7 @@ export const FILTER_FUNCTIONS: Record<string, FunctionDefinition> = {
     example: 'CALCULATE([Total], ALLCROSSFILTERED(f_Vendas))',
     minArgs: 1,
     maxArgs: 1,
-    evaluate: (args, context) => {
+    evaluate: (_args, _context) => {
       return {
         __isModifier: true,
         type: 'ALL',

@@ -1,4 +1,4 @@
-import { Table, Relationship } from '../../types/bi';
+import { Relationship } from '../../types/bi';
 import { DaxError } from '../shared/errors';
 import { ModelAccess } from './modelAccess';
 

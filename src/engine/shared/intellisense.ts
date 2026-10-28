@@ -239,7 +239,6 @@ export function getDaxCompletions(
 
     for (const c of t.columns) {
       const colLabel = `'${t.name}'[${c.name}]`;
-      const shortColLabel = `[${c.name}]`;
       if (!clean || colLabel.toLowerCase().includes(clean) || c.name.toLowerCase().includes(clean)) {
         items.push({
           label: colLabel,

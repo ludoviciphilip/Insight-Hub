@@ -1,5 +1,6 @@
+/* EXPERIMENTAL: este módulo é um protótipo para benchmarks e NÃO está conectado ao pipeline de execução principal do InsightHub 0.10.0. */
 import { BitSet } from './bitSet';
-import { DAX_BLANK, isBlank } from '../expr/types';
+import { DAX_BLANK, isBlank } from '../../expr/types';
 
 /**
  * High-performance Column Buffer holding typed arrays for numeric columns.

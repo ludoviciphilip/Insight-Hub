@@ -260,6 +260,8 @@ interface BiState {
   setLimitationsModalOpen: (open: boolean) => void;
   aiModalOpen: boolean;
   setAiModalOpen: (open: boolean) => void;
+  aiSettingsModalOpen: boolean;
+  setAiSettingsModalOpen: (open: boolean) => void;
 
   // Language & Currency (i18n)
   language: SupportedLocale;
@@ -1550,6 +1552,8 @@ export const useBiStore = create<BiState>((set, get) => {
     setLimitationsModalOpen: (open) => set({ limitationsModalOpen: open }),
     aiModalOpen: false,
     setAiModalOpen: (open) => set({ aiModalOpen: open }),
+    aiSettingsModalOpen: false,
+    setAiSettingsModalOpen: (open) => set({ aiSettingsModalOpen: open }),
 
     // State actions
     newProject: (name?: string) => {

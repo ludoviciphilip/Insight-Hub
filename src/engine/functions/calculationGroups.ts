@@ -1,5 +1,5 @@
 import { FunctionDefinition } from '../expr/registry';
-import { DAX_BLANK, isBlank } from '../expr/types';
+import { DAX_BLANK } from '../expr/types';
 
 export const CALCULATION_GROUP_FUNCTIONS: Record<string, FunctionDefinition> = {
   SELECTEDMEASURE: {

@@ -55,7 +55,7 @@ import { parseDateArg } from '../functions/dateTime';
 import { computePathForRow } from '../functions/parentChild';
 import { getInfoMetadataTable } from '../functions/info';
 import { UdfManager } from '../model/udfManager';
-import { globalDaxLruCache, hashFilterContext } from '../perf/lruCache';
+import { globalDaxLruCache } from '../perf/lruCache';
 
 export interface EvalContext {
   dialect?: 'dax' | 'column';
@@ -1288,7 +1288,7 @@ export class Evaluator {
    * Evaluates RANK window function
    */
   private evalRank(node: FunctionCallNode): any {
-    let ties: 'SKIP' | 'DENSE' = 'SKIP';
+    let _ties: 'SKIP' | 'DENSE' = 'SKIP';
     let relNode: ASTNode | undefined;
     let orderNode: ASTNode | undefined;
 
@@ -1296,13 +1296,14 @@ export class Evaluator {
       const a = node.args[i];
       if (!a) continue;
       if (a.kind === 'VariableRef' && ['DENSE', 'SKIP'].includes(a.name.toUpperCase())) {
-        ties = a.name.toUpperCase() as any;
+        _ties = a.name.toUpperCase() as any;
       } else if (a.kind === 'FunctionCall' && a.name.toUpperCase() === 'ORDERBY') {
         orderNode = a;
       } else if (!relNode && (a.kind === 'FunctionCall' || a.kind === 'ColumnRef' || a.kind === 'VariableRef')) {
         relNode = a;
       }
     }
+    void _ties;
 
     const relVal = relNode ? this.resolveTableValue(relNode) : null;
     if (!relVal || relVal.rows.length === 0) return DAX_BLANK;

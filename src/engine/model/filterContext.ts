@@ -1,4 +1,4 @@
-import { Filter, Table, Relationship } from '../../types/bi';
+import { Filter } from '../../types/bi';
 import { ModelAccess } from './modelAccess';
 import { RelationshipGraph, RelationshipOverride } from './relationships';
 import { parseNumber, parseDate } from '../shared/valueParser';

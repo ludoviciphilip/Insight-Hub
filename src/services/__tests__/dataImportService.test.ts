@@ -5,6 +5,7 @@ import {
   inferColumnType,
   cleanRowValue,
   formatToDateIso,
+  DataImportService,
 } from '../dataImportService';
 
 describe('DataImportService - Type Inference & Value Cleaning', () => {
@@ -177,5 +178,26 @@ describe('DataImportService - Type Inference & Value Cleaning', () => {
       expect(result.rows[1]['ValorTotal']).toBe(899.0);
       expect(result.rows[1]['DataVenda']).toBe('2024-03-16');
     });
+
+    it('rejects files exceeding the 50MB limit', async () => {
+      const mockLargeFile = {
+        name: 'huge.xlsx',
+        size: 51 * 1024 * 1024,
+      } as unknown as File;
+
+      await expect(DataImportService.parseExcel(mockLargeFile)).rejects.toThrow(
+        /limite máximo permitido de 50MB/
+      );
+
+      const mockLargeCsv = {
+        name: 'huge.csv',
+        size: 51 * 1024 * 1024,
+      } as unknown as File;
+
+      await expect(DataImportService.parseCsv(mockLargeCsv)).rejects.toThrow(
+        /limite máximo permitido de 50MB/
+      );
+    });
   });
 });
+

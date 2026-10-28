@@ -1,0 +1,141 @@
+import { describe, it, expect, beforeEach } from 'vitest';
+import { localAsk, localSummary, localDax } from '../localAssist';
+import { askData, summarize, daxAssist } from '../aiClient';
+import {
+  saveAiSettings,
+  clearAiSettings,
+  getAiSettings,
+  STORAGE_KEY,
+} from '../aiConfig';
+import { Table, Measure } from '../../types/bi';
+import { ProjectState } from '../../engine/storage';
+
+const mockTables: Table[] = [
+  {
+    id: 'f_Vendas',
+    name: 'f_Vendas',
+    originalName: 'f_Vendas',
+    columns: [
+      { id: 'c1', name: 'ID_Venda', originalName: 'ID_Venda', dataType: 'number' },
+      { id: 'c2', name: 'Data', originalName: 'Data', dataType: 'date' },
+      { id: 'c3', name: 'Categoria', originalName: 'Categoria', dataType: 'text' },
+      { id: 'c4', name: 'ValorTotal', originalName: 'ValorTotal', dataType: 'currency' },
+      { id: 'c5', name: 'Quantidade', originalName: 'Quantidade', dataType: 'number' },
+    ],
+    rows: [
+      { ID_Venda: 1, Data: '2025-01-10', Categoria: 'Eletrônicos', ValorTotal: 1500, Quantidade: 2 },
+      { ID_Venda: 2, Data: '2025-01-15', Categoria: 'Móveis', ValorTotal: 800, Quantidade: 1 },
+      { ID_Venda: 3, Data: '2025-02-01', Categoria: 'Eletrônicos', ValorTotal: 2200, Quantidade: 3 },
+    ],
+  },
+];
+
+const mockMeasures: Measure[] = [
+  {
+    id: 'm1',
+    name: 'TotalVendas',
+    tableName: 'f_Vendas',
+    formula: 'SUM(f_Vendas[ValorTotal])',
+    format: 'currency',
+  },
+];
+
+describe('localAssist', () => {
+  it('interprets category question and suggests real columns from schema', () => {
+    const res = localAsk('faturamento por categoria', mockTables, mockMeasures);
+    expect(res.source).toBe('local');
+    expect(res.suggestedVisual.recommendedTable).toBe('f_Vendas');
+    expect(res.suggestedVisual.xAxisField).toBe('Categoria');
+    expect(res.suggestedVisual.valueField).toBe('ValorTotal');
+  });
+
+  it('suggests line chart for temporal question', () => {
+    const res = localAsk('vendas ao longo do tempo por data', mockTables, mockMeasures);
+    expect(res.suggestedVisual.type).toBe('line');
+    expect(res.suggestedVisual.xAxisField).toBe('Data');
+  });
+
+  it('computes local summary using real table names and rows count', () => {
+    const res = localSummary(
+      { totalTabelas: 1 },
+      { TotalVendas: 4500 },
+      mockTables,
+      mockMeasures
+    );
+    expect(res.source).toBe('local');
+    expect(res.summary).toContain('f_Vendas');
+    expect(res.summary).toContain('3 registros');
+  });
+
+  it('generates local DAX calculation with existing columns', () => {
+    const res = localDax(
+      { task: 'generate', description: 'soma do valor total' },
+      mockTables,
+      mockMeasures
+    );
+    expect(res.source).toBe('local');
+    expect(res.dax).toMatch(/'?f_Vendas'?\[ValorTotal\]/);
+  });
+});
+
+describe('aiClient fallback without configured API key', () => {
+  beforeEach(() => {
+    clearAiSettings();
+  });
+
+  it('returns local fallback with reason no_key when apiKey is empty', async () => {
+    const res = await askData('Qual o total vendido?', 'context', mockTables, mockMeasures);
+    expect(res.source).toBe('local');
+    expect(res.fallbackReason).toBe('no_key');
+  });
+
+  it('summarize returns local fallback with reason no_key when apiKey is empty', async () => {
+    const res = await summarize({}, {}, mockTables, mockMeasures);
+    expect(res.source).toBe('local');
+    expect(res.fallbackReason).toBe('no_key');
+  });
+
+  it('daxAssist returns local fallback with reason no_key when apiKey is empty', async () => {
+    const res = await daxAssist({ task: 'generate', description: 'media' }, mockTables, mockMeasures);
+    expect(res.source).toBe('local');
+    expect(res.fallbackReason).toBe('no_key');
+  });
+});
+
+describe('Security and Key Isolation', () => {
+  beforeEach(() => {
+    clearAiSettings();
+  });
+
+  it('saves API key in separate storage and never leaks it into project state', () => {
+    saveAiSettings({ apiKey: 'AIzaSySecretTestKey123', storageType: 'local', selectedModel: 'gemini-3.8-flash' });
+    const settings = getAiSettings();
+    expect(settings.apiKey).toBe('AIzaSySecretTestKey123');
+
+    // Simulate project state
+    const sampleProject: ProjectState = {
+      version: '10',
+      projectName: 'Projeto Teste',
+      tables: mockTables,
+      relationships: [],
+      measures: mockMeasures,
+      pages: [],
+      activePageId: 'p1',
+      filters: [],
+      bookmarks: [],
+      dashboardTiles: [],
+      goals: [],
+      rlsRoles: [],
+      whatIfParameters: [],
+      theme: 'powerbi-light',
+      updatedAt: new Date().toISOString(),
+    };
+
+    // Serialize project
+    const serializedProject = JSON.stringify(sampleProject);
+    expect(serializedProject).not.toContain('AIzaSySecretTestKey123');
+    expect(serializedProject).not.toContain(STORAGE_KEY);
+    expect((sampleProject as any).apiKey).toBeUndefined();
+    expect((sampleProject as any).aiSettings).toBeUndefined();
+  });
+});

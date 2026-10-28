@@ -1,6 +1,6 @@
 import { FunctionDefinition } from '../expr/registry';
 import { DaxError } from '../shared/errors';
-import { DAX_BLANK, isBlank } from '../expr/types';
+import { DAX_BLANK } from '../expr/types';
 import { ModelAccess } from '../model/modelAccess';
 import { RelationshipGraph } from '../model/relationships';
 

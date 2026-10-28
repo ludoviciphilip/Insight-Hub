@@ -2,12 +2,6 @@ import { Token, TokenType } from './tokens';
 import { Lexer, LexerOptions } from './lexer';
 import {
   ASTNode,
-  LiteralNode,
-  ColumnRefNode,
-  MeasureRefNode,
-  VariableRefNode,
-  UnaryOpNode,
-  BinaryOpNode,
   FunctionCallNode,
   TableConstructorNode,
   VarReturnNode,

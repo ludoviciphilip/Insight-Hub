@@ -25,6 +25,7 @@ import { QuickMeasureModal } from './components/modals/QuickMeasureModal';
 import { CustomMeasureModal } from './components/modals/CustomMeasureModal';
 import { LimitationsModal } from './components/modals/LimitationsModal';
 import { ThemeManagerModal } from './components/modals/ThemeManagerModal';
+import { AiSettingsModal } from './components/modals/AiSettingsModal';
 import { ErrorBoundary } from './components/shared/ErrorBoundary';
 
 export default function App() {
@@ -92,6 +93,7 @@ export default function App() {
       <CustomMeasureModal />
       <LimitationsModal />
       <ThemeManagerModal />
+      <AiSettingsModal />
     </div>
   );
 }

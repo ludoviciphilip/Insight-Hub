@@ -1,5 +1,3 @@
-import { SourcePosition } from './tokens';
-
 export interface NodeLocation {
   line: number;
   column: number;

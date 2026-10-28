@@ -1,7 +1,7 @@
 {
   "name": "react-example",
   "private": true,
-  "version": "0.8.0",
+  "version": "0.10.0",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
@@ -10,7 +10,9 @@
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
-    "test": "vitest run"
+    "lint:strict": "tsc --project tsconfig.strict.json --noEmit",
+    "test": "vitest run",
+    "gen:conformance": "tsx scripts/gen-conformance.ts"
   },
   "dependencies": {
     "@duckdb/duckdb-wasm": "^1.33.1-dev57.0",
@@ -19,7 +21,6 @@
     "@types/papaparse": "^5.5.2",
     "@vitejs/plugin-react": "^6.1.1",
     "alasql": "^4.20.0",
-    "dotenv": "^17.2.3",
     "echarts": "^6.1.0",
     "echarts-for-react": "^3.0.6",
     "express": "^4.21.2",

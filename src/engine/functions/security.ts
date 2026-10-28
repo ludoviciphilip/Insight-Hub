@@ -1,5 +1,4 @@
 import { FunctionDefinition } from '../expr/registry';
-import { DAX_BLANK } from '../expr/types';
 
 export const SECURITY_FUNCTIONS: Record<string, FunctionDefinition> = {
   USERNAME: {

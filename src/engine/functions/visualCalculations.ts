@@ -5,7 +5,6 @@ import {
   isBlank,
   daxToNumber,
   daxAdd,
-  daxDivide,
 } from '../expr/types';
 
 /**

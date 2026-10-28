@@ -295,7 +295,6 @@ export const TEXT_FUNCTIONS: Record<string, FunctionDefinition> = {
       }
 
       // Regex matching with wildcards
-      const sub = within.substring(start);
       const reg = wildcardToRegExp(find);
       // Scan for match starting from start
       for (let i = start; i <= within.length; i++) {

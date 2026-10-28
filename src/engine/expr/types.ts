@@ -1,5 +1,5 @@
 import { DaxError } from '../shared/errors';
-import { parseNumber, parseDate } from '../shared/valueParser';
+import { parseNumber } from '../shared/valueParser';
 
 export type DaxScalar = number | string | boolean | null;
 

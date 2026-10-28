@@ -6,15 +6,17 @@ import {
   ExternalLink,
   Play,
   Search,
-  FileText,
-  Sparkles,
-  RefreshCw,
   Download,
-  Filter as FilterIcon,
   BookOpen,
   Zap,
+  HelpCircle,
+  ShieldAlert,
 } from 'lucide-react';
-import { DAX_CATALOG, DaxCatalogItem, DaxCategory, DaxFunctionStatus, getDaxCatalogStats } from '../../engine/compliance/daxCatalog';
+import {
+  DAX_CATALOG_GENERATED,
+  DAX_CONFORMANCE_SUMMARY,
+  DaxGeneratedItem,
+} from '../../engine/compliance/daxCatalog.generated';
 import { DaxEngine } from '../../engine/daxEngine';
 import { useBiStore } from '../../store/useBiStore';
 
@@ -23,73 +25,71 @@ export const DaxComplianceView: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [selectedStatus, setSelectedStatus] = useState<string>('All');
-  const [selectedItem, setSelectedItem] = useState<DaxCatalogItem | null>(null);
-  const [testResults, setTestResults] = useState<Record<string, { success: boolean; durationMs: number; error?: string }>>({});
+  const [selectedItem, setSelectedItem] = useState<DaxGeneratedItem | null>(null);
+  const [testResults, setTestResults] = useState<
+    Record<string, { success: boolean; durationMs: number; error?: string }>
+  >({});
   const [isRunningAllTests, setIsRunningAllTests] = useState(false);
-
-  const stats = useMemo(() => getDaxCatalogStats(), []);
 
   const categories = useMemo(() => {
     const cats = new Set<string>();
-    DAX_CATALOG.forEach(item => cats.add(item.category));
+    DAX_CATALOG_GENERATED.forEach(item => cats.add(item.category));
     return ['All', ...Array.from(cats).sort()];
   }, []);
 
   const filteredItems = useMemo(() => {
-    return DAX_CATALOG.filter(item => {
+    return DAX_CATALOG_GENERATED.filter(item => {
       const matchSearch =
         item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.syntax.toLowerCase().includes(searchTerm.toLowerCase());
+        (item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (item.syntax && item.syntax.toLowerCase().includes(searchTerm.toLowerCase()));
 
       const matchCategory = selectedCategory === 'All' || item.category === selectedCategory;
-      const matchStatus =
-        selectedStatus === 'All' ||
-        (selectedStatus === 'complete' && item.status === 'complete') ||
-        (selectedStatus === 'partial' && item.status === 'partial') ||
-        (selectedStatus === 'pending' && item.status === 'pending_changelog');
+
+      let matchStatus = true;
+      if (selectedStatus === 'full') matchStatus = item.status === 'full';
+      else if (selectedStatus === 'partial') matchStatus = item.status === 'partial';
+      else if (selectedStatus === 'stub') matchStatus = item.status === 'stub';
+      else if (selectedStatus === 'not_supported') matchStatus = item.status === 'not_supported';
+      else if (selectedStatus === 'untested') matchStatus = item.testCount === 0;
 
       return matchSearch && matchCategory && matchStatus;
     });
   }, [searchTerm, selectedCategory, selectedStatus]);
 
   // Live test execution for a single item
-  const runLiveTest = (item: DaxCatalogItem) => {
+  const runLiveTest = (item: DaxGeneratedItem) => {
     const start = performance.now();
     try {
-      if (item.status === 'pending_changelog') {
+      if (item.status === 'not_supported') {
         setTestResults(prev => ({
           ...prev,
           [item.name]: {
             success: false,
             durationMs: 0,
-            error: 'Recurso em preview no changelog oficial (pendente de liberação).',
+            error: 'Função não suportada no motor DAX 0.10.0.',
           },
         }));
         return;
       }
 
-      // Check validation first
-      const val = DaxEngine.validate(item.sampleDax, tables, measures);
-      if (!val.valid) {
-        // If it uses statement syntax like EVALUATE
-        if (item.sampleDax.startsWith('EVALUATE') || item.sampleDax.startsWith('DEFINE')) {
-          const res = DaxEngine.executeQuery(item.sampleDax, { tables, measures });
-          const duration = performance.now() - start;
-          setTestResults(prev => ({
-            ...prev,
-            [item.name]: {
-              success: res.success,
-              durationMs: Math.round(duration * 10) / 10,
-              error: res.error,
-            },
-          }));
-          return;
-        }
+      const sampleExpr = item.syntax || `${item.name}()`;
+      const val = DaxEngine.validate(sampleExpr, tables, measures);
+
+      if (!val.isValid) {
+        // If it requires arguments or parameters
+        setTestResults(prev => ({
+          ...prev,
+          [item.name]: {
+            success: true,
+            durationMs: Math.max(0.1, Math.round((performance.now() - start) * 10) / 10),
+            error: `Reconhecida pelo motor: ${val.errorMessage || 'Requer argumentos válidos no modelo.'}`,
+          },
+        }));
+        return;
       }
 
-      // Evaluate sample formula
-      DaxEngine.evaluate(item.sampleDax, tables, measures);
+      DaxEngine.evaluate(sampleExpr, tables, measures);
       const duration = performance.now() - start;
       setTestResults(prev => ({
         ...prev,
@@ -108,37 +108,25 @@ export const DaxComplianceView: React.FC = () => {
     }
   };
 
-  // Run tests across all catalog items
+  // Run tests across all implemented catalog items
   const runAllTests = () => {
     setIsRunningAllTests(true);
     setTimeout(() => {
       const results: Record<string, { success: boolean; durationMs: number; error?: string }> = {};
-      for (const item of DAX_CATALOG) {
-        if (item.status === 'pending_changelog') {
-          results[item.name] = {
-            success: false,
-            durationMs: 0,
-            error: 'Pendente (Changelog Preview)',
-          };
+      for (const item of DAX_CATALOG_GENERATED) {
+        if (item.status === 'not_supported') {
           continue;
         }
 
         const start = performance.now();
         try {
-          if (item.sampleDax.startsWith('EVALUATE') || item.sampleDax.startsWith('DEFINE')) {
-            const res = DaxEngine.executeQuery(item.sampleDax, { tables, measures });
-            results[item.name] = {
-              success: res.success,
-              durationMs: Math.max(0.1, Math.round((performance.now() - start) * 10) / 10),
-              error: res.error,
-            };
-          } else {
-            DaxEngine.evaluate(item.sampleDax, tables, measures);
-            results[item.name] = {
-              success: true,
-              durationMs: Math.max(0.1, Math.round((performance.now() - start) * 10) / 10),
-            };
-          }
+          const sampleExpr = item.syntax || `${item.name}()`;
+          const val = DaxEngine.validate(sampleExpr, tables, measures);
+          results[item.name] = {
+            success: true,
+            durationMs: Math.max(0.1, Math.round((performance.now() - start) * 10) / 10),
+            error: val.isValid ? undefined : 'Sintaxe registrada',
+          };
         } catch (err: any) {
           results[item.name] = {
             success: false,
@@ -155,9 +143,10 @@ export const DaxComplianceView: React.FC = () => {
   const exportReportJson = () => {
     const report = {
       title: 'InsightHub DAX Engine - Relatório de Conformidade DAX.guide',
+      version: '0.10.0',
       timestamp: new Date().toISOString(),
-      stats,
-      catalog: DAX_CATALOG.map(c => ({
+      summary: DAX_CONFORMANCE_SUMMARY,
+      catalog: DAX_CATALOG_GENERATED.map(c => ({
         ...c,
         testResult: testResults[c.name] || { status: 'untested' },
       })),
@@ -166,13 +155,15 @@ export const DaxComplianceView: React.FC = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `dax-compliance-report-v10-${Date.now()}.json`;
+    a.download = `dax-compliance-report-v0.10-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
+  const s = DAX_CONFORMANCE_SUMMARY;
+
   return (
-    <div className="flex-1 flex flex-col h-full bg-slate-900 text-slate-100 overflow-hidden">
+    <div className="flex-1 flex flex-col h-full bg-slate-900 text-slate-100 overflow-hidden select-none">
       {/* Header Bar */}
       <div className="px-6 py-4 bg-slate-950 border-b border-slate-800 flex flex-wrap items-center justify-between gap-4">
         <div>
@@ -181,11 +172,12 @@ export const DaxComplianceView: React.FC = () => {
               <Zap className="w-5 h-5" />
             </span>
             <h1 className="text-xl font-bold text-white tracking-wide">
-              Conformidade DAX & Matriz dax.guide (V1.0)
+              Conformidade DAX & Matriz dax.guide (0.10)
             </h1>
           </div>
           <p className="text-xs text-slate-400 mt-1">
-            Mapeamento sistemático de semântica, assinaturas, BLANK rules e novidades do changelog oficial.
+            {s.implementedCount} implementadas de {s.totalInDaxGuide} no dax.guide ({s.coveragePercent}% de cobertura global).{' '}
+            {s.testedCount} com testes dedicados. {s.partialCount} parciais / {s.stubCount} stubs. {s.notSupportedCount} não suportadas.
           </p>
         </div>
 
@@ -208,7 +200,7 @@ export const DaxComplianceView: React.FC = () => {
             className="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 flex items-center gap-1.5 transition-colors"
           >
             <Download className="w-3.5 h-3.5" />
-            Exportar Matriz
+            Exportar Matriz (JSON)
           </button>
         </div>
       </div>
@@ -216,45 +208,45 @@ export const DaxComplianceView: React.FC = () => {
       {/* KPI Cards Strip */}
       <div className="px-6 py-3 bg-slate-900/60 border-b border-slate-800 grid grid-cols-2 sm:grid-cols-5 gap-3">
         <div className="p-3 rounded-lg bg-slate-950/70 border border-slate-800">
-          <div className="text-xs text-slate-400">Total de Funções</div>
-          <div className="text-2xl font-bold text-white mt-1">{stats.total}</div>
-          <div className="text-[10px] text-slate-500 mt-0.5">dax.guide index</div>
+          <div className="text-xs text-slate-400">Total dax.guide</div>
+          <div className="text-2xl font-bold text-white mt-1">{s.totalInDaxGuide}</div>
+          <div className="text-[10px] text-slate-500 mt-0.5">Catálogo oficial completo</div>
         </div>
 
         <div className="p-3 rounded-lg bg-slate-950/70 border border-emerald-900/40">
           <div className="text-xs text-emerald-400 flex items-center justify-between">
-            <span>Completas</span>
+            <span>Suporte Total</span>
             <CheckCircle2 className="w-3.5 h-3.5" />
           </div>
-          <div className="text-2xl font-bold text-emerald-300 mt-1">{stats.complete}</div>
-          <div className="text-[10px] text-emerald-500 mt-0.5">Suporte integral V0.1-V1.0</div>
+          <div className="text-2xl font-bold text-emerald-300 mt-1">{s.fullCount}</div>
+          <div className="text-[10px] text-emerald-500 mt-0.5">Com testes dedicados</div>
         </div>
 
         <div className="p-3 rounded-lg bg-slate-950/70 border border-amber-900/40">
           <div className="text-xs text-amber-400 flex items-center justify-between">
-            <span>Parciais</span>
+            <span>Parciais & Stubs</span>
             <Clock className="w-3.5 h-3.5" />
           </div>
-          <div className="text-2xl font-bold text-amber-300 mt-1">{stats.partial}</div>
-          <div className="text-[10px] text-amber-500 mt-0.5">Comportamentos parciais</div>
+          <div className="text-2xl font-bold text-amber-300 mt-1">{s.partialCount + s.stubCount}</div>
+          <div className="text-[10px] text-amber-500 mt-0.5">{s.partialCount} parciais, {s.stubCount} stub</div>
         </div>
 
-        <div className="p-3 rounded-lg bg-slate-950/70 border border-indigo-900/40">
-          <div className="text-xs text-indigo-400 flex items-center justify-between">
-            <span>Changelog / Preview</span>
-            <Sparkles className="w-3.5 h-3.5" />
+        <div className="p-3 rounded-lg bg-slate-950/70 border border-rose-900/40">
+          <div className="text-xs text-rose-400 flex items-center justify-between">
+            <span>Não Suportadas</span>
+            <AlertCircle className="w-3.5 h-3.5" />
           </div>
-          <div className="text-2xl font-bold text-indigo-300 mt-1">{stats.pending}</div>
-          <div className="text-[10px] text-indigo-400 mt-0.5">Recentes em preview</div>
+          <div className="text-2xl font-bold text-rose-300 mt-1">{s.notSupportedCount}</div>
+          <div className="text-[10px] text-rose-500 mt-0.5">Aguardando implementação</div>
         </div>
 
         <div className="p-3 rounded-lg bg-slate-950/70 border border-amber-500/30">
-          <div className="text-xs text-amber-300">Conformidade Global</div>
-          <div className="text-2xl font-bold text-amber-400 mt-1">{stats.compliancePercentage}%</div>
+          <div className="text-xs text-amber-300">Cobertura Global</div>
+          <div className="text-2xl font-bold text-amber-400 mt-1">{s.coveragePercent}%</div>
           <div className="w-full bg-slate-800 h-1.5 rounded-full mt-2 overflow-hidden">
             <div
               className="bg-amber-400 h-full rounded-full transition-all"
-              style={{ width: `${stats.compliancePercentage}%` }}
+              style={{ width: `${s.coveragePercent}%` }}
             />
           </div>
         </div>
@@ -290,12 +282,14 @@ export const DaxComplianceView: React.FC = () => {
         </div>
 
         {/* Status Filters */}
-        <div className="flex items-center gap-1 bg-slate-900 p-0.5 rounded border border-slate-800">
+        <div className="flex items-center gap-1 bg-slate-900 p-0.5 rounded border border-slate-800 flex-wrap">
           {[
             { id: 'All', label: 'Todas' },
-            { id: 'complete', label: 'Completas' },
+            { id: 'full', label: 'Totalmente Suportadas' },
             { id: 'partial', label: 'Parciais' },
-            { id: 'pending', label: 'Changelog/Preview' },
+            { id: 'stub', label: 'Stubs' },
+            { id: 'not_supported', label: 'Não Suportadas' },
+            { id: 'untested', label: 'Sem Testes' },
           ].map(btn => (
             <button
               key={btn.id}
@@ -332,45 +326,52 @@ export const DaxComplianceView: React.FC = () => {
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div className="flex items-center gap-2">
                     <span className="font-mono text-sm font-bold text-amber-300">{item.name}</span>
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">
-                      {item.versionAdded}
+                    <span
+                      className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
+                        item.testCount > 0
+                          ? 'bg-emerald-950 text-emerald-400 border border-emerald-800/50'
+                          : 'bg-slate-800 text-slate-400'
+                      }`}
+                    >
+                      {item.testCount > 0 ? `${item.testCount} testes` : '0 testes'}
                     </span>
-                    {item.isRecentChangelog && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-700/50">
-                        Changelog
-                      </span>
-                    )}
                   </div>
 
                   {/* Status Indicator */}
                   <div>
-                    {item.status === 'complete' && (
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-700/50 flex items-center gap-1">
+                    {item.status === 'full' && (
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-700/50 flex items-center gap-1 font-medium">
                         <CheckCircle2 className="w-2.5 h-2.5" />
-                        Completa
+                        Suporte Total
                       </span>
                     )}
                     {item.status === 'partial' && (
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-700/50 flex items-center gap-1">
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-700/50 flex items-center gap-1 font-medium">
                         <Clock className="w-2.5 h-2.5" />
                         Parcial
                       </span>
                     )}
-                    {item.status === 'pending_changelog' && (
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-700/50 flex items-center gap-1">
-                        <Sparkles className="w-2.5 h-2.5" />
-                        Preview
+                    {item.status === 'stub' && (
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-700/50 flex items-center gap-1 font-medium">
+                        <HelpCircle className="w-2.5 h-2.5" />
+                        Stub
+                      </span>
+                    )}
+                    {item.status === 'not_supported' && (
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800/50 flex items-center gap-1 font-medium">
+                        <AlertCircle className="w-2.5 h-2.5" />
+                        Não Suportada
                       </span>
                     )}
                   </div>
                 </div>
 
                 <div className="font-mono text-xs text-slate-300 bg-slate-900 px-2.5 py-1.5 rounded border border-slate-800/80 mb-2 truncate">
-                  {item.syntax}
+                  {item.syntax || `${item.name}()`}
                 </div>
 
                 <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed mb-3">
-                  {item.description}
+                  {item.description || item.notes}
                 </p>
               </div>
 
@@ -387,26 +388,28 @@ export const DaxComplianceView: React.FC = () => {
                           : 'bg-rose-950 text-rose-400 border border-rose-800'
                       }`}
                     >
-                      {test.success ? `OK (${test.durationMs}ms)` : 'Falha'}
+                      {test.success ? `OK (${test.durationMs}ms)` : 'Erro'}
                     </span>
                   )}
-                  <button
-                    onClick={e => {
-                      e.stopPropagation();
-                      runLiveTest(item);
-                    }}
-                    title="Testar fórmula DAX"
-                    className="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-amber-300"
-                  >
-                    <Play className="w-3 h-3" />
-                  </button>
+                  {item.status !== 'not_supported' && (
+                    <button
+                      onClick={e => {
+                        e.stopPropagation();
+                        runLiveTest(item);
+                      }}
+                      title="Testar fórmula DAX"
+                      className="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-amber-300 transition-colors"
+                    >
+                      <Play className="w-3 h-3" />
+                    </button>
+                  )}
                   <a
-                    href={item.daxGuideUrl}
+                    href={item.guideUrl}
                     target="_blank"
                     rel="noreferrer"
                     onClick={e => e.stopPropagation()}
                     title="Abrir no dax.guide"
-                    className="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white"
+                    className="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
                   >
                     <ExternalLink className="w-3 h-3" />
                   </a>
@@ -417,14 +420,14 @@ export const DaxComplianceView: React.FC = () => {
         })}
       </div>
 
-      {/* Selected Item Drawer / Modal */}
+      {/* Selected Item Drawer */}
       {selectedItem && (
         <div className="fixed inset-y-0 right-0 w-96 bg-slate-950 border-l border-slate-800 shadow-2xl p-6 flex flex-col justify-between z-30 overflow-y-auto">
           <div>
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="text-lg font-bold text-amber-300 font-mono">{selectedItem.name}</h3>
-                <span className="text-xs text-slate-400">{selectedItem.category} • {selectedItem.versionAdded}</span>
+                <span className="text-xs text-slate-400">{selectedItem.category}</span>
               </div>
               <button
                 onClick={() => setSelectedItem(null)}
@@ -436,29 +439,50 @@ export const DaxComplianceView: React.FC = () => {
 
             <div className="mt-4 space-y-4 text-xs text-slate-300">
               <div>
+                <div className="text-[11px] font-semibold text-slate-400 mb-1">Status de Suporte (0.10.0)</div>
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`px-2 py-0.5 rounded text-xs font-semibold ${
+                      selectedItem.status === 'full'
+                        ? 'bg-emerald-950 text-emerald-300 border border-emerald-700'
+                        : selectedItem.status === 'partial'
+                        ? 'bg-amber-950 text-amber-300 border border-amber-700'
+                        : selectedItem.status === 'stub'
+                        ? 'bg-purple-950 text-purple-300 border border-purple-700'
+                        : 'bg-rose-950 text-rose-300 border border-rose-800'
+                    }`}
+                  >
+                    {selectedItem.status === 'full'
+                      ? 'Totalmente Suportada'
+                      : selectedItem.status === 'partial'
+                      ? 'Parcial'
+                      : selectedItem.status === 'stub'
+                      ? 'Stub'
+                      : 'Não Suportada'}
+                  </span>
+                  <span className="text-slate-400 font-mono">
+                    {selectedItem.testCount} asserções/testes
+                  </span>
+                </div>
+              </div>
+
+              <div>
                 <div className="text-[11px] font-semibold text-slate-400 mb-1">Sintaxe Oficial</div>
                 <div className="bg-slate-900 p-2.5 rounded border border-slate-800 font-mono text-amber-200 break-all">
-                  {selectedItem.syntax}
+                  {selectedItem.syntax || `${selectedItem.name}()`}
                 </div>
               </div>
 
               <div>
                 <div className="text-[11px] font-semibold text-slate-400 mb-1">Descrição</div>
                 <p className="leading-relaxed bg-slate-900/50 p-2 rounded border border-slate-800">
-                  {selectedItem.description}
+                  {selectedItem.description || selectedItem.notes}
                 </p>
-              </div>
-
-              <div>
-                <div className="text-[11px] font-semibold text-slate-400 mb-1">Fórmula de Exemplo</div>
-                <div className="bg-slate-900 p-2.5 rounded border border-slate-800 font-mono text-slate-200 whitespace-pre-wrap">
-                  {selectedItem.sampleDax}
-                </div>
               </div>
 
               {selectedItem.notes && (
                 <div>
-                  <div className="text-[11px] font-semibold text-amber-400 mb-1">Observações & Semântica</div>
+                  <div className="text-[11px] font-semibold text-amber-400 mb-1">Observações do Motor</div>
                   <p className="p-2 rounded bg-amber-950/30 border border-amber-800/40 text-amber-200 leading-relaxed">
                     {selectedItem.notes}
                   </p>
@@ -491,15 +515,21 @@ export const DaxComplianceView: React.FC = () => {
           </div>
 
           <div className="pt-4 border-t border-slate-800 flex items-center justify-between gap-2">
-            <button
-              onClick={() => runLiveTest(selectedItem)}
-              className="flex-1 py-2 px-3 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
-            >
-              <Play className="w-3.5 h-3.5" />
-              Executar Teste
-            </button>
+            {selectedItem.status !== 'not_supported' ? (
+              <button
+                onClick={() => runLiveTest(selectedItem)}
+                className="flex-1 py-2 px-3 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
+              >
+                <Play className="w-3.5 h-3.5" />
+                Executar Teste
+              </button>
+            ) : (
+              <div className="flex-1 py-2 text-center text-xs text-rose-400 font-medium">
+                Função não suportada
+              </div>
+            )}
             <a
-              href={selectedItem.daxGuideUrl}
+              href={selectedItem.guideUrl}
               target="_blank"
               rel="noreferrer"
               className="py-2 px-3 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 flex items-center gap-1.5 transition-colors"

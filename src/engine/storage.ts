@@ -16,9 +16,11 @@ import {
   DaxQueryTab,
 } from '../types/bi';
 import { migrateProjectState, CURRENT_ENGINE_VERSION } from './migrations';
+import { APP_VERSION } from '../version';
 
 export interface ProjectState {
   version: string;
+  appVersion?: string;
   projectName: string;
   tables: Table[];
   relationships: Relationship[];
@@ -286,6 +288,7 @@ export async function loadProjectFromStorage(): Promise<ProjectState | null> {
  */
 export function exportProjectToFile(state: ProjectState, fileName = 'Projeto_InsightHub.insight'): void {
   const normalized = migrateProjectState(state);
+  (normalized as any).appVersion = APP_VERSION;
   const jsonString = JSON.stringify(normalized, null, 2);
   const blob = new Blob([jsonString], { type: 'application/json' });
   const objectUrl = URL.createObjectURL(blob);

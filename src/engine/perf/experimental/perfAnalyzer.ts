@@ -1,3 +1,4 @@
+/* EXPERIMENTAL: este módulo é um protótipo para benchmarks e NÃO está conectado ao pipeline de execução principal do InsightHub 0.10.0. */
 export interface PerformanceAnalysisReport {
   formulaEngineMs: number;
   storageEngineMs: number;

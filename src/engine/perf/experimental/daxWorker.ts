@@ -1,8 +1,9 @@
+/* EXPERIMENTAL: este módulo é um protótipo para benchmarks e NÃO está conectado ao pipeline de execução principal do InsightHub 0.10.0. */
 /**
  * DaxWorker: runs DAX evaluations in a background Web Worker thread.
  */
-import { DaxEngine } from '../daxEngine';
-import { Table, Measure, Filter, RlsRole, CalculationGroup, UserDefinedFunction } from '../../types/bi';
+import { DaxEngine } from '../../daxEngine';
+import { Table, Measure, Filter, RlsRole, CalculationGroup, UserDefinedFunction } from '../../../types/bi';
 
 export interface WorkerEvalRequest {
   id: string;

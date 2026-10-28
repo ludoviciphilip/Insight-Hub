@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { DAX_CATALOG, getDaxCatalogStats } from '../compliance/daxCatalog';
-import { BitSet } from '../perf/bitSet';
-import { NumericColumnBuffer } from '../perf/typedColumnBuffers';
+import { BitSet } from '../perf/experimental/bitSet';
+import { NumericColumnBuffer } from '../perf/experimental/typedColumnBuffers';
 import { DaxLruCache, hashFilterContext, globalDaxLruCache } from '../perf/lruCache';
-import { DaxWorkerClient } from '../perf/daxWorkerClient';
-import { PerformanceAnalyzer } from '../perf/perfAnalyzer';
+import { DaxWorkerClient } from '../perf/experimental/daxWorkerClient';
+import { PerformanceAnalyzer } from '../perf/experimental/perfAnalyzer';
 import { DaxEngine } from '../daxEngine';
 import { Evaluator } from '../expr/evaluator';
 import { FilterContext } from '../model/filterContext';
@@ -111,9 +111,9 @@ describe('V1.0 - DAX Compliance, High Performance & Fuzzing Suite', () => {
   });
 
   // ==========================================
-  // 2. HIGH PERFORMANCE BITSET TESTS
+  // 2. HIGH PERFORMANCE BITSET TESTS (EXPERIMENTAL)
   // ==========================================
-  describe('2. BitSet Vector Filtering', () => {
+  describe('experimental: 2. BitSet Vector Filtering', () => {
     it('should correctly set, clear, and get individual bit states', () => {
       const bs = new BitSet(100);
       expect(bs.get(5)).toBe(false);
@@ -166,9 +166,9 @@ describe('V1.0 - DAX Compliance, High Performance & Fuzzing Suite', () => {
   });
 
   // ==========================================
-  // 3. VECTORIZED TYPED COLUMN BUFFERS
+  // 3. VECTORIZED TYPED COLUMN BUFFERS (EXPERIMENTAL)
   // ==========================================
-  describe('3. Vectorized Column Buffers (TypedArrays)', () => {
+  describe('experimental: 3. Vectorized Column Buffers (TypedArrays)', () => {
     it('should construct buffer with Float64Array and validity mask for nulls and blanks', () => {
       const raw = [10, null, 25, undefined, '50', ''];
       const buffer = NumericColumnBuffer.fromArray(raw);
@@ -265,9 +265,9 @@ describe('V1.0 - DAX Compliance, High Performance & Fuzzing Suite', () => {
   });
 
   // ==========================================
-  // 5. ASYNC CLIENT & TRANSPARENT FALLBACK
+  // 5. ASYNC CLIENT & TRANSPARENT FALLBACK (EXPERIMENTAL)
   // ==========================================
-  describe('5. DaxWorkerClient & Async Fallback', () => {
+  describe('experimental: 5. DaxWorkerClient & Async Fallback', () => {
     it('should evaluate expression via async client with transparent fallback', async () => {
       const client = new DaxWorkerClient();
       const res = await client.evaluateAsync(
@@ -386,9 +386,9 @@ describe('V1.0 - DAX Compliance, High Performance & Fuzzing Suite', () => {
   });
 
   // ==========================================
-  // 7. PERFORMANCE ANALYZER & ANTI-PATTERNS
+  // 7. PERFORMANCE ANALYZER & ANTI-PATTERNS (EXPERIMENTAL)
   // ==========================================
-  describe('7. Performance Analyzer & Anti-Pattern Diagnostic', () => {
+  describe('experimental: 7. Performance Analyzer & Anti-Pattern Diagnostic', () => {
     it('should detect FILTER(ALL(...)) anti-pattern', () => {
       const report = PerformanceAnalyzer.analyzeQuery(
         'CALCULATE([Total], FILTER(ALL(f_Vendas), f_Vendas[Valor] > 100))',

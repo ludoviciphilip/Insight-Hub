@@ -1,5 +1,6 @@
-import { DaxEngine } from '../daxEngine';
-import { Table, Measure, Filter, RlsRole, CalculationGroup, UserDefinedFunction } from '../../types/bi';
+/* EXPERIMENTAL: este módulo é um protótipo para benchmarks e NÃO está conectado ao pipeline de execução principal do InsightHub 0.10.0. */
+import { DaxEngine } from '../../daxEngine';
+import { Table, Measure, Filter, RlsRole, CalculationGroup, UserDefinedFunction } from '../../../types/bi';
 import { WorkerEvalRequest, WorkerEvalResponse } from './daxWorker';
 
 export interface WorkerClientOptions {

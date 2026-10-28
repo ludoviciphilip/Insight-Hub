@@ -4,8 +4,6 @@ import {
   daxToNumber,
   daxToString,
   isBlank,
-  isBlankOrEmpty,
-  daxEqual,
   DAX_BLANK,
 } from './types';
 import { parseDate } from '../shared/valueParser';
@@ -46,6 +44,8 @@ export interface FunctionDefinition {
   maxArgs: number; // -1 for variadic
   isLazy?: boolean;
   evaluate?: (args: any[], context?: any) => any;
+  supportStatus?: 'full' | 'partial' | 'stub';
+  notes?: string;
 }
 
 export interface FunctionDoc {

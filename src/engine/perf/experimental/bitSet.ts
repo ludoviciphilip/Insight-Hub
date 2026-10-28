@@ -1,3 +1,4 @@
+/* EXPERIMENTAL: este módulo é um protótipo para benchmarks e NÃO está conectado ao pipeline de execução principal do InsightHub 0.10.0. */
 /**
  * High-performance BitSet backed by Uint32Array for bitmap filtering and row-selection.
  * Provides order-of-magnitude faster intersection, union, and cardinality checks

@@ -28,6 +28,7 @@ import {
   Grid,
   Globe,
   Coins,
+  Key,
 } from 'lucide-react';
 import { useBiStore } from '../../store/useBiStore';
 import { exportProjectToFile } from '../../engine/storage';
@@ -68,6 +69,7 @@ export const Ribbon: React.FC<{
     setCustomMeasureModalOpen,
     setLimitationsModalOpen,
     setAiModalOpen,
+    setAiSettingsModalOpen,
     newProject,
     loadInitialSampleData,
     generateCalendar,
@@ -209,6 +211,14 @@ export const Ribbon: React.FC<{
             className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 font-medium transition-colors"
           >
             {t.common.save}
+          </button>
+          <button
+            onClick={() => setAiSettingsModalOpen(true)}
+            className="flex items-center gap-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-2 py-0.5 rounded font-medium transition-colors text-[10px]"
+            title="Configurar Chave Gemini (BYOK)"
+          >
+            <Key className="w-3 h-3 text-amber-400" />
+            <span>Configurar IA</span>
           </button>
           <button
             onClick={() => setAiModalOpen(true)}

@@ -1,6 +1,6 @@
 import { FunctionDefinition } from '../expr/registry';
 import { DaxError } from '../shared/errors';
-import { DAX_BLANK, isBlank, isDaxTable, DaxTableValue } from '../expr/types';
+import { DAX_BLANK, isBlank, isDaxTable } from '../expr/types';
 import { toDaxTable } from './table';
 
 /**

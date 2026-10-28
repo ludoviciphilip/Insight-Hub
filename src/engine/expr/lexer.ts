@@ -1,4 +1,4 @@
-import { Token, TokenType, SourcePosition } from './tokens';
+import { Token, SourcePosition } from './tokens';
 import { DaxError } from '../shared/errors';
 
 export interface LexerOptions {
@@ -14,6 +14,10 @@ export class Lexer {
   private col = 1;
   private dialect: 'dax' | 'column';
   private locale: 'pt-BR' | 'en-US' | 'auto';
+
+  public getLocale(): string {
+    return this.locale;
+  }
 
   constructor(input: string, options: LexerOptions = {}) {
     this.input = input;

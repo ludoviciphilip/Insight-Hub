@@ -1,6 +1,6 @@
 import { FunctionDefinition } from '../expr/registry';
 import { DaxError } from '../shared/errors';
-import { DAX_BLANK, isBlank, daxToNumber, daxToString, daxToBoolean } from '../expr/types';
+import { DAX_BLANK, isBlank, daxToNumber } from '../expr/types';
 import { FilterContext } from '../model/filterContext';
 import { ModelAccess } from '../model/modelAccess';
 

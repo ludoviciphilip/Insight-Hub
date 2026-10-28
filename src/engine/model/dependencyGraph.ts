@@ -1,6 +1,5 @@
 import { Table, Measure, Visual, UserDefinedFunction } from '../../types/bi';
 import { Lexer } from '../expr/lexer';
-import { Token } from '../expr/tokens';
 
 export interface DependencyNode {
   id: string;

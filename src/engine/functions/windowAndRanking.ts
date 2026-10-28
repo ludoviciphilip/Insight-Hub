@@ -4,11 +4,9 @@ import {
   DAX_BLANK,
   isBlank,
   daxToNumber,
-  daxToString,
   daxEqual,
   daxCompare,
   DaxTableValue,
-  isDaxTable,
 } from '../expr/types';
 import { ModelAccess } from '../model/modelAccess';
 import { FilterContext } from '../model/filterContext';
@@ -331,7 +329,7 @@ export const WINDOW_AND_RANKING_FUNCTIONS: Record<string, FunctionDefinition> = 
     example: 'INDEX(1, ALL(d_Produto), ORDERBY(d_Produto[Preco], DESC))',
     minArgs: 0,
     maxArgs: 6,
-    evaluate: ([posArg, relArg, orderArg, blanksArg, partArg], context) => {
+    evaluate: ([posArg, relArg, orderArg, _blanksArg, _partArg], context) => {
       // Compatibility with column engine: INDEX() without args returns row number
       if (context?.dialect === 'column' || posArg === undefined) {
         return (context?.rowIndex ?? 0) + 1;

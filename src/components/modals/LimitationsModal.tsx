@@ -17,9 +17,14 @@ export const LimitationsModal: React.FC = () => {
               <Info className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="font-bold text-slate-900 text-sm">Transparência & Limitações do Sistema</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="font-bold text-slate-900 text-sm">Transparência & Limitações do Sistema</h3>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                  v0.10.0
+                </span>
+              </div>
               <p className="text-[11px] text-slate-500">
-                Orientações essenciais para governança e uso responsável da plataforma.
+                Orientações essenciais para governança e uso responsável da plataforma (InsightHub 0.10.0).
               </p>
             </div>
           </div>

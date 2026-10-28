@@ -2,11 +2,9 @@ import { FunctionDefinition } from '../expr/registry';
 import { DaxError } from '../shared/errors';
 import {
   DAX_BLANK,
-  isBlank,
   daxToNumber,
   daxToString,
   daxEqual,
-  daxCompare,
   DaxTableValue,
   isDaxTable,
 } from '../expr/types';

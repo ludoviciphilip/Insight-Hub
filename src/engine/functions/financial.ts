@@ -957,7 +957,6 @@ export const FINANCIAL_FUNCTIONS: Record<string, FunctionDefinition> = {
         throw new DaxError('Execution', 'AMORLINC: parâmetros inválidos');
       }
 
-      const life = 1 / rate;
       const normalDep = cost * rate;
 
       if (period === 0) {
@@ -1040,7 +1039,7 @@ export const FINANCIAL_FUNCTIONS: Record<string, FunctionDefinition> = {
     example: 'XNPV(f_Fluxo, f_Fluxo[Valor], f_Fluxo[Data], 0.08)',
     minArgs: 3,
     maxArgs: 4,
-    evaluate: (args, context) => {
+    evaluate: (args, _context) => {
       // Handled directly or scalar
       let rate = 0;
       let values: number[] = [];
@@ -1075,7 +1074,7 @@ export const FINANCIAL_FUNCTIONS: Record<string, FunctionDefinition> = {
     example: 'XIRR(f_Fluxo, f_Fluxo[Valor], f_Fluxo[Data], 0.1)',
     minArgs: 2,
     maxArgs: 4,
-    evaluate: (args, context) => {
+    evaluate: (args, _context) => {
       let values: number[] = [];
       let dates: Date[] = [];
       let guess = 0.1;
@@ -1686,7 +1685,7 @@ export const FINANCIAL_FUNCTIONS: Record<string, FunctionDefinition> = {
     example: 'ODDFPRICE("2008-10-15", "2021-03-01", "2008-10-15", "2009-03-01", 0.0785, 0.0625, 100.0, 2, 0)',
     minArgs: 8,
     maxArgs: 9,
-    evaluate: ([settlVal, matVal, _issueVal, firstVal, rateVal, yldVal, redVal, freqVal, basisVal]) => {
+    evaluate: ([settlVal, matVal, _issueVal, _firstVal, rateVal, yldVal, redVal, freqVal, basisVal]) => {
       // Generalizes using price calculation
       return FINANCIAL_FUNCTIONS['PRICE'].evaluate!([settlVal, matVal, rateVal, yldVal, redVal, freqVal, basisVal]);
     },

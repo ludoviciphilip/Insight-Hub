@@ -1,4 +1,4 @@
-import { Table, Column } from '../../types/bi';
+import { Table } from '../../types/bi';
 import { parseNumber, parseDate } from '../shared/valueParser';
 
 export type ColumnVectorType = 'string' | 'number' | 'date' | 'boolean';

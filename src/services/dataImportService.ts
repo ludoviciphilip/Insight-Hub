@@ -307,11 +307,17 @@ export interface ExcelImportResult {
   sheets: ParsedSheet[];
 }
 
+export const MAX_IMPORT_FILE_SIZE_BYTES = 50 * 1024 * 1024; // 50MB
+
 export class DataImportService {
   /**
    * Imports and processes CSV/TSV file with PapaParse
    */
   public static async parseCsv(file: File): Promise<{ tableName: string; columns: Column[]; rows: Record<string, any>[] }> {
+    if (file.size > MAX_IMPORT_FILE_SIZE_BYTES) {
+      throw new Error(`O arquivo excede o limite máximo permitido de 50MB (${(file.size / (1024 * 1024)).toFixed(1)}MB).`);
+    }
+
     return new Promise((resolve, reject) => {
       Papa.parse(file, {
         header: true,
@@ -362,8 +368,13 @@ export class DataImportService {
   /**
    * Imports and processes Excel file (.xlsx, .xls) with SheetJS
    * Imports ALL worksheets in the workbook, accurately distinguishing numbers, currencies, and dates.
+   * Hardened against malicious spreadsheets (disabled formula execution, disabled HTML evaluation, 50MB cap).
    */
   public static async parseExcel(file: File): Promise<ExcelImportResult> {
+    if (file.size > MAX_IMPORT_FILE_SIZE_BYTES) {
+      throw new Error(`O arquivo excede o limite máximo permitido de 50MB (${(file.size / (1024 * 1024)).toFixed(1)}MB).`);
+    }
+
     try {
       let buffer: ArrayBuffer;
       if (typeof file.arrayBuffer === 'function') {
@@ -380,7 +391,9 @@ export class DataImportService {
       const workbook = XLSX.read(buffer, {
         type: 'array',
         cellDates: true,
-        cellNF: true,
+        cellNF: false,
+        cellFormula: false, // Security: do not evaluate formulas
+        cellHTML: false,    // Security: do not evaluate embedded HTML
         cellText: true,
       });
 
