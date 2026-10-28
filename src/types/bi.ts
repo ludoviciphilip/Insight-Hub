@@ -193,6 +193,22 @@ export interface ActiveDrillthrough {
   filterId: string;
 }
 
+export type CanvasSizePreset =
+  | 'default'
+  | '16:9'
+  | '16:9_fhd'
+  | '4:3'
+  | 'letter_portrait'
+  | 'letter_landscape'
+  | 'tooltip'
+  | 'custom';
+
+export interface CanvasSizeConfig {
+  preset: CanvasSizePreset;
+  width: number;
+  height: number;
+}
+
 export interface Page {
   id: string;
   name: string;
@@ -202,6 +218,7 @@ export interface Page {
   backgroundColor?: string;
   layoutMode?: 'desktop' | 'mobile';
   drillthroughConfig?: DrillthroughConfig;
+  canvasSize?: CanvasSizeConfig;
 }
 
 export interface Filter {

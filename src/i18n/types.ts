@@ -77,6 +77,7 @@ export interface Translations {
     desktopLayout: string;
     daxDocs: string;
     about: string;
+    pageSize: string;
   };
   nav: {
     report: string;
@@ -138,5 +139,6 @@ export interface Translations {
     fitToPage: string;
     emptyPageTitle: string;
     emptyPageSubtitle: string;
+    canvasSize: string;
   };
 }

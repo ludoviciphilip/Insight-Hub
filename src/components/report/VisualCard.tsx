@@ -21,6 +21,7 @@ import { globalDataEngine, formatValue, formatCurrency, formatNumber, formatPerc
 import { ErrorBoundary } from '../shared/ErrorBoundary';
 import { VisualCalculationModal } from '../modals/VisualCalculationModal';
 import { useTranslation } from '../../i18n';
+import { getEffectiveCanvasSize } from '../../engine/shared/canvasPresets';
 
 interface VisualCardProps {
   visual: Visual;
@@ -113,14 +114,17 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual, isSelected, onSe
     const origY = visual.y;
     const zoomScale = Math.max(0.2, (canvasZoom || 100) / 100);
 
+    const activePage = pages.find(p => p.id === activePageId);
+    const { width: canvasWidth, height: canvasHeight } = getEffectiveCanvasSize(activePage);
+
     const onMouseMove = (moveEvent: MouseEvent) => {
       const deltaX = (moveEvent.clientX - startX) / zoomScale;
       const deltaY = (moveEvent.clientY - startY) / zoomScale;
       const rawX = origX + deltaX;
       const rawY = origY + deltaY;
       const step = snapToGrid ? (gridSize || 10) : 1;
-      const clampedX = Math.max(0, Math.min(1240 - visual.w, Math.round(rawX / step) * step));
-      const clampedY = Math.max(0, Math.min(820 - visual.h, Math.round(rawY / step) * step));
+      const clampedX = Math.max(0, Math.min(canvasWidth - visual.w, Math.round(rawX / step) * step));
+      const clampedY = Math.max(0, Math.min(canvasHeight - visual.h, Math.round(rawY / step) * step));
       updateVisual(visual.id, { x: clampedX, y: clampedY });
     };
 
@@ -142,6 +146,9 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual, isSelected, onSe
     e.preventDefault();
     e.stopPropagation();
 
+    const activePage = pages.find(p => p.id === activePageId);
+    const { width: canvasWidth, height: canvasHeight } = getEffectiveCanvasSize(activePage);
+
     const startX = e.clientX;
     const startY = e.clientY;
     const origW = visual.w;
@@ -151,8 +158,8 @@ export const VisualCard: React.FC<VisualCardProps> = ({ visual, isSelected, onSe
       const deltaW = moveEvent.clientX - startX;
       const deltaH = moveEvent.clientY - startY;
       const step = snapToGrid ? (gridSize || 10) : 10;
-      const newW = Math.max(160, Math.min(1240 - visual.x, Math.round((origW + deltaW) / step) * step));
-      const newH = Math.max(100, Math.min(820 - visual.y, Math.round((origH + deltaH) / step) * step));
+      const newW = Math.max(160, Math.min(canvasWidth - visual.x, Math.round((origW + deltaW) / step) * step));
+      const newH = Math.max(100, Math.min(canvasHeight - visual.y, Math.round((origH + deltaH) / step) * step));
       updateVisual(visual.id, { w: newW, h: newH });
     };
 

@@ -76,6 +76,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       desktopLayout: 'Desktop',
       daxDocs: 'Documentação DAX',
       about: 'Sobre',
+      pageSize: 'Tamanho da Página',
     },
     nav: {
       report: 'Relatório',
@@ -137,6 +138,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       fitToPage: 'Ajustar à Página',
       emptyPageTitle: 'Nenhum visual nesta página',
       emptyPageSubtitle: 'Selecione um tipo de gráfico na barra de ferramentas ou arraste campos para começar.',
+      canvasSize: 'Tamanho da Grade / Página',
     },
   },
   'en-US': {
@@ -202,6 +204,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       desktopLayout: 'Desktop',
       daxDocs: 'DAX Documentation',
       about: 'About',
+      pageSize: 'Page Size',
     },
     nav: {
       report: 'Report',
@@ -263,6 +266,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       fitToPage: 'Fit to Page',
       emptyPageTitle: 'No visuals on this page',
       emptyPageSubtitle: 'Select a chart type from the ribbon or drag fields to get started.',
+      canvasSize: 'Canvas / Grid Size',
     },
   },
   'es-ES': {
@@ -328,6 +332,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       desktopLayout: 'Escritorio',
       daxDocs: 'Documentación DAX',
       about: 'Acerca de',
+      pageSize: 'Tamaño de Página',
     },
     nav: {
       report: 'Informe',
@@ -389,6 +394,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       fitToPage: 'Ajustar a la Página',
       emptyPageTitle: 'Sin objetos visuales en esta página',
       emptyPageSubtitle: 'Seleccione un tipo de gráfico de la cinta o arrastre campos para comenzar.',
+      canvasSize: 'Tamaño del Lienzo / Cuadrícula',
     },
   },
 };

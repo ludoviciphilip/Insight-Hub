@@ -33,6 +33,7 @@ import {
 import { useBiStore } from '../../store/useBiStore';
 import { exportProjectToFile } from '../../engine/storage';
 import { useTranslation } from '../../i18n';
+import { getEffectiveCanvasSize } from '../../engine/shared/canvasPresets';
 
 export const Ribbon: React.FC<{
   showFiltersPane: boolean;
@@ -70,6 +71,9 @@ export const Ribbon: React.FC<{
     setLimitationsModalOpen,
     setAiModalOpen,
     setAiSettingsModalOpen,
+    setCanvasSizeModalOpen,
+    pages,
+    activePageId,
     newProject,
     loadInitialSampleData,
     generateCalendar,
@@ -89,6 +93,9 @@ export const Ribbon: React.FC<{
     projectName,
     setProjectName,
   } = useBiStore();
+
+  const activeRibbonPage = pages.find(p => p.id === activePageId) || pages[0];
+  const { width: ribbonCanvasWidth, height: ribbonCanvasHeight } = getEffectiveCanvasSize(activeRibbonPage);
 
   const handleExportProject = () => {
     const state = getProjectState();
@@ -557,6 +564,23 @@ export const Ribbon: React.FC<{
               >
                 <Palette className="w-5 h-5 text-indigo-600" />
                 <span className="text-[10px] font-semibold mt-0.5">{t.ribbonActions.themeManager}</span>
+              </button>
+            </div>
+
+            {/* Tamanho da Grade / Tela */}
+            <div className="flex items-center gap-2 px-2 border-r border-slate-200">
+              <button
+                onClick={() => setCanvasSizeModalOpen(true)}
+                className="flex flex-col items-center p-1 rounded hover:bg-slate-100 text-slate-700 transition-colors cursor-pointer"
+                title="Ajustar tamanho e proporção da tela/grade do relatório"
+              >
+                <Grid className="w-5 h-5 text-amber-600" />
+                <span className="text-[10px] font-semibold mt-0.5">
+                  {t.ribbonActions.pageSize || 'Tamanho da Grade'}
+                </span>
+                <span className="text-[9px] font-mono text-slate-500">
+                  {ribbonCanvasWidth} × {ribbonCanvasHeight} px
+                </span>
               </button>
             </div>
 

@@ -20,6 +20,7 @@ import {
   CalculationGroup,
   UserDefinedFunction,
   DaxQueryTab,
+  CanvasSizeConfig,
 } from '../types/bi';
 import { getSampleDatasets, generateCalendarTable } from '../data/sampleDatasets';
 import { globalDataEngine } from '../engine/dataEngine';
@@ -145,6 +146,7 @@ interface BiState {
   renamePage: (id: string, newName: string) => void;
   duplicatePage: (id: string) => void;
   deletePage: (id: string) => void;
+  setPageCanvasSize: (pageId: string, canvasSize: CanvasSizeConfig, applyToAllPages?: boolean) => void;
   setSelectedVisualId: (id: string | null) => void;
   setCanvasZoom: (zoom: number) => void;
   setIsPresentationMode: (val: boolean) => void;
@@ -262,6 +264,8 @@ interface BiState {
   setAiModalOpen: (open: boolean) => void;
   aiSettingsModalOpen: boolean;
   setAiSettingsModalOpen: (open: boolean) => void;
+  canvasSizeModalOpen: boolean;
+  setCanvasSizeModalOpen: (open: boolean) => void;
 
   // Language & Currency (i18n)
   language: SupportedLocale;
@@ -1019,6 +1023,25 @@ export const useBiStore = create<BiState>((set, get) => {
       });
     },
 
+    setPageCanvasSize: (pageId, canvasSize, applyToAllPages = false) => {
+      const sanitizedWidth = Math.max(200, Math.min(4000, Math.round(canvasSize.width)));
+      const sanitizedHeight = Math.max(150, Math.min(4000, Math.round(canvasSize.height)));
+      const safeConfig: CanvasSizeConfig = {
+        ...canvasSize,
+        width: sanitizedWidth,
+        height: sanitizedHeight,
+      };
+
+      set({
+        pages: get().pages.map(p => {
+          if (applyToAllPages || p.id === pageId) {
+            return { ...p, canvasSize: safeConfig };
+          }
+          return p;
+        }),
+      });
+    },
+
     setSelectedVisualId: (id) => set({ selectedVisualId: id }),
     setCanvasZoom: (zoom) => set({ canvasZoom: Math.max(50, Math.min(150, zoom)) }),
     setIsPresentationMode: (val) => set({ isPresentationMode: val }),
@@ -1554,6 +1577,8 @@ export const useBiStore = create<BiState>((set, get) => {
     setAiModalOpen: (open) => set({ aiModalOpen: open }),
     aiSettingsModalOpen: false,
     setAiSettingsModalOpen: (open) => set({ aiSettingsModalOpen: open }),
+    canvasSizeModalOpen: false,
+    setCanvasSizeModalOpen: (open) => set({ canvasSizeModalOpen: open }),
 
     // State actions
     newProject: (name?: string) => {

@@ -1,10 +1,10 @@
-# InsightHub 0.10.0
+# InsightHub 0.11.0
 
 **Open, Decentralized Business Intelligence & Analytics Platform**  
 **Plataforma Aberta e Descentralizada de Business Intelligence & Analytics**
 
 > **License / Licença:** [The Mutualist License v1.3](./LICENSE)  
-> **Official Version / Versão Oficial:** 0.10.0  
+> **Official Version / Versão Oficial:** 0.11.0  
 > **Architecture / Arquitetura:** 100% Client-Side SPA / BYOK (Bring Your Own Key)
 
 ---

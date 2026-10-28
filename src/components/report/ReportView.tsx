@@ -1,8 +1,9 @@
 import React, { useRef } from 'react';
-import { Plus, Copy, Trash2, Edit2, Smartphone, ArrowLeft, Target, X } from 'lucide-react';
+import { Plus, Copy, Trash2, Edit2, Smartphone, ArrowLeft, Target, X, LayoutGrid, Maximize2 } from 'lucide-react';
 import { useBiStore } from '../../store/useBiStore';
 import { VisualCard } from './VisualCard';
 import { useTranslation } from '../../i18n';
+import { getEffectiveCanvasSize } from '../../engine/shared/canvasPresets';
 
 export const ReportView: React.FC = () => {
   const { t } = useTranslation();
@@ -22,9 +23,11 @@ export const ReportView: React.FC = () => {
     showGrid,
     activeDrillthrough,
     clearDrillthrough,
+    setCanvasSizeModalOpen,
   } = useBiStore();
 
   const activePage = pages.find(p => p.id === activePageId) || pages[0];
+  const { width: canvasWidth, height: canvasHeight, label: canvasSizeLabel } = getEffectiveCanvasSize(activePage);
   const canvasRef = useRef<HTMLDivElement>(null);
 
   const handleCanvasClick = (e: React.MouseEvent) => {
@@ -120,8 +123,8 @@ export const ReportView: React.FC = () => {
             style={{
               transform: `scale(${canvasZoom / 100})`,
               transformOrigin: 'top center',
-              width: 1240,
-              height: 820,
+              width: canvasWidth,
+              height: canvasHeight,
               backgroundImage: showGrid
                 ? 'radial-gradient(#cbd5e1 1.2px, transparent 1.2px)'
                 : 'none',
@@ -190,6 +193,16 @@ export const ReportView: React.FC = () => {
                     >
                       <Copy className="w-2.5 h-2.5" />
                     </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setCanvasSizeModalOpen(true);
+                      }}
+                      className="p-0.5 hover:text-amber-700"
+                      title={t.report.canvasSize || 'Ajustar Tamanho da Grade'}
+                    >
+                      <Maximize2 className="w-2.5 h-2.5" />
+                    </button>
                     {pages.length > 1 && (
                       <button
                         onClick={(e) => {
@@ -220,9 +233,16 @@ export const ReportView: React.FC = () => {
           </button>
         </div>
 
-        <div className="text-[10px] text-slate-400 font-medium hidden sm:block">
-          Grade: 1240 × 820 px • Resolução Nativa
-        </div>
+        <button
+          onClick={() => setCanvasSizeModalOpen(true)}
+          className="flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] text-slate-600 hover:text-slate-950 hover:bg-slate-100 transition-colors font-medium cursor-pointer border border-transparent hover:border-slate-300"
+          title="Clique para alterar o tamanho da grade / resolução desta página"
+        >
+          <LayoutGrid className="w-3 h-3 text-amber-600 shrink-0" />
+          <span>
+            Grade: <strong className="font-mono text-slate-800">{canvasWidth} × {canvasHeight} px</strong> • {canvasSizeLabel}
+          </span>
+        </button>
       </div>
     </div>
   );
