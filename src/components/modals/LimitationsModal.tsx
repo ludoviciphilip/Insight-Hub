@@ -1,6 +1,7 @@
 import React from 'react';
 import { Info, AlertTriangle, ShieldAlert, CheckCircle2, Server, BrainCircuit } from 'lucide-react';
 import { useBiStore } from '../../store/useBiStore';
+import { APP_VERSION } from '../../version';
 
 export const LimitationsModal: React.FC = () => {
   const { limitationsModalOpen, setLimitationsModalOpen } = useBiStore();
@@ -20,11 +21,11 @@ export const LimitationsModal: React.FC = () => {
               <div className="flex items-center gap-2">
                 <h3 className="font-bold text-slate-900 text-sm">Transparência & Limitações do Sistema</h3>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-100 text-amber-900 border border-amber-300">
-                  v0.10.0
+                  v{APP_VERSION}
                 </span>
               </div>
               <p className="text-[11px] text-slate-500">
-                Orientações essenciais para governança e uso responsável da plataforma (InsightHub 0.10.0).
+                Orientações essenciais para governança e uso responsável da plataforma (InsightHub {APP_VERSION}).
               </p>
             </div>
           </div>

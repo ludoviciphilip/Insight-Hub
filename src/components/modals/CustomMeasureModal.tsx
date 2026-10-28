@@ -132,11 +132,11 @@ export const CustomMeasureModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-xl w-full p-6 text-xs flex flex-col space-y-4">
-        {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-slate-200">
-          <div className="flex items-center gap-2">
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 animate-in fade-in duration-150">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full text-xs flex flex-col max-h-[90vh] overflow-hidden border border-slate-200">
+        {/* Header (Pinned) */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 shrink-0 bg-white">
+          <div className="flex items-center gap-2.5">
             <div className="p-1.5 rounded-lg bg-amber-500 text-slate-950 font-bold">
               <Sigma className="w-4 h-4" />
             </div>
@@ -153,14 +153,14 @@ export const CustomMeasureModal: React.FC = () => {
           </div>
           <button
             onClick={handleClose}
-            className="text-slate-400 hover:text-slate-700 font-bold p-1"
+            className="text-slate-400 hover:text-slate-700 font-bold p-1 rounded-md hover:bg-slate-100 transition-colors"
           >
             ✕
           </button>
         </div>
 
-        {/* Form Fields */}
-        <div className="space-y-3">
+        {/* Scrollable Form Body */}
+        <div className="p-6 overflow-y-auto flex-1 space-y-4 min-h-0">
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="font-bold text-slate-700 block mb-1">Nome da Medida</label>
@@ -352,14 +352,14 @@ export const CustomMeasureModal: React.FC = () => {
           )}
         </div>
 
-        {/* Footer */}
-        <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+        {/* Footer (Pinned) */}
+        <div className="flex items-center justify-between px-6 py-3.5 border-t border-slate-200 bg-slate-50 shrink-0">
           <div>
             {editingMeasureId && (
               <button
                 type="button"
                 onClick={handleDelete}
-                className="px-3 py-1.5 rounded-lg text-red-600 hover:bg-red-50 font-bold text-xs flex items-center gap-1.5 transition-colors"
+                className="px-3 py-1.5 rounded-lg text-red-600 hover:bg-red-50 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
                 title="Excluir esta medida do modelo"
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -371,7 +371,7 @@ export const CustomMeasureModal: React.FC = () => {
             <button
               type="button"
               onClick={handleClose}
-              className="px-3.5 py-1.5 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 font-medium"
+              className="px-3.5 py-1.5 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-200 font-semibold cursor-pointer transition-colors"
             >
               Cancelar
             </button>
@@ -379,7 +379,7 @@ export const CustomMeasureModal: React.FC = () => {
               type="button"
               onClick={handleSave}
               disabled={!validation.isValid || !!previewState.error}
-              className="px-4 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold disabled:opacity-50 shadow-xs transition-colors"
+              className="px-4 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-slate-950 font-bold disabled:opacity-50 shadow-xs transition-colors cursor-pointer"
             >
               {editingMeasureId ? 'Salvar Alterações' : 'Salvar Medida no Modelo'}
             </button>

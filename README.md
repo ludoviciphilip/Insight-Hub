@@ -1,4 +1,4 @@
-# InsightHub 0.11.0
+# InsightHub 0.11.1
 
 **Open, Decentralized Business Intelligence & Analytics Platform**  
 **Plataforma Aberta e Descentralizada de Business Intelligence & Analytics**
