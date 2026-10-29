@@ -8,8 +8,8 @@ export interface BaseColumnVector {
   name: string;
   rowCount: number;
   nullBitmap: Uint8Array; // 1 = null/undefined/blank, 0 = valid value
-  getValue(rowIndex: number): any;
-  getInvertedIndex(): Map<any, number[]>;
+  getValue(rowIndex: number): unknown;
+  getInvertedIndex(): Map<unknown, number[]>;
 }
 
 export interface StringColumnVector extends BaseColumnVector {
@@ -74,10 +74,10 @@ export class TableColumnStorage {
     });
   }
 
-  private buildNumberVector(colName: string, rows: Record<string, any>[], count: number): NumberColumnVector {
+  private buildNumberVector(colName: string, rows: Record<string, unknown>[], count: number): NumberColumnVector {
     const values = new Float64Array(count);
     const nullBitmap = new Uint8Array(count);
-    let invertedIndex: Map<any, number[]> | null = null;
+    let invertedIndex: Map<unknown, number[]> | null = null;
 
     for (let i = 0; i < count; i++) {
       const raw = rows[i][colName];
@@ -125,10 +125,10 @@ export class TableColumnStorage {
     return vector;
   }
 
-  private buildDateVector(colName: string, rows: Record<string, any>[], count: number): DateColumnVector {
+  private buildDateVector(colName: string, rows: Record<string, unknown>[], count: number): DateColumnVector {
     const serials = new Int32Array(count);
     const nullBitmap = new Uint8Array(count);
-    let invertedIndex: Map<any, number[]> | null = null;
+    let invertedIndex: Map<unknown, number[]> | null = null;
 
     for (let i = 0; i < count; i++) {
       const raw = rows[i][colName];
@@ -179,10 +179,10 @@ export class TableColumnStorage {
     return vector;
   }
 
-  private buildBooleanVector(colName: string, rows: Record<string, any>[], count: number): BooleanColumnVector {
+  private buildBooleanVector(colName: string, rows: Record<string, unknown>[], count: number): BooleanColumnVector {
     const values = new Uint8Array(count);
     const nullBitmap = new Uint8Array(count);
-    let invertedIndex: Map<any, number[]> | null = null;
+    let invertedIndex: Map<unknown, number[]> | null = null;
 
     for (let i = 0; i < count; i++) {
       const raw = rows[i][colName];
@@ -236,12 +236,12 @@ export class TableColumnStorage {
     return vector;
   }
 
-  private buildStringVector(colName: string, rows: Record<string, any>[], count: number): StringColumnVector {
+  private buildStringVector(colName: string, rows: Record<string, unknown>[], count: number): StringColumnVector {
     const dictMap = new Map<string, number>();
     const dictionary: string[] = [];
     const codes = new Int32Array(count);
     const nullBitmap = new Uint8Array(count);
-    let invertedIndex: Map<any, number[]> | null = null;
+    let invertedIndex: Map<unknown, number[]> | null = null;
 
     for (let i = 0; i < count; i++) {
       const raw = rows[i][colName];

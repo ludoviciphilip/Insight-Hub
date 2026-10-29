@@ -13,6 +13,7 @@ import {
 import { useBiStore } from '../../store/useBiStore';
 import { askData, summarize, daxAssist } from '../../services/aiClient';
 import { shouldPromptPrivacyConsent, hasConfiguredApiKey } from '../../services/aiConfig';
+import { buildSafeSchema } from '../../services/aiSchema';
 import { AiPrivacyModal } from './AiPrivacyModal';
 import { globalDataEngine } from '../../engine/dataEngine';
 import { DaxEngine } from '../../engine/daxEngine';
@@ -53,12 +54,6 @@ export const AiAssistantModal: React.FC = () => {
 
   if (!aiModalOpen) return null;
 
-  const buildSchemaContext = () => {
-    return tables
-      .map(t => `${t.name} [linhas: ${t.rows.length}] (${t.columns.map(c => `${c.name}:${c.dataType}`).join(', ')})`)
-      .join('\n');
-  };
-
   const executeWithPrivacyCheck = async (
     payload: any,
     action: () => Promise<void>
@@ -78,7 +73,7 @@ export const AiAssistantModal: React.FC = () => {
     setNlqLoading(true);
     setNlqResult(null);
     try {
-      const res = await askData(nlqQuestion, buildSchemaContext(), tables, measures);
+      const res = await askData(nlqQuestion, buildSafeSchema(tables, measures), tables, measures);
       setNlqResult(res);
     } finally {
       setNlqLoading(false);
@@ -89,10 +84,7 @@ export const AiAssistantModal: React.FC = () => {
     const payload = {
       tipo: 'Pergunta em Linguagem Natural',
       pergunta: nlqQuestion,
-      schema: tables.map(t => ({
-        nome: t.name,
-        colunas: t.columns.map(c => ({ nome: c.name, tipo: c.dataType })),
-      })),
+      schema: buildSafeSchema(tables, measures),
     };
     await executeWithPrivacyCheck(payload, doAskNlq);
   };
@@ -148,7 +140,7 @@ export const AiAssistantModal: React.FC = () => {
         {
           task: 'generate',
           description: daxPrompt,
-          schemaContext: buildSchemaContext(),
+          schemaContext: buildSafeSchema(tables, measures),
         },
         tables,
         measures
@@ -163,7 +155,7 @@ export const AiAssistantModal: React.FC = () => {
     const payload = {
       tipo: 'Assistente DAX',
       descricao: daxPrompt,
-      tabelas: tables.map(t => t.name),
+      schema: buildSafeSchema(tables, measures),
     };
     await executeWithPrivacyCheck(payload, doGenerateDax);
   };

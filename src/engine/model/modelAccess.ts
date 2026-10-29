@@ -11,7 +11,7 @@ export interface ModelAccess {
   getRelationships(): Relationship[];
   getMeasures(): Measure[];
   getMeasure?(idOrName: string): Measure | undefined;
-  getFilteredRows?(targetTableId: string, activeFilters: Filter[]): Record<string, any>[];
+  getFilteredRows?(targetTableId: string, activeFilters: Filter[]): Record<string, unknown>[];
 }
 
 /**
@@ -82,7 +82,7 @@ export class InMemoryModelAccess implements ModelAccess {
     return id ? this.measuresById.get(id) : undefined;
   }
 
-  public getFilteredRows(targetTableId: string, activeFilters: Filter[]): Record<string, any>[] {
+  public getFilteredRows(targetTableId: string, activeFilters: Filter[]): Record<string, unknown>[] {
     const table = this.getTable(targetTableId);
     if (!table) return [];
     if (!activeFilters || activeFilters.length === 0) return [...table.rows];

@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import * as XLSX from 'xlsx';
 import {
   isDateColumn,
   isDateValue,
@@ -196,6 +197,34 @@ describe('DataImportService - Type Inference & Value Cleaning', () => {
 
       await expect(DataImportService.parseCsv(mockLargeCsv)).rejects.toThrow(
         /limite máximo permitido de 50MB/
+      );
+    });
+
+    it('respects sheetRows configurable limit option', async () => {
+      const data = [
+        { ID: 1, Nome: 'Alpha' },
+        { ID: 2, Nome: 'Beta' },
+        { ID: 3, Nome: 'Gamma' },
+        { ID: 4, Nome: 'Delta' },
+      ];
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(data);
+      XLSX.utils.book_append_sheet(wb, ws, 'Dados');
+      const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+      const file = new File([buf], 'limit.xlsx');
+
+      // Header row counts towards sheetRows, so sheetRows: 2 gives header + 1 data row
+      const result = await DataImportService.parseExcel(file, { sheetRows: 2 });
+      expect(result.rows.length).toBe(1);
+      expect(result.rows[0].Nome).toBe('Alpha');
+    });
+
+    it('provides clear pt-BR error message for invalid or corrupt excel files', async () => {
+      const badBuffer = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
+      const file = new File([badBuffer], 'corrompido.xlsx');
+
+      await expect(DataImportService.parseExcel(file)).rejects.toThrow(
+        /Falha ao ler o arquivo Excel|Falha ao ler a planilha Excel/i
       );
     });
   });

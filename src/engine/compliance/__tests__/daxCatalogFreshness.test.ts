@@ -5,14 +5,23 @@ import { FUNCTION_REGISTRY } from '../../expr/registry';
 
 describe('DAX Catalog Conformance and Freshness', () => {
   it('covers all functions from the canonical dax.guide index', () => {
-    expect(DAX_CATALOG_GENERATED.length).toBe(TOTAL_DAX_GUIDE_FUNCTIONS);
     expect(DAX_CONFORMANCE_SUMMARY.totalInDaxGuide).toBe(TOTAL_DAX_GUIDE_FUNCTIONS);
+    expect(DAX_CATALOG_GENERATED.length).toBe(
+      TOTAL_DAX_GUIDE_FUNCTIONS + (DAX_CONFORMANCE_SUMMARY.outsideIndexCount || 0)
+    );
   });
 
   it('keeps catalog names aligned with index entries', () => {
     const catalogNames = new Set(DAX_CATALOG_GENERATED.map(c => c.name));
     for (const entry of DAX_GUIDE_INDEX) {
       expect(catalogNames.has(entry.name)).toBe(true);
+    }
+  });
+
+  it('ensures every function in FUNCTION_REGISTRY appears in the catalog', () => {
+    const catalogNames = new Set(DAX_CATALOG_GENERATED.map(c => c.name.toUpperCase()));
+    for (const regName of Object.keys(FUNCTION_REGISTRY)) {
+      expect(catalogNames.has(regName.toUpperCase())).toBe(true);
     }
   });
 

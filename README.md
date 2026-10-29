@@ -1,10 +1,10 @@
-# InsightHub 0.11.1
+# InsightHub 0.12.0
 
 **Open, Decentralized Business Intelligence & Analytics Platform**  
 **Plataforma Aberta e Descentralizada de Business Intelligence & Analytics**
 
-> **License / Licença:** [The Mutualist License v1.3](./LICENSE)  
-> **Official Version / Versão Oficial:** 0.11.0  
+> **License / Licença:** [The Mutualist License v1.3](./LICENSE.md)  
+> **Official Version / Versão Oficial:** 0.12.0
 > **Architecture / Arquitetura:** 100% Client-Side SPA / BYOK (Bring Your Own Key)
 
 ---
@@ -136,4 +136,5 @@ npm run build
 ---
 
 ## Licença / License
-Distribuído sob os termos da **The Mutualist License v1.3** / Distributed under the terms of **The Mutualist License v1.3**. Consulte [LICENSE](./LICENSE) para obter detalhes sobre direitos de uso, autonomia e garantias de código aberto.
+Distribuído sob a The Mutualist License v1.3 (ver LICENSE.md). / Distributed under The Mutualist License v1.3 (see LICENSE.md).
+

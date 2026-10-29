@@ -10,6 +10,7 @@ export class DaxError extends Error {
   public readonly kind: DaxErrorKind;
   public readonly location?: SourceLocation;
   public readonly snippet?: string;
+  public override readonly cause?: unknown;
 
   constructor(
     kind: DaxErrorKind,
@@ -21,8 +22,8 @@ export class DaxError extends Error {
     this.kind = kind;
     this.location = options?.location;
     this.snippet = options?.snippet;
-    if (options?.cause) {
-      (this as any).cause = options.cause;
+    if (options?.cause !== undefined) {
+      this.cause = options.cause;
     }
     Object.setPrototypeOf(this, DaxError.prototype);
   }

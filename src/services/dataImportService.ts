@@ -307,6 +307,14 @@ export interface ExcelImportResult {
   sheets: ParsedSheet[];
 }
 
+export interface ExcelImportOptions {
+  /**
+   * Limite máximo de linhas processadas por aba da planilha.
+   * Padrão: 1.000.000 linhas.
+   */
+  sheetRows?: number;
+}
+
 export const MAX_IMPORT_FILE_SIZE_BYTES = 50 * 1024 * 1024; // 50MB
 
 export class DataImportService {
@@ -370,7 +378,10 @@ export class DataImportService {
    * Imports ALL worksheets in the workbook, accurately distinguishing numbers, currencies, and dates.
    * Hardened against malicious spreadsheets (disabled formula execution, disabled HTML evaluation, 50MB cap).
    */
-  public static async parseExcel(file: File): Promise<ExcelImportResult> {
+  public static async parseExcel(
+    file: File,
+    options?: ExcelImportOptions
+  ): Promise<ExcelImportResult> {
     if (file.size > MAX_IMPORT_FILE_SIZE_BYTES) {
       throw new Error(`O arquivo excede o limite máximo permitido de 50MB (${(file.size / (1024 * 1024)).toFixed(1)}MB).`);
     }
@@ -388,12 +399,16 @@ export class DataImportService {
         });
       }
 
+      const sheetRowsLimit = options?.sheetRows ?? 1_000_000;
+
       const workbook = XLSX.read(buffer, {
         type: 'array',
         cellDates: true,
+        cellStyles: false, // Security: ignora formatação e estilos para mitigar riscos de ReDoS
+        sheetRows: sheetRowsLimit, // Limite configurável de linhas por aba (padrão: 1.000.000)
         cellNF: false,
-        cellFormula: false, // Security: do not evaluate formulas
-        cellHTML: false,    // Security: do not evaluate embedded HTML
+        cellFormula: false, // Security: não avalia fórmulas arbitrárias
+        cellHTML: false, // Security: não processa HTML embutido
         cellText: true,
       });
 
@@ -468,8 +483,18 @@ export class DataImportService {
         rows: sheets[0].rows,
         sheets,
       };
-    } catch (err: any) {
-      throw new Error(`Falha ao ler Excel: ${err.message}`);
+    } catch (err: unknown) {
+      if (err instanceof Error && err.message.includes('limite máximo permitido de 50MB')) {
+        throw err;
+      }
+      const rawMsg = err instanceof Error ? err.message : String(err);
+      if (/password|encrypt/i.test(rawMsg)) {
+        throw new Error('Falha ao ler o arquivo Excel: a planilha está protegida por senha ou criptografia não suportada.');
+      }
+      if (/corrupt|zip|signature|unsupported/i.test(rawMsg)) {
+        throw new Error(`Falha ao ler o arquivo Excel: o arquivo parece estar corrompido ou em formato incompatível (${rawMsg}).`);
+      }
+      throw new Error(`Falha ao ler a planilha Excel: ${rawMsg || 'verifique se o arquivo é válido e tente novamente'}.`);
     }
   }
 

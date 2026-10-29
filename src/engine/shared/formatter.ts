@@ -45,7 +45,7 @@ export function getCurrencySymbol(currency: SupportedCurrency = activeGlobalCurr
 /**
  * Normalizes any date value to a Date object in UTC
  */
-function toDateObj(val: any): Date | null {
+function toDateObj(val: unknown): Date | null {
   if (val === null || val === undefined || val === '') return null;
   if (val instanceof Date) return isNaN(val.getTime()) ? null : val;
   if (typeof val === 'number') {
@@ -252,7 +252,7 @@ function formatNumberPattern(val: number, pattern: string, locale: SupportedLoca
  * Main DAX-compliant formatValue implementation
  */
 export function formatValue(
-  value: any,
+  value: unknown,
   formatString?: string,
   optionsOrLocale: SupportedLocale | FormatValueOptions = activeGlobalLocale
 ): string {
@@ -432,7 +432,7 @@ export function formatPercent(
   return formatValue(value, 'Percent', { locale: loc, isLegacyColumn });
 }
 
-export function formatDateBR(dateVal: any, localeOverride?: SupportedLocale): string {
+export function formatDateBR(dateVal: unknown, localeOverride?: SupportedLocale): string {
   const loc = localeOverride || activeGlobalLocale;
   if (isBlank(dateVal)) return '';
   return formatValue(dateVal, 'Short Date', loc);

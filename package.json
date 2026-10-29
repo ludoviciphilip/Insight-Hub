@@ -1,7 +1,8 @@
 {
   "name": "react-example",
   "private": true,
-  "version": "0.11.1",
+  "version": "0.12.0",
+  "license": "SEE LICENSE IN LICENSE.md",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
@@ -32,7 +33,7 @@
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
     "vite": "^8.3.0",
-    "xlsx": "^0.18.5",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
     "zustand": "^5.0.15"
   },
   "devDependencies": {

@@ -7,11 +7,11 @@ import { DAX_BLANK, isBlank } from '../expr/types';
 export interface ColumnFilter {
   tableId: string;
   column: string;
-  allowedValues?: Set<any>;
-  predicate?: (val: any) => boolean;
+  allowedValues?: Set<unknown>;
+  predicate?: (val: unknown) => boolean;
   operator?: string;
-  rawValues?: any;
-  value?: any;
+  rawValues?: unknown;
+  value?: unknown;
   isKeepFilters?: boolean;
   isRls?: boolean;
   isPermanent?: boolean;
@@ -50,7 +50,7 @@ export class FilterContext {
 
       // 1. Both have allowedValues
       if (existing.allowedValues && filter.allowedValues) {
-        const intersected = new Set<any>();
+        const intersected = new Set<unknown>();
         filter.allowedValues.forEach(val => {
           if (existing.allowedValues!.has(val)) {
             intersected.add(val);
@@ -69,7 +69,7 @@ export class FilterContext {
 
       // 2. Existing has predicate and filter has allowedValues
       if (existing.predicate && filter.allowedValues) {
-        const intersected = new Set<any>();
+        const intersected = new Set<unknown>();
         filter.allowedValues.forEach(val => {
           if (existing.predicate!(val)) {
             intersected.add(val);
@@ -88,7 +88,7 @@ export class FilterContext {
 
       // 3. Existing has allowedValues and filter has predicate
       if (existing.allowedValues && filter.predicate) {
-        const intersected = new Set<any>();
+        const intersected = new Set<unknown>();
         existing.allowedValues.forEach(val => {
           if (filter.predicate!(val)) {
             intersected.add(val);
@@ -355,7 +355,7 @@ export class FilterContext {
   /**
    * Helper that returns the visible row objects for target table
    */
-  public getFilteredRows(targetTableId: string, model?: ModelAccess | null): Record<string, any>[] {
+  public getFilteredRows(targetTableId: string, model?: ModelAccess | null): Record<string, unknown>[] {
     if (!model) return [];
     const table = model.getTable(targetTableId);
     if (!table) return [];
@@ -363,7 +363,7 @@ export class FilterContext {
     return indices.map(i => table.rows[i]);
   }
 
-  private matchesColumnFilter(val: any, filter: ColumnFilter): boolean {
+  private matchesColumnFilter(val: unknown, filter: ColumnFilter): boolean {
     if (filter.predicate) {
       return filter.predicate(val);
     }
@@ -405,7 +405,7 @@ export function filterContextFromUIFilters(
     const tableId = table ? table.id : f.tableId;
 
     const predicate = buildFilterPredicate(f.operator, f.value);
-    let allowedValues: Set<any> | undefined = undefined;
+    let allowedValues: Set<unknown> | undefined = undefined;
     if (f.operator === 'equals') {
       allowedValues = new Set([f.value]);
     } else if (f.operator === 'in') {
@@ -435,15 +435,15 @@ export function filterContextFromUIFilters(
  */
 export function buildFilterPredicate(
   operator: Filter['operator'],
-  filterValue: any
-): (val: any) => boolean {
+  filterValue: unknown
+): (val: unknown) => boolean {
   switch (operator) {
     case 'in': {
       const allowedArr = Array.isArray(filterValue) ? filterValue : [filterValue];
       const stringSet = new Set(allowedArr.map(v => String(v).toLowerCase()));
       const allowsBlank = allowedArr.some(v => v === null || v === '' || isBlank(v));
 
-      return (val: any) => {
+      return (val: unknown) => {
         if (isBlank(val) || val === null || val === undefined || val === '') {
           return allowsBlank;
         }
@@ -457,7 +457,7 @@ export function buildFilterPredicate(
       const disallowsBlank = disallowedArr.some(v => v === null || v === '' || isBlank(v));
 
       // In DAX, notIn DOES NOT discard blanks unless blank was explicitly filtered out
-      return (val: any) => {
+      return (val: unknown) => {
         if (isBlank(val) || val === null || val === undefined || val === '') {
           return !disallowsBlank;
         }
@@ -470,7 +470,7 @@ export function buildFilterPredicate(
       const filterNum = parseNumber(filterValue);
       const filterDt = parseDate(filterValue);
 
-      return (val: any) => {
+      return (val: unknown) => {
         if (isBlank(val) || val === null || val === undefined || val === '') {
           return filterValue === '' || filterValue === null || isBlank(filterValue);
         }
@@ -497,7 +497,7 @@ export function buildFilterPredicate(
       const filterNum = parseNumber(filterValue);
 
       // In DAX, notEquals keeps BLANK/null values!
-      return (val: any) => {
+      return (val: unknown) => {
         if (isBlank(val) || val === null || val === undefined || val === '') {
           return filterValue !== '' && filterValue !== null && !isBlank(filterValue);
         }
@@ -513,7 +513,7 @@ export function buildFilterPredicate(
 
     case 'contains': {
       const search = String(filterValue).toLowerCase();
-      return (val: any) => {
+      return (val: unknown) => {
         if (val === null || val === undefined || isBlank(val)) return false;
         return String(val).toLowerCase().includes(search);
       };
@@ -527,7 +527,7 @@ export function buildFilterPredicate(
       const isNum = !isNaN(numFilter);
       const dtFilter = parseDate(filterValue);
 
-      return (val: any) => {
+      return (val: unknown) => {
         if (val === null || val === undefined || isBlank(val)) return false;
 
         if (isNum) {
@@ -569,7 +569,7 @@ export function buildFilterPredicate(
       const numMax = Number(maxV);
       const isNum = !isNaN(numMin) && !isNaN(numMax);
 
-      return (val: any) => {
+      return (val: unknown) => {
         if (val === null || val === undefined || isBlank(val)) return false;
         if (isNum) {
           const n = Number(val);

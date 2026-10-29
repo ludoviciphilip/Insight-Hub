@@ -13,33 +13,57 @@ export interface DaxGeneratedItem {
   syntax?: string;
   description?: string;
   notes: string;
+  isOutsideIndex?: boolean;
+  partialReason?: 'support_status' | 'low_tests';
 }
 
 export interface DaxConformanceSummary {
   totalInDaxGuide: number;
+  totalCatalog: number;
+  outsideIndexCount: number;
   implementedCount: number;
   fullCount: number;
   partialCount: number;
+  partialByStatusCount: number;
+  partialByTestsCount: number;
   stubCount: number;
   notSupportedCount: number;
   testedCount: number;
   coveragePercent: number;
+  indexFetchedAt: string;
   generatedAt: string;
 }
 
 export const DAX_CONFORMANCE_SUMMARY: DaxConformanceSummary = {
-  totalInDaxGuide: 370,
-  implementedCount: 349,
-  fullCount: 271,
-  partialCount: 77,
+  totalInDaxGuide: 484,
+  totalCatalog: 487,
+  outsideIndexCount: 3,
+  implementedCount: 427,
+  fullCount: 298,
+  partialCount: 128,
+  partialByStatusCount: 0,
+  partialByTestsCount: 129,
   stubCount: 1,
-  notSupportedCount: 21,
-  testedCount: 272,
-  coveragePercent: 94,
-  generatedAt: '2026-10-28T15:14:12.644Z',
+  notSupportedCount: 60,
+  testedCount: 299,
+  coveragePercent: 88,
+  indexFetchedAt: '2026-10-29',
+  generatedAt: '2026-10-29T16:25:54.877Z',
 };
 
 export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
+  {
+    "name": "APPROXIMATEDISTINCTCOUNT",
+    "category": "Aggregation",
+    "guideUrl": "https://dax.guide/approximatedistinctcount/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "APPROXIMATEDISTINCTCOUNT(column)",
+    "description": "Retorna a contagem aproximada de valores distintos de uma coluna.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
   {
     "name": "AVERAGE",
     "category": "Aggregation",
@@ -48,7 +72,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 4,
     "syntax": "AVERAGE(column)",
     "description": "Calcula a média aritmética de todos os números de uma coluna. Ignora BLANKs.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "AVERAGEA",
@@ -58,7 +83,9 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 0,
     "syntax": "AVERAGEA(column)",
     "description": "Calcula a média tratando TRUE como 1, FALSE como 0 e texto não numérico como 0.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
   },
   {
     "name": "AVERAGEX",
@@ -68,7 +95,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "AVERAGEX(table, expression)",
     "description": "Calcula a média de uma expressão avaliada para cada linha de uma tabela.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "COUNT",
@@ -78,7 +106,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 4,
     "syntax": "COUNT(column)",
     "description": "Conta o número de valores que não são BLANK em uma coluna. Retorna BLANK se a tabela estiver vazia.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "COUNTA",
@@ -88,7 +117,9 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 0,
     "syntax": "COUNTA(column)",
     "description": "Conta qualquer valor que não esteja em branco (números, texto, datas, booleanos).",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
   },
   {
     "name": "COUNTAX",
@@ -98,7 +129,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "COUNTAX(table, expression)",
     "description": "Conta os valores não em branco incluindo strings e booleanos ao avaliar a expressão para cada linha de uma tabela.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "COUNTBLANK",
@@ -108,7 +140,9 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 0,
     "syntax": "COUNTBLANK(column)",
     "description": "Conta o número de valores em branco (BLANK/nulo) em uma coluna.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
   },
   {
     "name": "COUNTROWS",
@@ -118,7 +152,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 4,
     "syntax": "COUNTROWS([table])",
     "description": "Conta o número de linhas na tabela especificada no contexto de filtro atual.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "COUNTX",
@@ -128,7 +163,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 2,
     "syntax": "COUNTX(table, expression)",
     "description": "Conta o número de linhas onde a expressão avaliada não resulta em BLANK.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "DISTINCTCOUNT",
@@ -138,7 +174,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 2,
     "syntax": "DISTINCTCOUNT(column)",
     "description": "Conta o número de valores distintos em uma coluna, incluindo BLANK se existir. Retorna BLANK se não houver linhas.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "DISTINCTCOUNTNOBLANK",
@@ -148,7 +185,9 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 0,
     "syntax": "DISTINCTCOUNTNOBLANK(column)",
     "description": "Conta o número de valores distintos em uma coluna, excluindo BLANKs.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
   },
   {
     "name": "MAX",
@@ -158,7 +197,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 4,
     "syntax": "MAX(column)",
     "description": "Retorna o maior valor de uma coluna (numérica, data ou texto).",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "MAXA",
@@ -168,7 +208,9 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 0,
     "syntax": "MAXA(column)",
     "description": "Retorna o maior valor tratando TRUE=1, FALSE=0 e texto=0.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
   },
   {
     "name": "MAXX",
@@ -178,27 +220,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "MAXX(table, expression)",
     "description": "Retorna o maior valor resultante da avaliação de uma expressão para cada linha de uma tabela.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "MEDIAN",
-    "category": "Aggregation",
-    "guideUrl": "https://dax.guide/median/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "MEDIAN(column)",
-    "description": "Calcula a mediana dos valores numéricos em uma coluna.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "MEDIANX",
-    "category": "Aggregation",
-    "guideUrl": "https://dax.guide/medianx/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "MEDIANX(table, expression)",
-    "description": "Avalia a expressão para cada linha da tabela e calcula a mediana.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "MIN",
@@ -208,7 +231,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 4,
     "syntax": "MIN(column)",
     "description": "Retorna o menor valor de uma coluna (numérica, data ou texto).",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "MINA",
@@ -218,7 +242,9 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 0,
     "syntax": "MINA(column)",
     "description": "Retorna o menor valor tratando TRUE=1, FALSE=0 e texto=0.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
   },
   {
     "name": "MINX",
@@ -228,47 +254,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "MINX(table, expression)",
     "description": "Retorna o menor valor resultante da avaliação de uma expressão para cada linha de uma tabela.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "PERCENTILE.EXC",
-    "category": "Aggregation",
-    "guideUrl": "https://dax.guide/percentile-exc/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "PERCENTILE.EXC(column, k)",
-    "description": "Calcula o k-ésimo percentil exclusivo dos valores em uma coluna.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "PERCENTILE.INC",
-    "category": "Aggregation",
-    "guideUrl": "https://dax.guide/percentile-inc/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "PERCENTILE.INC(column, k)",
-    "description": "Calcula o k-ésimo percentil inclusivo (0 <= k <= 1) dos valores em uma coluna.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "PERCENTILEX.EXC",
-    "category": "Aggregation",
-    "guideUrl": "https://dax.guide/percentilex-exc/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "PERCENTILEX.EXC(table, expression, k)",
-    "description": "Avalia a expressão sobre a tabela e calcula o percentil exclusivo k.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "PERCENTILEX.INC",
-    "category": "Aggregation",
-    "guideUrl": "https://dax.guide/percentilex-inc/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "PERCENTILEX.INC(table, expression, k)",
-    "description": "Avalia a expressão sobre a tabela e calcula o percentil inclusivo k.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "PRODUCT",
@@ -278,7 +265,9 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 0,
     "syntax": "PRODUCT(column)",
     "description": "Retorna o produto de todos os números em uma coluna.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
   },
   {
     "name": "PRODUCTX",
@@ -288,7 +277,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 2,
     "syntax": "PRODUCTX(table, expression)",
     "description": "Retorna o produto de uma expressão avaliada para cada linha de uma tabela.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "SUM",
@@ -298,7 +288,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 43,
     "syntax": "SUM(column)",
     "description": "Calcula a soma de todos os números em uma coluna no contexto de filtro ativo.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "SUMX",
@@ -308,137 +299,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 9,
     "syntax": "SUMX(table, expression)",
     "description": "Itera linha a linha sobre uma tabela avaliando a expressão e somando os resultados no contexto de filtro ativo.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "ALL",
-    "category": "Filter",
-    "guideUrl": "https://dax.guide/all/",
-    "status": "full",
-    "testCount": 17,
-    "syntax": "ALL([table_or_column], [column2], ...)",
-    "description": "Remove os filtros do contexto para a tabela ou colunas especificadas. Retorna todas as linhas ou valores distintos sem filtro.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "ALLEXCEPT",
-    "category": "Filter",
-    "guideUrl": "https://dax.guide/allexcept/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "ALLEXCEPT(table, [column1], [column2], ...)",
-    "description": "Remove todos os filtros de contexto da tabela, exceto os filtros que foram aplicados às colunas especificadas.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "ALLNOBLANKROW",
-    "category": "Filter",
-    "guideUrl": "https://dax.guide/allnoblankrow/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "ALLNOBLANKROW(table_or_column)",
-    "description": "Semelhante a ALL, mas exclui a linha em branco adicionada pelo DAX para relacionamentos órfãos.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "ALLSELECTED",
-    "category": "Filter",
-    "guideUrl": "https://dax.guide/allselected/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "ALLSELECTED([table_or_column])",
-    "description": "Retorna todas as linhas em uma tabela ou todos os valores em uma coluna, ignorando filtros do visual atual mas mantendo filtros externos.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "CALCULATE",
-    "category": "Filter",
-    "guideUrl": "https://dax.guide/calculate/",
-    "status": "full",
-    "testCount": 40,
-    "syntax": "CALCULATE(expression, [filter1], [filter2], ...)",
-    "description": "Avalia uma expressão sob um contexto modificado pelos filtros informados (transição de contexto e sobreposição de filtros).",
-    "notes": "Suporta modificadores FILTER, ALL, ALLEXCEPT, KEEPFILTERS, USERELATIONSHIP e context transition em iteradores."
-  },
-  {
-    "name": "CALCULATETABLE",
-    "category": "Filter",
-    "guideUrl": "https://dax.guide/calculatetable/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "CALCULATETABLE(table, [filter1], [filter2], ...)",
-    "description": "Avalia uma expressão de tabela em um contexto modificado pelos filtros informados.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "EARLIER",
-    "category": "Filter",
-    "guideUrl": "https://dax.guide/earlier/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "EARLIER(column, [number])",
-    "description": "Retorna o valor atual da coluna especificada em um passo de avaliação externa da tabela atual.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "EARLIEST",
-    "category": "Filter",
-    "guideUrl": "https://dax.guide/earliest/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "EARLIEST(column)",
-    "description": "Retorna o valor atual da coluna especificada na etapa de avaliação mais externa da tabela.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "FILTER",
-    "category": "Filter",
-    "guideUrl": "https://dax.guide/filter/",
-    "status": "full",
-    "testCount": 16,
-    "syntax": "FILTER(table, filter_expression)",
-    "description": "Retorna uma tabela contendo apenas as linhas que satisfazem a condição de filtro avaliada linha a linha.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "KEEPFILTERS",
-    "category": "Filter",
-    "guideUrl": "https://dax.guide/keepfilters/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "KEEPFILTERS(expression)",
-    "description": "Modifica como os filtros são aplicados durante a avaliação de uma função CALCULATE, fazendo interseção em vez de sobrescrever.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "LOOKUPVALUE",
-    "category": "Filter",
-    "guideUrl": "https://dax.guide/lookupvalue/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "LOOKUPVALUE(result_column, search_column1, search_value1, [search_column2, search_value2, ...], [alternateResult])",
-    "description": "Retorna o valor de result_column para a linha que atende a todos os critérios especificados por search_column e search_value.",
-    "notes": "Suporta busca simples de coluna no contexto de modelo. Não suporta critérios compostos com múltiplos valores alternativos."
-  },
-  {
-    "name": "REMOVEFILTERS",
-    "category": "Filter",
-    "guideUrl": "https://dax.guide/removefilters/",
-    "status": "full",
-    "testCount": 3,
-    "syntax": "REMOVEFILTERS([table_or_column], ...)",
-    "description": "Remove filtros das tabelas ou colunas especificadas. É sinônimo de ALL quando usado como modificador de filtro.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "SELECTEDVALUE",
-    "category": "Filter",
-    "guideUrl": "https://dax.guide/selectedvalue/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "SELECTEDVALUE(column, [alternateResult])",
-    "description": "Retorna o valor quando o contexto para a coluna foi filtrado para apenas um valor distinto. Caso contrário, retorna o resultado alternativo (ou BLANK).",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "CALENDAR",
@@ -448,7 +310,9 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 0,
     "syntax": "CALENDAR(start_date, end_date)",
     "description": "Retorna uma tabela com uma única coluna denominada \"Date\" que contém um conjunto contínuo de datas.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
   },
   {
     "name": "CALENDARAUTO",
@@ -458,17 +322,20 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 0,
     "syntax": "CALENDARAUTO([fiscal_year_end_month])",
     "description": "Retorna uma tabela com uma coluna \"Date\" cobrindo o intervalo completo de anos presentes nas datas do modelo.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
   },
   {
     "name": "DATE",
     "category": "Date and Time",
     "guideUrl": "https://dax.guide/date/",
     "status": "full",
-    "testCount": 20,
+    "testCount": 21,
     "syntax": "DATE(year, month, day)",
     "description": "Cria uma data a partir do ano, mês e dia especificados, normalizando automaticamente estouros.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "DATEDIFF",
@@ -478,7 +345,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 3,
     "syntax": "DATEDIFF(date1, date2, interval)",
     "description": "Retorna a contagem de limites de intervalo ultrapassados entre duas datas.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "DATEVALUE",
@@ -488,7 +356,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "DATEVALUE(date_text)",
     "description": "Converte uma data em formato de texto para um valor de data.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "DAY",
@@ -498,7 +367,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 2,
     "syntax": "DAY(date)",
     "description": "Retorna o dia do mês (um número de 1 a 31).",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "EDATE",
@@ -508,7 +378,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "EDATE(start_date, months)",
     "description": "Retorna a data que corresponde ao número de meses antes ou depois da data inicial.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "EOMONTH",
@@ -518,7 +389,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "EOMONTH(start_date, months)",
     "description": "Retorna a data do último dia do mês antes ou depois de um número especificado de meses.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "HOUR",
@@ -528,7 +400,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "HOUR(datetime)",
     "description": "Retorna a hora como um número de 0 (meia-noite) a 23.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "MINUTE",
@@ -538,7 +411,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "MINUTE(datetime)",
     "description": "Retorna o minuto como um número de 0 a 59.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "MONTH",
@@ -548,7 +422,19 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "MONTH(date)",
     "description": "Retorna o mês como um número de 1 (janeiro) a 12 (dezembro).",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "NETWORKDAYS",
+    "category": "Date and Time",
+    "guideUrl": "https://dax.guide/networkdays/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "NETWORKDAYS(start_date, end_date, [weekend], [holidays])",
+    "description": "Retorna o número de dias úteis inteiros entre start_date e end_date.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "NOW",
@@ -558,7 +444,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 4,
     "syntax": "NOW()",
     "description": "Retorna a data e hora atuais (função volátil).",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "QUARTER",
@@ -568,7 +455,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 3,
     "syntax": "QUARTER(date)",
     "description": "Retorna o trimestre da data como um número de 1 a 4.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "SECOND",
@@ -578,7 +466,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "SECOND(datetime)",
     "description": "Retorna o segundo como um número de 0 a 59.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "TIME",
@@ -588,7 +477,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 2,
     "syntax": "TIME(hour, minute, second)",
     "description": "Converte horas, minutos e segundos em um horário formatado como HH:MM:SS.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "TIMEVALUE",
@@ -598,7 +488,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "TIMEVALUE(time_text)",
     "description": "Converte um horário em formato de texto para a fração decimal do dia correspondente.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "TODAY",
@@ -608,7 +499,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "TODAY()",
     "description": "Retorna a data atual no formato YYYY-MM-DD (função volátil).",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "UTCNOW",
@@ -618,7 +510,9 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 0,
     "syntax": "UTCNOW()",
     "description": "Retorna a data e hora atuais em fuso horário UTC (função volátil).",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
   },
   {
     "name": "UTCTODAY",
@@ -628,7 +522,9 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 0,
     "syntax": "UTCTODAY()",
     "description": "Retorna a data atual em UTC no formato YYYY-MM-DD (função volátil).",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
   },
   {
     "name": "WEEKDAY",
@@ -638,7 +534,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 10,
     "syntax": "WEEKDAY(date, [return_type])",
     "description": "Retorna o dia da semana como número de acordo com return_type (1, 2, 3, 11-17).",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "WEEKNUM",
@@ -648,7 +545,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 3,
     "syntax": "WEEKNUM(date, [return_type])",
     "description": "Retorna o número da semana no ano de acordo com return_type (1, 2, 11-17, 21).",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "YEAR",
@@ -658,7 +556,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 2,
     "syntax": "YEAR(date)",
     "description": "Retorna o ano de uma data como um inteiro de 4 dígitos.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "YEARFRAC",
@@ -668,2467 +567,339 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 6,
     "syntax": "YEARFRAC(start_date, end_date, [basis])",
     "description": "Calcula a fração do ano representada pelo número de dias entre duas datas (bases 0 a 4).",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
-    "name": "CLOSINGBALANCEMONTH",
-    "category": "Time Intelligence",
-    "guideUrl": "https://dax.guide/closingbalancemonth/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "CLOSINGBALANCEMONTH(expression, dates, [filter])",
-    "description": "Avalia a expressão na última data do mês no contexto atual.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "CLOSINGBALANCEQUARTER",
-    "category": "Time Intelligence",
-    "guideUrl": "https://dax.guide/closingbalancequarter/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "CLOSINGBALANCEQUARTER(expression, dates, [filter])",
-    "description": "Avalia a expressão na última data do trimestre no contexto atual.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "CLOSINGBALANCEYEAR",
-    "category": "Time Intelligence",
-    "guideUrl": "https://dax.guide/closingbalanceyear/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "CLOSINGBALANCEYEAR(expression, dates, [filter], [year_end_date])",
-    "description": "Avalia a expressão no último dia do ano fiscal ou civil no contexto.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "DATEADD",
-    "category": "Time Intelligence",
-    "guideUrl": "https://dax.guide/dateadd/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "DATEADD(dates, number_of_intervals, interval)",
-    "description": "Desloca o conjunto de datas no contexto atual pelo número de intervalos especificado (YEAR, QUARTER, MONTH, DAY).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "DATESBETWEEN",
-    "category": "Time Intelligence",
-    "guideUrl": "https://dax.guide/datesbetween/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "DATESBETWEEN(dates, start_date, end_date)",
-    "description": "Retorna uma tabela contendo uma coluna de datas que começa na start_date e continua até end_date.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "DATESINPERIOD",
-    "category": "Time Intelligence",
-    "guideUrl": "https://dax.guide/datesinperiod/",
-    "status": "full",
-    "testCount": 3,
-    "syntax": "DATESINPERIOD(dates, start_date, number_of_intervals, interval)",
-    "description": "Retorna uma tabela contendo datas começando em start_date e avançando ou retrocedendo o número de intervalos especificado.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "DATESMTD",
-    "category": "Time Intelligence",
-    "guideUrl": "https://dax.guide/datesmtd/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "DATESMTD(dates)",
-    "description": "Retorna uma tabela que contém uma coluna de todas as datas no acumulado do mês (Month-To-Date).",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "DATESQTD",
-    "category": "Time Intelligence",
-    "guideUrl": "https://dax.guide/datesqtd/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "DATESQTD(dates)",
-    "description": "Retorna uma tabela que contém uma coluna de todas as datas no acumulado do trimestre (Quarter-To-Date).",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "DATESYTD",
-    "category": "Time Intelligence",
-    "guideUrl": "https://dax.guide/datesytd/",
-    "status": "full",
-    "testCount": 3,
-    "syntax": "DATESYTD(dates, [year_end_date])",
-    "description": "Retorna uma tabela que contém uma coluna de todas as datas no acumulado do ano (Year-To-Date) no contexto atual.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "ENDOFMONTH",
-    "category": "Time Intelligence",
-    "guideUrl": "https://dax.guide/endofmonth/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "ENDOFMONTH(dates)",
-    "description": "Retorna uma tabela com o último dia do mês correspondente ao contexto.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "ENDOFQUARTER",
-    "category": "Time Intelligence",
-    "guideUrl": "https://dax.guide/endofquarter/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "ENDOFQUARTER(dates)",
-    "description": "Retorna o último dia do trimestre correspondente ao contexto.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "ENDOFYEAR",
-    "category": "Time Intelligence",
-    "guideUrl": "https://dax.guide/endofyear/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "ENDOFYEAR(dates, [year_end_date])",
-    "description": "Retorna o último dia do ano fiscal ou civil correspondente ao contexto.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "FIRSTDATE",
-    "category": "Time Intelligence",
-    "guideUrl": "https://dax.guide/firstdate/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "FIRSTDATE(dates)",
-    "description": "Retorna a primeira data visível no contexto atual em uma tabela de uma única coluna.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "FIRSTNONBLANK",
-    "category": "Time Intelligence",
-    "guideUrl": "https://dax.guide/firstnonblank/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "FIRSTNONBLANK(column, expression)",
-    "description": "Retorna o primeiro valor da coluna para o qual a expressão não avalia como BLANK.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "FIRSTNONBLANKVALUE",
-    "category": "Time Intelligence",
-    "guideUrl": "https://dax.guide/firstnonblankvalue/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "FIRSTNONBLANKVALUE(column, expression)",
-    "description": "Retorna o valor da expressão avaliada no primeiro valor não em branco da coluna.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "LASTDATE",
-    "category": "Time Intelligence",
-    "guideUrl": "https://dax.guide/lastdate/",
-    "status": "full",
-    "testCount": 3,
-    "syntax": "LASTDATE(dates)",
-    "description": "Retorna a última data visível no contexto atual em uma tabela de uma única coluna.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "LASTNONBLANK",
-    "category": "Time Intelligence",
-    "guideUrl": "https://dax.guide/lastnonblank/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "LASTNONBLANK(column, expression)",
-    "description": "Retorna o último valor da coluna para o qual a expressão não avalia como BLANK.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "LASTNONBLANKVALUE",
-    "category": "Time Intelligence",
-    "guideUrl": "https://dax.guide/lastnonblankvalue/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "LASTNONBLANKVALUE(column, expression)",
-    "description": "Retorna o valor da expressão avaliada no último valor não em branco da coluna.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "NEXTDAY",
-    "category": "Time Intelligence",
-    "guideUrl": "https://dax.guide/nextday/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "NEXTDAY(dates)",
-    "description": "Retorna uma tabela com o próximo dia após a última data do contexto atual.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "NEXTMONTH",
-    "category": "Time Intelligence",
-    "guideUrl": "https://dax.guide/nextmonth/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "NEXTMONTH(dates)",
-    "description": "Retorna todas as datas do próximo mês após a última data do contexto atual.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "NEXTQUARTER",
-    "category": "Time Intelligence",
-    "guideUrl": "https://dax.guide/nextquarter/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "NEXTQUARTER(dates)",
-    "description": "Retorna todas as datas do próximo trimestre após a última data do contexto atual.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "NEXTYEAR",
-    "category": "Time Intelligence",
-    "guideUrl": "https://dax.guide/nextyear/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "NEXTYEAR(dates, [year_end_date])",
-    "description": "Retorna todas as datas do próximo ano após a última data do contexto atual.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "OPENINGBALANCEMONTH",
-    "category": "Time Intelligence",
-    "guideUrl": "https://dax.guide/openingbalancemonth/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "OPENINGBALANCEMONTH(expression, dates, [filter])",
-    "description": "Avalia a expressão na última data do mês anterior (saldo de abertura do mês corrente).",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "OPENINGBALANCEQUARTER",
-    "category": "Time Intelligence",
-    "guideUrl": "https://dax.guide/openingbalancequarter/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "OPENINGBALANCEQUARTER(expression, dates, [filter])",
-    "description": "Avalia a expressão no saldo de abertura do trimestre corrente.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "OPENINGBALANCEYEAR",
-    "category": "Time Intelligence",
-    "guideUrl": "https://dax.guide/openingbalanceyear/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "OPENINGBALANCEYEAR(expression, dates, [filter], [year_end_date])",
-    "description": "Avalia a expressão no saldo de abertura do ano fiscal ou civil corrente.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "PARALLELPERIOD",
-    "category": "Time Intelligence",
-    "guideUrl": "https://dax.guide/parallelperiod/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "PARALLELPERIOD(dates, number_of_intervals, interval)",
-    "description": "Retorna uma tabela que representa um período paralelo às datas da coluna no contexto atual (YEAR, QUARTER, MONTH).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "PREVIOUSDAY",
-    "category": "Time Intelligence",
-    "guideUrl": "https://dax.guide/previousday/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "PREVIOUSDAY(dates)",
-    "description": "Retorna uma tabela com o dia anterior ao primeiro dia presente no contexto atual.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "PREVIOUSMONTH",
-    "category": "Time Intelligence",
-    "guideUrl": "https://dax.guide/previousmonth/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "PREVIOUSMONTH(dates)",
-    "description": "Retorna todas as datas do mês anterior ao primeiro dia do contexto atual.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "PREVIOUSQUARTER",
-    "category": "Time Intelligence",
-    "guideUrl": "https://dax.guide/previousquarter/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "PREVIOUSQUARTER(dates)",
-    "description": "Retorna todas as datas do trimestre anterior ao primeiro dia do contexto atual.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "PREVIOUSYEAR",
-    "category": "Time Intelligence",
-    "guideUrl": "https://dax.guide/previousyear/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "PREVIOUSYEAR(dates, [year_end_date])",
-    "description": "Retorna todas as datas do ano anterior ao primeiro dia do contexto atual.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "SAMEPERIODLASTYEAR",
-    "category": "Time Intelligence",
-    "guideUrl": "https://dax.guide/sameperiodlastyear/",
-    "status": "full",
-    "testCount": 8,
-    "syntax": "SAMEPERIODLASTYEAR(dates)",
-    "description": "Retorna um conjunto de datas no mesmo período do ano anterior (deslocamento exato de -1 ano com respeito a fim de mês).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "STARTOFMONTH",
-    "category": "Time Intelligence",
-    "guideUrl": "https://dax.guide/startofmonth/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "STARTOFMONTH(dates)",
-    "description": "Retorna uma tabela com o primeiro dia do mês correspondente ao contexto.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "STARTOFQUARTER",
-    "category": "Time Intelligence",
-    "guideUrl": "https://dax.guide/startofquarter/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "STARTOFQUARTER(dates)",
-    "description": "Retorna o primeiro dia do trimestre correspondente ao contexto.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "STARTOFYEAR",
-    "category": "Time Intelligence",
-    "guideUrl": "https://dax.guide/startofyear/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "STARTOFYEAR(dates, [year_end_date])",
-    "description": "Retorna o primeiro dia do ano fiscal ou civil correspondente ao contexto.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "TOTALMTD",
-    "category": "Time Intelligence",
-    "guideUrl": "https://dax.guide/totalmtd/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "TOTALMTD(expression, dates, [filter])",
-    "description": "Avalia a expressão no acumulado do mês (Month-To-Date).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "TOTALQTD",
-    "category": "Time Intelligence",
-    "guideUrl": "https://dax.guide/totalqtd/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "TOTALQTD(expression, dates, [filter])",
-    "description": "Avalia a expressão no acumulado do trimestre (Quarter-To-Date).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "TOTALYTD",
-    "category": "Time Intelligence",
-    "guideUrl": "https://dax.guide/totalytd/",
-    "status": "full",
-    "testCount": 7,
-    "syntax": "TOTALYTD(expression, dates, [filter], [year_end_date])",
-    "description": "Avalia a expressão no acumulado do ano (Year-To-Date), equivalente a CALCULATE(expr, DATESYTD(dates, year_end_date), filter).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "CONTAINS",
-    "category": "Information",
-    "guideUrl": "https://dax.guide/contains/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "CONTAINS(text_or_table, search_term)",
-    "description": "Verifica se o texto contém o termo especificado (ou tabela contém linha).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "CONTAINSROW",
-    "category": "Information",
-    "guideUrl": "https://dax.guide/containsrow/",
-    "status": "not_supported",
-    "testCount": 0,
-    "syntax": "CONTAINSROW()",
-    "description": "Função DAX CONTAINSROW.",
-    "notes": "Não implementada no motor atual."
-  },
-  {
-    "name": "CUSTOMDATA",
-    "category": "Information",
-    "guideUrl": "https://dax.guide/customdata/",
-    "status": "full",
-    "testCount": 3,
-    "syntax": "CUSTOMDATA()",
-    "description": "Retorna o conteúdo da propriedade de cadeia de caracteres CustomData passada na conexão.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "HASONEFILTER",
-    "category": "Information",
-    "guideUrl": "https://dax.guide/hasonefilter/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "HASONEFILTER(column)",
-    "description": "Retorna TRUE quando o número de valores diretamente filtrados na coluna for exatamente um.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "HASONEVALUE",
-    "category": "Information",
-    "guideUrl": "https://dax.guide/hasonevalue/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "HASONEVALUE(column)",
-    "description": "Retorna TRUE quando o contexto de coluna tem exatamente um valor distinto visível.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "ISAFTER",
-    "category": "Information",
-    "guideUrl": "https://dax.guide/isafter/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "ISAFTER(val1, val2, [order], [val3, val4, [order]], ...)",
-    "description": "Compara pares de valores para determinar se a primeira tupla é estritamente posterior à segunda na ordenação especificada.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "ISBLANK",
-    "category": "Information",
-    "guideUrl": "https://dax.guide/isblank/",
-    "status": "full",
-    "testCount": 7,
-    "syntax": "ISBLANK(value)",
-    "description": "Retorna TRUE se o valor for BLANK (ou nulo/vazio).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "ISCROSSFILTERED",
-    "category": "Information",
-    "guideUrl": "https://dax.guide/iscrossfiltered/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "ISCROSSFILTERED(table_or_column)",
-    "description": "Retorna TRUE quando a coluna ou tabela está sendo filtrada direta ou indiretamente por outra tabela relacionada.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "ISEMPTY",
-    "category": "Information",
-    "guideUrl": "https://dax.guide/isempty/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "ISEMPTY(table)",
-    "description": "Retorna TRUE se a tabela ou expressão de tabela não contiver nenhuma linha no contexto de filtro atual.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "ISERROR",
-    "category": "Information",
-    "guideUrl": "https://dax.guide/iserror/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "ISERROR(value)",
-    "description": "Retorna TRUE se a expressão resultar em erro.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "ISEVEN",
-    "category": "Information",
-    "guideUrl": "https://dax.guide/iseven/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "ISEVEN(number)",
-    "description": "Retorna TRUE se o número inteiro for par.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "ISFILTERED",
-    "category": "Information",
-    "guideUrl": "https://dax.guide/isfiltered/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "ISFILTERED(table_or_column)",
-    "description": "Retorna TRUE quando há filtros diretos aplicados à coluna ou tabela.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "ISINSCOPE",
-    "category": "Information",
-    "guideUrl": "https://dax.guide/isinscope/",
-    "status": "not_supported",
-    "testCount": 0,
-    "syntax": "ISINSCOPE()",
-    "description": "Função DAX ISINSCOPE.",
-    "notes": "Não implementada no motor atual."
-  },
-  {
-    "name": "ISLOGICAL",
-    "category": "Information",
-    "guideUrl": "https://dax.guide/islogical/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "ISLOGICAL(value)",
-    "description": "Retorna TRUE se o valor for um booleano (TRUE/FALSE).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "ISNONTEXT",
-    "category": "Information",
-    "guideUrl": "https://dax.guide/isnontext/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "ISNONTEXT(value)",
-    "description": "Retorna TRUE se o valor NÃO for um texto (por exemplo números, datas ou em branco).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "ISNUMBER",
-    "category": "Information",
-    "guideUrl": "https://dax.guide/isnumber/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "ISNUMBER(value)",
-    "description": "Retorna TRUE se o valor for um número válido, senão FALSE.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "ISODD",
-    "category": "Information",
-    "guideUrl": "https://dax.guide/isodd/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "ISODD(number)",
-    "description": "Retorna TRUE se o número inteiro for ímpar.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "ISONORAFTER",
-    "category": "Information",
-    "guideUrl": "https://dax.guide/isonorafter/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "ISONORAFTER(val1, val2, [order], [val3, val4, [order]], ...)",
-    "description": "Compara tuplas determinando se a primeira tupla é igual ou posterior à segunda na ordem especificada.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "ISSUBTOTAL",
-    "category": "Information",
-    "guideUrl": "https://dax.guide/issubtotal/",
-    "status": "not_supported",
-    "testCount": 1,
-    "syntax": "ISSUBTOTAL()",
-    "description": "Função DAX ISSUBTOTAL.",
-    "notes": "Não implementada no motor atual."
-  },
-  {
-    "name": "ISTEXT",
-    "category": "Information",
-    "guideUrl": "https://dax.guide/istext/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "ISTEXT(value)",
-    "description": "Retorna TRUE se o valor for um texto/string.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "USERCULTURE",
-    "category": "Information",
-    "guideUrl": "https://dax.guide/userculture/",
-    "status": "full",
-    "testCount": 3,
-    "syntax": "USERCULTURE()",
-    "description": "Retorna a cultura de interface e localidade do usuário atual (ex: \"pt-BR\", \"en-US\").",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "USERNAME",
-    "category": "Information",
-    "guideUrl": "https://dax.guide/username/",
-    "status": "full",
-    "testCount": 5,
-    "syntax": "USERNAME()",
-    "description": "Retorna o domínio e o nome do usuário atual no formato DOMÍNIO\\usuário ou nome simples.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "USEROBJECTID",
-    "category": "Information",
-    "guideUrl": "https://dax.guide/userobjectid/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "USEROBJECTID()",
-    "description": "Retorna a ID do Objeto atual (GUID do Microsoft Entra ID / Azure AD).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "USERPRINCIPALNAME",
-    "category": "Information",
-    "guideUrl": "https://dax.guide/userprincipalname/",
-    "status": "full",
-    "testCount": 4,
-    "syntax": "USERPRINCIPALNAME()",
-    "description": "Retorna o Nome Principal do Usuário (UPN) atual, geralmente no formato de e-mail.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "AND",
-    "category": "Logical",
-    "guideUrl": "https://dax.guide/and/",
-    "status": "full",
-    "testCount": 3,
-    "syntax": "AND(logical1, logical2)",
-    "description": "Verifica se ambos os argumentos são verdadeiros. Retorna TRUE se ambos forem verdadeiros, senão FALSE.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "BITAND",
-    "category": "Logical",
-    "guideUrl": "https://dax.guide/bitand/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "BITAND(number1, number2)",
-    "description": "Retorna o resultado bit a bit AND entre dois inteiros.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "BITLSHIFT",
-    "category": "Logical",
-    "guideUrl": "https://dax.guide/bitlshift/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "BITLSHIFT(number, shift_amount)",
-    "description": "Desloca os bits do número para a esquerda pela quantidade especificada.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "BITOR",
-    "category": "Logical",
-    "guideUrl": "https://dax.guide/bitor/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "BITOR(number1, number2)",
-    "description": "Retorna o resultado bit a bit OR entre dois inteiros.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "BITRSHIFT",
-    "category": "Logical",
-    "guideUrl": "https://dax.guide/bitrshift/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "BITRSHIFT(number, shift_amount)",
-    "description": "Desloca os bits do número para a direita pela quantidade especificada.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "BITXOR",
-    "category": "Logical",
-    "guideUrl": "https://dax.guide/bitxor/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "BITXOR(number1, number2)",
-    "description": "Retorna o resultado bit a bit XOR (ou exclusivo) entre dois inteiros.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "COALESCE",
-    "category": "Logical",
-    "guideUrl": "https://dax.guide/coalesce/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "COALESCE(expr1, expr2, ...)",
-    "description": "Retorna a primeira expressão que não é BLANK (ou vazia em colunas calculadas).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "FALSE",
-    "category": "Logical",
-    "guideUrl": "https://dax.guide/false/",
-    "status": "full",
-    "testCount": 7,
-    "syntax": "FALSE()",
-    "description": "Retorna a constante booleana FALSE.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "IF",
-    "category": "Logical",
-    "guideUrl": "https://dax.guide/if/",
-    "status": "full",
-    "testCount": 14,
-    "syntax": "IF(logical_test, value_if_true, [value_if_false])",
-    "description": "Verifica uma condição e retorna um valor se for TRUE e outro se for FALSE. Possui avaliação preguiçosa (short-circuit).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "IF.EAGER",
-    "category": "Logical",
-    "guideUrl": "https://dax.guide/if-eager/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "IF.EAGER(logical_test, value_if_true, [value_if_false])",
-    "description": "Versão ansiosa de IF que avalia ambas as ramificações de execução.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "IFERROR",
-    "category": "Logical",
-    "guideUrl": "https://dax.guide/iferror/",
-    "status": "full",
-    "testCount": 3,
-    "syntax": "IFERROR(value, value_if_error)",
-    "description": "Retorna value_if_error se a expressão resultar em erro, senão retorna o próprio valor.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "NOT",
-    "category": "Logical",
-    "guideUrl": "https://dax.guide/not/",
-    "status": "full",
-    "testCount": 6,
-    "syntax": "NOT(logical)",
-    "description": "Inverte o valor lógico de FALSE para TRUE ou de TRUE para FALSE.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "OR",
-    "category": "Logical",
-    "guideUrl": "https://dax.guide/or/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "OR(logical1, logical2)",
-    "description": "Verifica se ao menos um argumento é verdadeiro. Retorna TRUE se pelo menos um for verdadeiro.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "SWITCH",
-    "category": "Logical",
-    "guideUrl": "https://dax.guide/switch/",
-    "status": "full",
-    "testCount": 4,
-    "syntax": "SWITCH(expression, val1, result1, [val2, result2, ...], [else])",
-    "description": "Avalia uma expressão contra uma lista de valores e retorna o primeiro resultado coincidente (ex: SWITCH(TRUE(), ...)).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "TRUE",
-    "category": "Logical",
-    "guideUrl": "https://dax.guide/true/",
-    "status": "full",
-    "testCount": 13,
-    "syntax": "TRUE()",
-    "description": "Retorna a constante booleana TRUE.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "ABS",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/abs/",
-    "status": "full",
-    "testCount": 5,
-    "syntax": "ABS(number)",
-    "description": "Retorna o valor absoluto de um número.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "ACOS",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/acos/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "ACOS(number)",
-    "description": "Retorna o arco cosseno de um número em radianos (0 a pi).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "ACOSH",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/acosh/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "ACOSH(number)",
-    "description": "Retorna o arco cosseno hiperbólico de um número (maior ou igual a 1).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "ACOT",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/acot/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "ACOT(number)",
-    "description": "Retorna o arco cotangente de um número em radianos (0 a pi).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "ACOTH",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/acoth/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "ACOTH(number)",
-    "description": "Retorna o arco cotangente hiperbólico de um número (|x| > 1).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "ASIN",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/asin/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "ASIN(number)",
-    "description": "Retorna o arco seno de um número em radianos (-pi/2 a pi/2).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "ASINH",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/asinh/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "ASINH(number)",
-    "description": "Retorna o arco seno hiperbólico de um número.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "ATAN",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/atan/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "ATAN(number)",
-    "description": "Retorna o arco tangente de um número em radianos (-pi/2 a pi/2).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "ATANH",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/atanh/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "ATANH(number)",
-    "description": "Retorna o arco tangente hiperbólico de um número (-1 < x < 1).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "CEILING",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/ceiling/",
-    "status": "full",
-    "testCount": 5,
-    "syntax": "CEILING(number, significance)",
-    "description": "Arredonda um número para cima, afastando-se de zero, até o múltiplo mais próximo da significância.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "COMBIN",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/combin/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "COMBIN(number, number_chosen)",
-    "description": "Retorna o número de combinações para um determinado número de itens sem repetição: n! / (k! * (n - k)!).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "COMBINA",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/combina/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "COMBINA(number, number_chosen)",
-    "description": "Retorna o número de combinações com repetições para um determinado número de itens: (n + k - 1)! / (k! * (n - 1)!).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "COS",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/cos/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "COS(number)",
-    "description": "Retorna o cosseno de um ângulo fornecido em radianos.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "COSH",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/cosh/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "COSH(number)",
-    "description": "Retorna o cosseno hiperbólico de um número.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "COT",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/cot/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "COT(number)",
-    "description": "Retorna a cotangente de um ângulo fornecido em radianos.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "COTH",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/coth/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "COTH(number)",
-    "description": "Retorna a cotangente hiperbólica de um número.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "CURRENCY",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/currency/",
-    "status": "full",
-    "testCount": 32,
-    "syntax": "CURRENCY(value)",
-    "description": "Converte o argumento no tipo Moeda do DAX (ponto fixo com 4 casas decimais).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "DEGREES",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/degrees/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "DEGREES(angle)",
-    "description": "Converte radianos em graus.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "DIVIDE",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/divide/",
-    "status": "full",
-    "testCount": 23,
-    "syntax": "DIVIDE(numerator, denominator, [alternate_result])",
-    "description": "Realiza divisão segura retornando resultado alternativo ou BLANK em caso de divisão por zero.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "EVEN",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/even/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "EVEN(number)",
-    "description": "Arredonda um número para cima até o inteiro par mais próximo, afastando-se de zero.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "EXP",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/exp/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "EXP(number)",
-    "description": "Retorna \"e\" elevado à potência de um número especificado.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "FACT",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/fact/",
-    "status": "full",
-    "testCount": 3,
-    "syntax": "FACT(number)",
-    "description": "Retorna o fatorial de um número inteiro não negativo.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "FLOOR",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/floor/",
-    "status": "full",
-    "testCount": 3,
-    "syntax": "FLOOR(number, significance)",
-    "description": "Arredonda um número para baixo, em direção a zero, até o múltiplo mais próximo da significância.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "GCD",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/gcd/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "GCD(number1, number2, ...)",
-    "description": "Retorna o máximo divisor comum (MDC) de dois ou mais inteiros.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "INT",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/int/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "INT(number)",
-    "description": "Arredonda um número para baixo até o inteiro mais próximo em direção a infinito negativo.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "ISO.CEILING",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/iso-ceiling/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "ISO.CEILING(number, [significance])",
-    "description": "Arredonda um número para cima até o múltiplo mais próximo, independentemente do sinal da significância.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "LCM",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/lcm/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "LCM(number1, number2, ...)",
-    "description": "Retorna o mínimo múltiplo comum (MMC) de dois ou mais inteiros.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "LN",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/ln/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "LN(number)",
-    "description": "Retorna o logaritmo natural de um número.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "LOG",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/log/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "LOG(number, [base])",
-    "description": "Retorna o logaritmo de um número na base especificada (padrão 10).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "LOG10",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/log10/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "LOG10(number)",
-    "description": "Retorna o logaritmo de base 10 de um número.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "MOD",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/mod/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "MOD(number, divisor)",
-    "description": "Retorna o resto da divisão. No DAX: MOD(n, d) = n - d * INT(n / d).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "MROUND",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/mround/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "MROUND(number, multiple)",
-    "description": "Retorna um número arredondado para o múltiplo desejado.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "ODD",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/odd/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "ODD(number)",
-    "description": "Arredonda um número para cima até o inteiro ímpar mais próximo, afastando-se de zero.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "PERMUT",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/permut/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "PERMUT(number, number_chosen)",
-    "description": "Retorna o número de permutações para um determinado número de objetos que podem ser selecionados de um total de objetos: n! / (n - k)!).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "PI",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/pi/",
-    "status": "full",
-    "testCount": 3,
-    "syntax": "PI()",
-    "description": "Retorna o valor da constante matemática Pi (3.141592653589793).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "POWER",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/power/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "POWER(number, power)",
-    "description": "Retorna o resultado de um número elevado a uma potência.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "QUOTIENT",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/quotient/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "QUOTIENT(numerator, denominator)",
-    "description": "Retorna a parte inteira de uma divisão em direção a zero.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "RADIANS",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/radians/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "RADIANS(angle)",
-    "description": "Converte graus em radianos.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "RAND",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/rand/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "RAND()",
-    "description": "Retorna um número decimal aleatório maior ou igual a 0 e menor que 1 (função volátil).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "RANDBETWEEN",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/randbetween/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "RANDBETWEEN(bottom, top)",
-    "description": "Retorna um número inteiro aleatório entre os limites especificados inclusive.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "ROUND",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/round/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "ROUND(number, num_digits)",
-    "description": "Arredonda um número para o número de casas decimais especificado.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "ROUNDDOWN",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/rounddown/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "ROUNDDOWN(number, num_digits)",
-    "description": "Arredonda um número para baixo, aproximando-se de zero.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "ROUNDUP",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/roundup/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "ROUNDUP(number, num_digits)",
-    "description": "Arredonda um número para cima, afastando-se de zero.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "SIGN",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/sign/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "SIGN(number)",
-    "description": "Retorna o sinal de um número: 1 se positivo, 0 se zero/BLANK, -1 se negativo.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "SIN",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/sin/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "SIN(number)",
-    "description": "Retorna o seno de um ângulo fornecido em radianos.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "SINH",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/sinh/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "SINH(number)",
-    "description": "Retorna o seno hiperbólico de um número.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "SQRT",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/sqrt/",
-    "status": "full",
-    "testCount": 4,
-    "syntax": "SQRT(number)",
-    "description": "Retorna a raiz quadrada positiva de um número.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "SQRTPI",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/sqrtpi/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "SQRTPI(number)",
-    "description": "Retorna a raiz quadrada de (número * Pi).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "TAN",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/tan/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "TAN(number)",
-    "description": "Retorna a tangente de um ângulo fornecido em radianos.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "TANH",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/tanh/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "TANH(number)",
-    "description": "Retorna a tangente hiperbólica de um número.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "TRUNC",
-    "category": "Math and Trig",
-    "guideUrl": "https://dax.guide/trunc/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "TRUNC(number, [num_digits])",
-    "description": "Trunca um número para um inteiro removendo a parte fracionária, ou para casas especificadas.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "BLANK",
-    "category": "Text",
-    "guideUrl": "https://dax.guide/blank/",
-    "status": "full",
-    "testCount": 31,
-    "syntax": "BLANK()",
-    "description": "Retorna um valor em branco (BLANK / nulo) equivalente a uma célula não preenchida.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "CHAR",
-    "category": "Text",
-    "guideUrl": "https://dax.guide/char/",
-    "status": "not_supported",
-    "testCount": 0,
-    "syntax": "CHAR()",
-    "description": "Função DAX CHAR.",
-    "notes": "Não implementada no motor atual."
-  },
-  {
-    "name": "CLEAN",
-    "category": "Text",
-    "guideUrl": "https://dax.guide/clean/",
-    "status": "not_supported",
-    "testCount": 0,
-    "syntax": "CLEAN()",
-    "description": "Função DAX CLEAN.",
-    "notes": "Não implementada no motor atual."
-  },
-  {
-    "name": "CODE",
-    "category": "Text",
-    "guideUrl": "https://dax.guide/code/",
-    "status": "not_supported",
-    "testCount": 0,
-    "syntax": "CODE()",
-    "description": "Função DAX CODE.",
-    "notes": "Não implementada no motor atual."
-  },
-  {
-    "name": "COMBINEVALUES",
-    "category": "Text",
-    "guideUrl": "https://dax.guide/combinevalues/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "COMBINEVALUES(delimiter, expression1, expression2, ...)",
-    "description": "Concatena dois ou mais valores de texto em uma única cadeia usando o delimitador especificado.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "CONCATENATE",
-    "category": "Text",
-    "guideUrl": "https://dax.guide/concatenate/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "CONCATENATE(text1, text2)",
-    "description": "Concatena duas cadeias de texto em uma só cadeia.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "CONCATENATEX",
-    "category": "Text",
-    "guideUrl": "https://dax.guide/concatenatex/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "CONCATENATEX(table, expression, [delimiter], [orderBy_expression], [order])",
-    "description": "Concatena o resultado de uma expressão avaliada para cada linha em uma tabela com delimitador e ordenação opcionais.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "EXACT",
-    "category": "Text",
-    "guideUrl": "https://dax.guide/exact/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "EXACT(text1, text2)",
-    "description": "Compara duas cadeias de texto e retorna TRUE se forem exatamente idênticas (diferencia maiúsculas de minúsculas), senão FALSE.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "FIND",
-    "category": "Text",
-    "guideUrl": "https://dax.guide/find/",
-    "status": "full",
-    "testCount": 25,
-    "syntax": "FIND(find_text, within_text, [start_num], [not_found_value])",
-    "description": "Retorna a posição inicial da primeira cadeia de texto dentro de outra cadeia (diferencia maiúsculas de minúsculas).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "FIXED",
-    "category": "Text",
-    "guideUrl": "https://dax.guide/fixed/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "FIXED(number, [decimals], [no_commas])",
-    "description": "Arredonda um número para o número de casas decimais especificado e retorna o resultado como texto formatado.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "FORMAT",
-    "category": "Text",
-    "guideUrl": "https://dax.guide/format/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "FORMAT(value, format_string)",
-    "description": "Converte um valor em texto de acordo com a cadeia de caracteres de formato especificada.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "LEFT",
-    "category": "Text",
-    "guideUrl": "https://dax.guide/left/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "LEFT(text, [num_chars])",
-    "description": "Retorna a quantidade de caracteres especificada a partir do início (esquerda) do texto.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "LEN",
-    "category": "Text",
-    "guideUrl": "https://dax.guide/len/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "LEN(text)",
-    "description": "Retorna a quantidade de caracteres em uma cadeia de texto.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "LOWER",
-    "category": "Text",
-    "guideUrl": "https://dax.guide/lower/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "LOWER(text)",
-    "description": "Converte todas as letras de um texto em minúsculas.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "MID",
-    "category": "Text",
-    "guideUrl": "https://dax.guide/mid/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "MID(text, start_num, num_chars)",
-    "description": "Retorna uma cadeia de caracteres de um texto a partir da posição inicial (base 1).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "REPLACE",
-    "category": "Text",
-    "guideUrl": "https://dax.guide/replace/",
-    "status": "full",
-    "testCount": 12,
-    "syntax": "REPLACE(old_text, start_num, num_chars, new_text)",
-    "description": "Substitui parte de uma cadeia de texto por um texto diferente com base na posição inicial e no comprimento.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "REPT",
-    "category": "Text",
-    "guideUrl": "https://dax.guide/rept/",
-    "status": "full",
-    "testCount": 3,
-    "syntax": "REPT(text, number_times)",
-    "description": "Repete o texto um determinado número de vezes.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "RIGHT",
-    "category": "Text",
-    "guideUrl": "https://dax.guide/right/",
-    "status": "full",
-    "testCount": 3,
-    "syntax": "RIGHT(text, [num_chars])",
-    "description": "Retorna a quantidade de caracteres especificada a partir do fim (direita) do texto.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "SEARCH",
-    "category": "Text",
-    "guideUrl": "https://dax.guide/search/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "SEARCH(find_text, within_text, [start_num], [not_found_value])",
-    "description": "Retorna o número da posição inicial de um texto dentro de outro, não diferenciando maiúsculas de minúsculas e aceitando curingas (? e *).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "SUBSTITUTE",
-    "category": "Text",
-    "guideUrl": "https://dax.guide/substitute/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "SUBSTITUTE(text, old_text, new_text, [instance_num])",
-    "description": "Substitui texto existente por novo texto em uma cadeia de caracteres.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "TRIM",
-    "category": "Text",
-    "guideUrl": "https://dax.guide/trim/",
-    "status": "full",
-    "testCount": 4,
-    "syntax": "TRIM(text)",
-    "description": "Remove todos os espaços em branco de um texto, exceto espaços únicos entre palavras.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "UNICHAR",
-    "category": "Text",
-    "guideUrl": "https://dax.guide/unichar/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "UNICHAR(number)",
-    "description": "Retorna o caractere Unicode referenciado pelo valor numérico fornecido.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "UNICODE",
-    "category": "Text",
-    "guideUrl": "https://dax.guide/unicode/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "UNICODE(text)",
-    "description": "Retorna o número (ponto de código) correspondente ao primeiro caractere do texto.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "UPPER",
-    "category": "Text",
-    "guideUrl": "https://dax.guide/upper/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "UPPER(text)",
-    "description": "Converte todas as letras de um texto em maiúsculas.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "VALUE",
-    "category": "Text",
-    "guideUrl": "https://dax.guide/value/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "VALUE(text)",
-    "description": "Converte uma cadeia de caracteres de texto que representa um número em um número.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "ADDCOLUMNS",
-    "category": "Table manipulation",
-    "guideUrl": "https://dax.guide/addcolumns/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "ADDCOLUMNS(table, name1, expression1, [name2, expression2, ...])",
-    "description": "Adiciona colunas calculadas à tabela ou expressão de tabela fornecida.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "CROSSJOIN",
-    "category": "Table manipulation",
-    "guideUrl": "https://dax.guide/crossjoin/",
-    "status": "full",
-    "testCount": 3,
-    "syntax": "CROSSJOIN(table1, table2, [table3, ...])",
-    "description": "Retorna o produto cartesiano das linhas de duas ou mais tabelas.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "CURRENTGROUP",
-    "category": "Table manipulation",
-    "guideUrl": "https://dax.guide/currentgroup/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "CURRENTGROUP()",
-    "description": "Retorna o subconjunto de linhas do grupo atual em uma expressão GROUPBY.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "DATATABLE",
-    "category": "Table manipulation",
-    "guideUrl": "https://dax.guide/datatable/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "DATATABLE(columnName1, dataType1, [columnName2, dataType2, ...], data)",
-    "description": "Define uma tabela inline com colunas, tipos e valores estáticos.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "DISTINCT",
-    "category": "Table manipulation",
-    "guideUrl": "https://dax.guide/distinct/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "DISTINCT(table_or_column)",
-    "description": "Retorna uma tabela de uma coluna contendo valores distintos no contexto de filtro atual.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "EXCEPT",
-    "category": "Table manipulation",
-    "guideUrl": "https://dax.guide/except/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "EXCEPT(leftTable, rightTable)",
-    "description": "Retorna as linhas de leftTable que não aparecem em rightTable.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "FILTERS",
-    "category": "Table manipulation",
-    "guideUrl": "https://dax.guide/filters/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "FILTERS(columnName)",
-    "description": "Retorna os valores que estão sendo aplicados diretamente como filtros à coluna especificada.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "GENERATE",
-    "category": "Table manipulation",
-    "guideUrl": "https://dax.guide/generate/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "GENERATE(table1, table2)",
-    "description": "Retorna uma tabela com o produto cartesiano entre table1 e a avaliação de table2 no contexto de cada linha de table1.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "GENERATEALL",
-    "category": "Table manipulation",
-    "guideUrl": "https://dax.guide/generateall/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "GENERATEALL(table1, table2)",
-    "description": "Similar ao GENERATE, mas preserva linhas de table1 mesmo quando table2 retorna vazio (left outer join).",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "GROUPBY",
-    "category": "Table manipulation",
-    "guideUrl": "https://dax.guide/groupby/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "GROUPBY(table, groupBy_column1, [groupBy_column2, ...], [name1, expression1, ...])",
-    "description": "Agrupa linhas e avalia agregações usando CURRENTGROUP().",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "INTERSECT",
-    "category": "Table manipulation",
-    "guideUrl": "https://dax.guide/intersect/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "INTERSECT(leftTable, rightTable)",
-    "description": "Retorna a interseção de linhas entre duas tabelas, mantendo as duplicatas de leftTable se presentes em rightTable.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "NATURALINNERJOIN",
-    "category": "Table manipulation",
-    "guideUrl": "https://dax.guide/naturalinnerjoin/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "NATURALINNERJOIN(leftTable, rightTable)",
-    "description": "Executa uma junção interna baseada nas colunas comuns entre as duas tabelas.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "NATURALLEFTOUTERJOIN",
-    "category": "Table manipulation",
-    "guideUrl": "https://dax.guide/naturalleftouterjoin/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "NATURALLEFTOUTERJOIN(leftTable, rightTable)",
-    "description": "Executa uma junção externa à esquerda baseada nas colunas comuns entre as duas tabelas.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "ROW",
-    "category": "Table manipulation",
-    "guideUrl": "https://dax.guide/row/",
-    "status": "full",
-    "testCount": 4,
-    "syntax": "ROW(name1, expression1, [name2, expression2, ...])",
-    "description": "Retorna uma tabela com uma única linha contendo valores calculados a partir das expressões fornecidas.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "SELECTCOLUMNS",
-    "category": "Table manipulation",
-    "guideUrl": "https://dax.guide/selectcolumns/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "SELECTCOLUMNS(table, name1, expression1, [name2, expression2, ...])",
-    "description": "Retorna uma tabela com as colunas selecionadas da tabela e as novas colunas especificadas.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "SUBSTITUTEWITHINDEX",
-    "category": "Table manipulation",
-    "guideUrl": "https://dax.guide/substitutewithindex/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "SUBSTITUTEWITHINDEX(table, indexColumnName, indexTable, orderByColumn, [order])",
-    "description": "Substitui ou adiciona uma coluna de índice baseada em outra tabela indexada.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "SUMMARIZE",
-    "category": "Table manipulation",
-    "guideUrl": "https://dax.guide/summarize/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "SUMMARIZE(table, groupBy_column1, [groupBy_column2, ...], [name1, expression1, ...])",
-    "description": "Retorna uma tabela de resumo para os totais solicitados em um conjunto de grupos.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "SUMMARIZECOLUMNS",
-    "category": "Table manipulation",
-    "guideUrl": "https://dax.guide/summarizecolumns/",
-    "status": "full",
-    "testCount": 8,
-    "syntax": "SUMMARIZECOLUMNS(groupBy_column1, ..., [filterTable1, ...], [name1, expression1, ...])",
-    "description": "Retorna uma tabela de resumo em um conjunto de grupos aplicando tabelas de filtro e agregando expressões.",
-    "notes": "Suporta agrupamentos multidimensionais com pares \"Nome\", Expressão."
-  },
-  {
-    "name": "TOPN",
-    "category": "Table manipulation",
-    "guideUrl": "https://dax.guide/topn/",
-    "status": "full",
-    "testCount": 4,
-    "syntax": "TOPN(n_value, table, [orderBy_expression], [order], ...)",
-    "description": "Retorna as primeiras N linhas de uma tabela ordenada por uma ou mais expressões.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "TREATAS",
-    "category": "Table manipulation",
-    "guideUrl": "https://dax.guide/treatas/",
-    "status": "not_supported",
-    "testCount": 0,
-    "syntax": "TREATAS()",
-    "description": "Função DAX TREATAS.",
-    "notes": "Não implementada no motor atual."
-  },
-  {
-    "name": "UNION",
-    "category": "Table manipulation",
-    "guideUrl": "https://dax.guide/union/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "UNION(table1, table2, [table3, ...])",
-    "description": "Cria uma tabela unindo as linhas de duas ou mais tabelas. A tabela resultante herda as colunas da primeira tabela.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "VALUES",
-    "category": "Table manipulation",
-    "guideUrl": "https://dax.guide/values/",
+    "name": "ALL",
+    "category": "Filter",
+    "guideUrl": "https://dax.guide/all/",
     "status": "full",
     "testCount": 17,
-    "syntax": "VALUES(table_or_column)",
-    "description": "Retorna uma tabela de uma coluna que contém os valores distintos da coluna ou tabela no contexto atual.",
-    "notes": "Implementada conforme dax.guide."
+    "syntax": "ALL([table_or_column], [column2], ...)",
+    "description": "Remove os filtros do contexto para a tabela ou colunas especificadas. Retorna todas as linhas ou valores distintos sem filtro.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
-    "name": "CROSSFILTER",
-    "category": "Relationship",
-    "guideUrl": "https://dax.guide/crossfilter/",
+    "name": "ALLCROSSFILTERED",
+    "category": "Filter",
+    "guideUrl": "https://dax.guide/allcrossfiltered/",
     "status": "partial",
     "testCount": 0,
-    "syntax": "CROSSFILTER(columnName1, columnName2, direction)",
-    "description": "Especifica a direção de filtragem cruzada a ser usada durante a avaliação de uma expressão CALCULATE.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
+    "syntax": "ALLCROSSFILTERED(table)",
+    "description": "Limpa todos os filtros aplicados à tabela e a todas as outras tabelas relacionadas a ela.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
   },
   {
-    "name": "RELATED",
-    "category": "Relationship",
-    "guideUrl": "https://dax.guide/related/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "RELATED(column)",
-    "description": "Retorna um valor relacionado de outra tabela navegando por um relacionamento no contexto de linha.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "RELATEDTABLE",
-    "category": "Relationship",
-    "guideUrl": "https://dax.guide/relatedtable/",
+    "name": "ALLEXCEPT",
+    "category": "Filter",
+    "guideUrl": "https://dax.guide/allexcept/",
     "status": "partial",
     "testCount": 0,
-    "syntax": "RELATEDTABLE(table)",
-    "description": "Retorna a tabela de linhas relacionadas à linha atual no contexto de linha.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
+    "syntax": "ALLEXCEPT(table, [column1], [column2], ...)",
+    "description": "Remove todos os filtros de contexto da tabela, exceto os filtros que foram aplicados às colunas especificadas.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
   },
   {
-    "name": "USERELATIONSHIP",
-    "category": "Relationship",
-    "guideUrl": "https://dax.guide/userelationship/",
+    "name": "ALLNOBLANKROW",
+    "category": "Filter",
+    "guideUrl": "https://dax.guide/allnoblankrow/",
     "status": "partial",
     "testCount": 0,
-    "syntax": "USERELATIONSHIP(columnName1, columnName2)",
-    "description": "Ativa um relacionamento inativo existente entre duas colunas durante o cálculo de CALCULATE.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
+    "syntax": "ALLNOBLANKROW(table_or_column)",
+    "description": "Semelhante a ALL, mas exclui a linha em branco adicionada pelo DAX para relacionamentos órfãos.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
   },
   {
-    "name": "PATH",
-    "category": "Parent-Child",
-    "guideUrl": "https://dax.guide/path/",
-    "status": "full",
-    "testCount": 6,
-    "syntax": "PATH(<ID_columnName>, <parent_columnName>)",
-    "description": "Retorna uma cadeia de caracteres delimitada por pipes com os identificadores de todos os pais do item atual, até o nível raiz.",
-    "notes": "Implementada conforme dax.guide."
+    "name": "ALLSELECTED",
+    "category": "Filter",
+    "guideUrl": "https://dax.guide/allselected/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "ALLSELECTED([table_or_column])",
+    "description": "Retorna todas as linhas em uma tabela ou todos os valores em uma coluna, ignorando filtros do visual atual mas mantendo filtros externos.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
   },
   {
-    "name": "PATHCONTAINS",
-    "category": "Parent-Child",
-    "guideUrl": "https://dax.guide/pathcontains/",
-    "status": "full",
-    "testCount": 5,
-    "syntax": "PATHCONTAINS(<Path>, <Item>)",
-    "description": "Retorna TRUE se o item especificado existir na cadeia de caminho delimitada por pipes.",
-    "notes": "Implementada conforme dax.guide."
+    "name": "ALLSELECTEDAPPLY",
+    "category": "Filter",
+    "guideUrl": "https://dax.guide/allselectedapply/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "ALLSELECTEDAPPLY()",
+    "description": "Função DAX ALLSELECTEDAPPLY.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
   },
   {
-    "name": "PATHITEM",
-    "category": "Parent-Child",
-    "guideUrl": "https://dax.guide/pathitem/",
-    "status": "full",
-    "testCount": 6,
-    "syntax": "PATHITEM(<Path>, <Position> [, <Type>])",
-    "description": "Retorna o item na posição especificada (base 1, da raiz para as folhas) de uma cadeia resultante de PATH.",
-    "notes": "Implementada conforme dax.guide."
+    "name": "ALLSELECTEDREMOVE",
+    "category": "Filter",
+    "guideUrl": "https://dax.guide/allselectedremove/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "ALLSELECTEDREMOVE()",
+    "description": "Função DAX ALLSELECTEDREMOVE.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
   },
   {
-    "name": "PATHITEMREVERSE",
-    "category": "Parent-Child",
-    "guideUrl": "https://dax.guide/pathitemreverse/",
-    "status": "full",
-    "testCount": 6,
-    "syntax": "PATHITEMREVERSE(<Path>, <Position> [, <Type>])",
-    "description": "Retorna o item na posição especificada contando de trás para frente (base 1, das folhas para a raiz).",
-    "notes": "Implementada conforme dax.guide."
+    "name": "ALWAYSAPPLY",
+    "category": "Filter",
+    "guideUrl": "https://dax.guide/alwaysapply/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "ALWAYSAPPLY()",
+    "description": "Função DAX ALWAYSAPPLY.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
   },
   {
-    "name": "PATHLENGTH",
-    "category": "Parent-Child",
-    "guideUrl": "https://dax.guide/pathlength/",
+    "name": "CALCULATE",
+    "category": "Filter",
+    "guideUrl": "https://dax.guide/calculate/",
     "status": "full",
-    "testCount": 4,
-    "syntax": "PATHLENGTH(<Path>)",
-    "description": "Retorna o número de itens ou níveis na cadeia de delimitadores de PATH especificada.",
-    "notes": "Implementada conforme dax.guide."
+    "testCount": 40,
+    "syntax": "CALCULATE(expression, [filter1], [filter2], ...)",
+    "description": "Avalia uma expressão sob um contexto modificado pelos filtros informados (transição de contexto e sobreposição de filtros).",
+    "notes": "Suporta modificadores FILTER, ALL, ALLEXCEPT, KEEPFILTERS, USERELATIONSHIP e context transition em iteradores.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "CALCULATETABLE",
+    "category": "Filter",
+    "guideUrl": "https://dax.guide/calculatetable/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "CALCULATETABLE(table, [filter1], [filter2], ...)",
+    "description": "Avalia uma expressão de tabela em um contexto modificado pelos filtros informados.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "DEPENDON",
+    "category": "Filter",
+    "guideUrl": "https://dax.guide/dependon/",
+    "status": "full",
+    "testCount": 3,
+    "syntax": "DEPENDON(<ResultExpression>, <Dependency1> [, <Dependency2> ...])",
+    "description": "Força a avaliação das dependências antes de avaliar e retornar a expressão de resultado (dax.guide/dependon/).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "FILTER",
+    "category": "Filter",
+    "guideUrl": "https://dax.guide/filter/",
+    "status": "full",
+    "testCount": 16,
+    "syntax": "FILTER(table, filter_expression)",
+    "description": "Retorna uma tabela contendo apenas as linhas que satisfazem a condição de filtro avaliada linha a linha.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "FILTERCLUSTER",
+    "category": "Filter",
+    "guideUrl": "https://dax.guide/filtercluster/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "FILTERCLUSTER(...)",
+    "description": "Não suportada no navegador: clusterização de infraestrutura interna do Analysis Services.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "GROUPCROSSAPPLY",
+    "category": "Filter",
+    "guideUrl": "https://dax.guide/groupcrossapply/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "GROUPCROSSAPPLY(...)",
+    "description": "Não suportada no navegador: operação interna de motor distribuído.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "GROUPCROSSAPPLYTABLE",
+    "category": "Filter",
+    "guideUrl": "https://dax.guide/groupcrossapplytable/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "GROUPCROSSAPPLYTABLE(...)",
+    "description": "Não suportada no navegador: operação interna de motor distribuído.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "INDEX",
-    "category": "Window and Ranking",
+    "category": "Filter",
     "guideUrl": "https://dax.guide/index/",
     "status": "full",
     "testCount": 4,
     "syntax": "INDEX(position, [relation], [orderBy], [blanks], [partitionBy], [matchBy])",
     "description": "Retorna a linha na posição especificada dentro da relação ordenada. No dialeto de coluna, INDEX() retorna o índice da linha atual.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "KEEPFILTERS",
+    "category": "Filter",
+    "guideUrl": "https://dax.guide/keepfilters/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "KEEPFILTERS(expression)",
+    "description": "Modifica como os filtros são aplicados durante a avaliação de uma função CALCULATE, fazendo interseção em vez de sobrescrever.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "LOOKUP",
+    "category": "Filter",
+    "guideUrl": "https://dax.guide/lookup/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "LOOKUP(result_column, [relation], [orderBy], [blanks], [partitionBy], [matchBy])",
+    "description": "Retorna um único valor da coluna de resultado na linha especificada dentro da relação ordenada.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "LOOKUPVALUE",
+    "category": "Filter",
+    "guideUrl": "https://dax.guide/lookupvalue/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "LOOKUPVALUE(result_column, search_column1, search_value1, [search_column2, search_value2, ...], [alternateResult])",
+    "description": "Retorna o valor de result_column para a linha que atende a todos os critérios especificados por search_column e search_value.",
+    "notes": "Suporta busca simples de coluna no contexto de modelo. Não suporta critérios compostos com múltiplos valores alternativos.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "LOOKUPWITHTOTALS",
+    "category": "Filter",
+    "guideUrl": "https://dax.guide/lookupwithtotals/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "LOOKUPWITHTOTALS(result_column, [relation], [orderBy], [blanks], [partitionBy], [matchBy])",
+    "description": "Retorna um único valor da coluna de resultado incluindo totais.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "MATCHBY",
+    "category": "Filter",
+    "guideUrl": "https://dax.guide/matchby/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "MATCHBY(col1, [col2], ...)",
+    "description": "Define as colunas que identificam de forma única cada linha da relação nas funções de janela.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "NONFILTER",
+    "category": "Filter",
+    "guideUrl": "https://dax.guide/nonfilter/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "NONFILTER()",
+    "description": "Função DAX NONFILTER.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
   },
   {
     "name": "OFFSET",
-    "category": "Window and Ranking",
+    "category": "Filter",
     "guideUrl": "https://dax.guide/offset/",
     "status": "partial",
     "testCount": 0,
     "syntax": "OFFSET(delta, [relation], [orderBy], [blanks], [partitionBy], [matchBy])",
     "description": "Retorna a linha deslocada por delta posições a partir da linha atual dentro da relação.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
   },
   {
-    "name": "RANK",
-    "category": "Window and Ranking",
-    "guideUrl": "https://dax.guide/rank/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "RANK([ties], [relation], [orderBy], [blanks], [partitionBy], [matchBy])",
-    "description": "Retorna a classificação da linha atual dentro da partição especificada na ordenação dada.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "RANKX",
-    "category": "Window and Ranking",
-    "guideUrl": "https://dax.guide/rankx/",
-    "status": "full",
-    "testCount": 7,
-    "syntax": "RANKX(table, expression, [value], [order], [ties])",
-    "description": "Calcula o ranking de uma expressão sobre uma tabela avaliada para cada linha. Suporta ordem ASC/DESC e desempate Skip/Dense.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "ROWNUMBER",
-    "category": "Window and Ranking",
-    "guideUrl": "https://dax.guide/rownumber/",
+    "name": "ORDERBY",
+    "category": "Filter",
+    "guideUrl": "https://dax.guide/orderby/",
     "status": "full",
     "testCount": 1,
-    "syntax": "ROWNUMBER([relation], [orderBy], [blanks], [partitionBy], [matchBy])",
-    "description": "Retorna a classificação única e sequencial (1..N) da linha atual dentro da partição.",
-    "notes": "Implementada conforme dax.guide."
+    "syntax": "ORDERBY(col1, [direction], [col2, direction], ...)",
+    "description": "Define as colunas e a ordem de classificação para funções de janela e ranking (INDEX, OFFSET, WINDOW, RANK).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "PARTITIONBY",
+    "category": "Filter",
+    "guideUrl": "https://dax.guide/partitionby/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "PARTITIONBY(col1, [col2], ...)",
+    "description": "Define as colunas usadas para particionar a relação em funções de janela e ranking.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "REMOVEFILTERS",
+    "category": "Filter",
+    "guideUrl": "https://dax.guide/removefilters/",
+    "status": "full",
+    "testCount": 3,
+    "syntax": "REMOVEFILTERS([table_or_column], ...)",
+    "description": "Remove filtros das tabelas ou colunas especificadas. É sinônimo de ALL quando usado como modificador de filtro.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "SELECTEDVALUE",
+    "category": "Filter",
+    "guideUrl": "https://dax.guide/selectedvalue/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "SELECTEDVALUE(column, [alternateResult])",
+    "description": "Retorna o valor quando o contexto para a coluna foi filtrado para apenas um valor distinto. Caso contrário, retorna o resultado alternativo (ou BLANK).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "SHADOWCLUSTER",
+    "category": "Filter",
+    "guideUrl": "https://dax.guide/shadowcluster/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "SHADOWCLUSTER(...)",
+    "description": "Não suportada no navegador: clusterização de infraestrutura interna do Analysis Services.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "WINDOW",
-    "category": "Window and Ranking",
+    "category": "Filter",
     "guideUrl": "https://dax.guide/window/",
     "status": "partial",
     "testCount": 0,
     "syntax": "WINDOW(from, [from_type], to, [to_type], [relation], [orderBy], [blanks], [partitionBy], [matchBy])",
     "description": "Retorna múltiplas linhas posicionadas dentro do intervalo especificado relativo ou absoluto.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "COLLAPSE",
-    "category": "Visual Calculations",
-    "guideUrl": "https://dax.guide/collapse/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "COLLAPSE(column, [axis])",
-    "description": "Agrupa no nível pai dentro da hierarquia do visual.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "COLLAPSEALL",
-    "category": "Visual Calculations",
-    "guideUrl": "https://dax.guide/collapseall/",
-    "status": "full",
-    "testCount": 3,
-    "syntax": "COLLAPSEALL(column, [axis])",
-    "description": "Agrupa em todos os níveis no escopo do visual (total geral do visual).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "EXPAND",
-    "category": "Visual Calculations",
-    "guideUrl": "https://dax.guide/expand/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "EXPAND(column, [axis])",
-    "description": "Expande para o próximo nível dentro da hierarquia do visual.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "EXPANDALL",
-    "category": "Visual Calculations",
-    "guideUrl": "https://dax.guide/expandall/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "EXPANDALL(column, [axis])",
-    "description": "Expande para todos os níveis detalhados do visual.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "FIRST",
-    "category": "Visual Calculations",
-    "guideUrl": "https://dax.guide/first/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "FIRST(column, [reset], [axis])",
-    "description": "Retorna o valor da primeira linha no escopo do visual.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "LAST",
-    "category": "Visual Calculations",
-    "guideUrl": "https://dax.guide/last/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "LAST(column, [reset], [axis])",
-    "description": "Retorna o valor da última linha no escopo do visual.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "MOVINGAVERAGE",
-    "category": "Visual Calculations",
-    "guideUrl": "https://dax.guide/movingaverage/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "MOVINGAVERAGE(column, windowSize, [reset], [axis])",
-    "description": "Calcula a média móvel de uma coluna no tamanho de janela especificado.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "NEXT",
-    "category": "Visual Calculations",
-    "guideUrl": "https://dax.guide/next/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "NEXT(column, [offset], [reset], [axis])",
-    "description": "Retorna o valor da próxima linha dentro do visual. Retorna BLANK na última linha.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "PREVIOUS",
-    "category": "Visual Calculations",
-    "guideUrl": "https://dax.guide/previous/",
-    "status": "full",
-    "testCount": 4,
-    "syntax": "PREVIOUS(column, [offset], [reset], [axis])",
-    "description": "Retorna o valor da linha anterior dentro do visual. Retorna BLANK na primeira linha.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "RUNNINGSUM",
-    "category": "Visual Calculations",
-    "guideUrl": "https://dax.guide/runningsum/",
-    "status": "full",
-    "testCount": 4,
-    "syntax": "RUNNINGSUM(column, [reset], [axis])",
-    "description": "Calcula a soma acumulada de uma coluna ao longo das linhas do visual.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "ISSELECTEDMEASURE",
-    "category": "Calculation Groups",
-    "guideUrl": "https://dax.guide/isselectedmeasure/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "ISSELECTEDMEASURE(<measure1> [, <measure2> ...])",
-    "description": "Retorna TRUE se a medida atualmente em avaliação for uma das medidas especificadas.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "SELECTEDMEASURE",
-    "category": "Calculation Groups",
-    "guideUrl": "https://dax.guide/selectedmeasure/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "SELECTEDMEASURE()",
-    "description": "Usada por itens de cálculo para fazer referência à medida atualmente em avaliação no contexto.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "SELECTEDMEASUREFORMATSTRING",
-    "category": "Calculation Groups",
-    "guideUrl": "https://dax.guide/selectedmeasureformatstring/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "SELECTEDMEASUREFORMATSTRING()",
-    "description": "Retorna a cadeia de formatação (format string) da medida atualmente selecionada.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "SELECTEDMEASURENAME",
-    "category": "Calculation Groups",
-    "guideUrl": "https://dax.guide/selectedmeasurename/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "SELECTEDMEASURENAME()",
-    "description": "Retorna o nome da medida atualmente selecionada pelo item de cálculo.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "BETA.DIST",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/beta-dist/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "BETA.DIST(x, alpha, beta, cumulative, [A], [B])",
-    "description": "Retorna a função de densidade de probabilidade ou acumulada da distribuição beta.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "BETA.INV",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/beta-inv/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "BETA.INV(probability, alpha, beta, [A], [B])",
-    "description": "Retorna o inverso da função de densidade de probabilidade cumulativa da distribuição beta.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "CHISQ.DIST",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/chisq-dist/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "CHISQ.DIST(x, deg_freedom, cumulative)",
-    "description": "Retorna a distribuição qui-quadrado.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "CHISQ.DIST.RT",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/chisq-dist-rt/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "CHISQ.DIST.RT(x, deg_freedom)",
-    "description": "Retorna a probabilidade de cauda direita da distribuição qui-quadrado.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "CHISQ.INV",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/chisq-inv/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "CHISQ.INV(probability, deg_freedom)",
-    "description": "Retorna o inverso da probabilidade de cauda esquerda da distribuição qui-quadrado.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "CHISQ.INV.RT",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/chisq-inv-rt/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "CHISQ.INV.RT(probability, deg_freedom)",
-    "description": "Retorna o inverso da probabilidade de cauda direita da distribuição qui-quadrado.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "CONFIDENCE.NORM",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/confidence-norm/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "CONFIDENCE.NORM(alpha, standard_dev, size)",
-    "description": "Retorna o intervalo de confiança para a média de uma população, usando uma distribuição normal.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "CONFIDENCE.T",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/confidence-t/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "CONFIDENCE.T(alpha, standard_dev, size)",
-    "description": "Retorna o intervalo de confiança para a média de uma população, usando a distribuição t de Student.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "EXPON.DIST",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/expon-dist/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "EXPON.DIST(x, lambda, cumulative)",
-    "description": "Retorna a distribuição exponencial.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "F.DIST",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/f-dist/",
-    "status": "not_supported",
-    "testCount": 0,
-    "syntax": "F.DIST()",
-    "description": "Função DAX F.DIST.",
-    "notes": "Não implementada no motor atual."
-  },
-  {
-    "name": "F.DIST.RT",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/f-dist-rt/",
-    "status": "not_supported",
-    "testCount": 0,
-    "syntax": "F.DIST.RT()",
-    "description": "Função DAX F.DIST.RT.",
-    "notes": "Não implementada no motor atual."
-  },
-  {
-    "name": "F.INV",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/f-inv/",
-    "status": "not_supported",
-    "testCount": 0,
-    "syntax": "F.INV()",
-    "description": "Função DAX F.INV.",
-    "notes": "Não implementada no motor atual."
-  },
-  {
-    "name": "F.INV.RT",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/f-inv-rt/",
-    "status": "not_supported",
-    "testCount": 0,
-    "syntax": "F.INV.RT()",
-    "description": "Função DAX F.INV.RT.",
-    "notes": "Não implementada no motor atual."
-  },
-  {
-    "name": "GAMMA.DIST",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/gamma-dist/",
-    "status": "not_supported",
-    "testCount": 0,
-    "syntax": "GAMMA.DIST()",
-    "description": "Função DAX GAMMA.DIST.",
-    "notes": "Não implementada no motor atual."
-  },
-  {
-    "name": "GAMMA.INV",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/gamma-inv/",
-    "status": "not_supported",
-    "testCount": 0,
-    "syntax": "GAMMA.INV()",
-    "description": "Função DAX GAMMA.INV.",
-    "notes": "Não implementada no motor atual."
-  },
-  {
-    "name": "GAMMALN",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/gammaln/",
-    "status": "not_supported",
-    "testCount": 0,
-    "syntax": "GAMMALN()",
-    "description": "Função DAX GAMMALN.",
-    "notes": "Não implementada no motor atual."
-  },
-  {
-    "name": "GEOMEAN",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/geomean/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "GEOMEAN(column)",
-    "description": "Calcula a média geométrica dos valores positivos de uma coluna.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "GEOMEANX",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/geomeanx/",
-    "status": "full",
-    "testCount": 3,
-    "syntax": "GEOMEANX(table, expression)",
-    "description": "Avalia a expressão para cada linha da tabela e calcula a média geométrica.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "LINEST",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/linest/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "LINEST(y_column, x_column, [const])",
-    "description": "Executa uma regressão linear simples usando o método dos mínimos quadrados.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "LINESTX",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/linestx/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "LINESTX(table, y_expr, x_expr, [const])",
-    "description": "Avalia pares de expressões (Y, X) sobre a tabela e retorna os coeficientes de regressão linear.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "LOGNORM.DIST",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/lognorm-dist/",
-    "status": "not_supported",
-    "testCount": 0,
-    "syntax": "LOGNORM.DIST()",
-    "description": "Função DAX LOGNORM.DIST.",
-    "notes": "Não implementada no motor atual."
-  },
-  {
-    "name": "LOGNORM.INV",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/lognorm-inv/",
-    "status": "not_supported",
-    "testCount": 0,
-    "syntax": "LOGNORM.INV()",
-    "description": "Função DAX LOGNORM.INV.",
-    "notes": "Não implementada no motor atual."
-  },
-  {
-    "name": "NORM.DIST",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/norm-dist/",
-    "status": "full",
-    "testCount": 3,
-    "syntax": "NORM.DIST(x, mean, standard_dev, cumulative)",
-    "description": "Retorna a distribuição normal para a média e desvio padrão especificados.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "NORM.INV",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/norm-inv/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "NORM.INV(probability, mean, standard_dev)",
-    "description": "Retorna o inverso da distribuição normal cumulativa para uma dada probabilidade, média e desvio padrão.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "NORM.S.DIST",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/norm-s-dist/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "NORM.S.DIST(z, cumulative)",
-    "description": "Retorna a distribuição normal padrão (média 0, desvio padrão 1).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "NORM.S.INV",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/norm-s-inv/",
-    "status": "full",
-    "testCount": 3,
-    "syntax": "NORM.S.INV(probability)",
-    "description": "Retorna o inverso da distribuição normal cumulativa padrão (média 0 e desvio padrão 1).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "POISSON.DIST",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/poisson-dist/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "POISSON.DIST(x, mean, cumulative)",
-    "description": "Retorna a distribuição de Poisson.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "RANK.EQ",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/rank-eq/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "RANK.EQ(value, columnName, [order])",
-    "description": "Retorna o ranking de um número específico dentro de uma lista/coluna de números.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "SAMPLE",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/sample/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "SAMPLE(n_value, table, [order_by_col], [order])",
-    "description": "Retorna uma amostra de N linhas da tabela especificada.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "STDEV.P",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/stdev-p/",
-    "status": "full",
-    "testCount": 2,
-    "syntax": "STDEV.P(column)",
-    "description": "Calcula o desvio padrão populacional de uma coluna com base em toda a população (divide por n).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "STDEV.S",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/stdev-s/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "STDEV.S(column)",
-    "description": "Calcula o desvio padrão amostral de uma coluna com base em uma amostra da população (divide por n - 1).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "STDEVX.P",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/stdevx-p/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "STDEVX.P(table, expression)",
-    "description": "Avalia a expressão sobre a tabela e calcula o desvio padrão populacional.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "STDEVX.S",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/stdevx-s/",
-    "status": "partial",
-    "testCount": 0,
-    "syntax": "STDEVX.S(table, expression)",
-    "description": "Avalia a expressão sobre a tabela e calcula o desvio padrão amostral.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "T.DIST",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/t-dist/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "T.DIST(x, deg_freedom, cumulative)",
-    "description": "Retorna a distribuição t de Student (cauda esquerda).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "T.DIST.2T",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/t-dist-2t/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "T.DIST.2T(x, deg_freedom)",
-    "description": "Retorna a distribuição t de Student bicaudal para x > 0.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "T.DIST.RT",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/t-dist-rt/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "T.DIST.RT(x, deg_freedom)",
-    "description": "Retorna a distribuição t de Student para a cauda direita.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "T.INV",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/t-inv/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "T.INV(probability, deg_freedom)",
-    "description": "Retorna o inverso da função de distribuição acumulada t de Student unicaudal (cauda esquerda).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "T.INV.2T",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/t-inv-2t/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "T.INV.2T(probability, deg_freedom)",
-    "description": "Retorna o inverso bicaudal da distribuição t de Student.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "VAR.P",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/var-p/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "VAR.P(column)",
-    "description": "Calcula a variância populacional de uma coluna com base em toda a população (divide por n).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "VAR.S",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/var-s/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "VAR.S(column)",
-    "description": "Calcula a variância amostral de uma coluna com base em uma amostra da população (divide por n - 1).",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "VARX.P",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/varx-p/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "VARX.P(table, expression)",
-    "description": "Avalia a expressão sobre a tabela e calcula a variância populacional.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "VARX.S",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/varx-s/",
-    "status": "full",
-    "testCount": 1,
-    "syntax": "VARX.S(table, expression)",
-    "description": "Avalia a expressão sobre a tabela e calcula a variância amostral.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "WEIBULL.DIST",
-    "category": "Statistical",
-    "guideUrl": "https://dax.guide/weibull-dist/",
-    "status": "not_supported",
-    "testCount": 0,
-    "syntax": "WEIBULL.DIST()",
-    "description": "Função DAX WEIBULL.DIST.",
-    "notes": "Não implementada no motor atual."
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
   },
   {
     "name": "ACCRINT",
@@ -3138,7 +909,9 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 0,
     "syntax": "ACCRINT(issue, first_interest, settlement, rate, par, frequency, [basis], [calc_method])",
     "description": "Retorna os juros acumulados de um título que paga juros periódicos.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
   },
   {
     "name": "ACCRINTM",
@@ -3148,7 +921,9 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 0,
     "syntax": "ACCRINTM(issue, settlement, rate, par, [basis])",
     "description": "Retorna os juros acumulados de um título que paga juros no vencimento.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
   },
   {
     "name": "AMORDEGRC",
@@ -3158,7 +933,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "AMORDEGRC(cost, date_purchased, first_period, salvage, period, rate, [basis])",
     "description": "Retorna a amortização degressiva para cada período de contabilidade (sistema francês).",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "AMORLINC",
@@ -3168,7 +944,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "AMORLINC(cost, date_purchased, first_period, salvage, period, rate, [basis])",
     "description": "Retorna a amortização linear para cada período de contabilidade (sistema francês).",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "COUPDAYBS",
@@ -3178,7 +955,9 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 0,
     "syntax": "COUPDAYBS(settlement, maturity, frequency, [basis])",
     "description": "Retorna o número de dias desde o início do período do cupom até a data de liquidação.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
   },
   {
     "name": "COUPDAYS",
@@ -3188,7 +967,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "COUPDAYS(settlement, maturity, frequency, [basis])",
     "description": "Retorna o número de dias no período de cupom que contém a data de liquidação.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "COUPDAYSNC",
@@ -3198,7 +978,9 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 0,
     "syntax": "COUPDAYSNC(settlement, maturity, frequency, [basis])",
     "description": "Retorna o número de dias da data de liquidação até a próxima data de cupom.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
   },
   {
     "name": "COUPNCD",
@@ -3208,7 +990,9 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 0,
     "syntax": "COUPNCD(settlement, maturity, frequency, [basis])",
     "description": "Retorna a próxima data de cupom após a data de liquidação.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
   },
   {
     "name": "COUPNUM",
@@ -3218,7 +1002,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "COUPNUM(settlement, maturity, frequency, [basis])",
     "description": "Retorna o número de cupons a serem pagos entre a data de liquidação e a data de vencimento.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "COUPPCD",
@@ -3228,7 +1013,9 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 0,
     "syntax": "COUPPCD(settlement, maturity, frequency, [basis])",
     "description": "Retorna a data de cupom anterior à data de liquidação.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
   },
   {
     "name": "CUMIPMT",
@@ -3238,7 +1025,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "CUMIPMT(rate, nper, pv, start_period, end_period, type)",
     "description": "Retorna os juros cumulativos pagos sobre um empréstimo entre o período inicial e o período final.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "CUMPRINC",
@@ -3248,7 +1036,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "CUMPRINC(rate, nper, pv, start_period, end_period, type)",
     "description": "Retorna o capital cumulativo pago sobre um empréstimo entre o período inicial e o período final.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "DB",
@@ -3258,7 +1047,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "DB(cost, salvage, life, period, [month])",
     "description": "Retorna a depreciação de um ativo para um período especificado usando o método de balanço de redução fixo.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "DDB",
@@ -3268,7 +1058,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "DDB(cost, salvage, life, period, [factor])",
     "description": "Retorna a depreciação de um ativo para um período especificado usando o método de saldo decrescente duplo ou outro fator.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "DISC",
@@ -3278,7 +1069,9 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 0,
     "syntax": "DISC(settlement, maturity, pr, redemption, [basis])",
     "description": "Retorna a taxa de desconto de um título.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
   },
   {
     "name": "DOLLARDE",
@@ -3288,7 +1081,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "DOLLARDE(fractional_dollar, fraction)",
     "description": "Converte um preço em dólar expresso como fração em um preço em dólar expresso como número decimal.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "DOLLARFR",
@@ -3298,7 +1092,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "DOLLARFR(decimal_dollar, fraction)",
     "description": "Converte um preço em dólar expresso como número decimal em um preço em dólar expresso como fração.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "DURATION",
@@ -3308,7 +1103,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "DURATION(settlement, maturity, coupon, yld, frequency, [basis])",
     "description": "Retorna a duração anual de Macauley para um título com pagamentos periódicos de cupom.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "EFFECT",
@@ -3318,7 +1114,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "EFFECT(nominal_rate, npery)",
     "description": "Retorna a taxa de juros anual efetiva, dadas a taxa de juros nominal anual e o número de períodos de composição por ano.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "FV",
@@ -3328,17 +1125,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "FV(rate, nper, pmt, [pv], [type])",
     "description": "Calcula o valor futuro de um investimento com base em pagamentos periódicos constantes e taxa de juros constante.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "FVSCHEDULE",
-    "category": "Financial",
-    "guideUrl": "https://dax.guide/fvschedule/",
-    "status": "not_supported",
-    "testCount": 0,
-    "syntax": "FVSCHEDULE()",
-    "description": "Função DAX FVSCHEDULE.",
-    "notes": "Não implementada no motor atual."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "INTRATE",
@@ -3348,7 +1136,9 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 0,
     "syntax": "INTRATE(settlement, maturity, investment, redemption, [basis])",
     "description": "Retorna a taxa de juros para um título totalmente investido.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
   },
   {
     "name": "IPMT",
@@ -3358,17 +1148,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "IPMT(rate, per, nper, pv, [fv], [type])",
     "description": "Calcula o pagamento de juros de um investimento em um período específico.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "IRR",
-    "category": "Financial",
-    "guideUrl": "https://dax.guide/irr/",
-    "status": "not_supported",
-    "testCount": 0,
-    "syntax": "IRR()",
-    "description": "Função DAX IRR.",
-    "notes": "Não implementada no motor atual."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "ISPMT",
@@ -3378,7 +1159,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "ISPMT(rate, per, nper, pv)",
     "description": "Calcula os juros pagos durante um período específico de um investimento com amortização constante de principal.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "MDURATION",
@@ -3388,17 +1170,9 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 0,
     "syntax": "MDURATION(settlement, maturity, coupon, yld, frequency, [basis])",
     "description": "Retorna a duração modificada de Macauley para um título com valor de face de R$ 100.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
-  },
-  {
-    "name": "MIRR",
-    "category": "Financial",
-    "guideUrl": "https://dax.guide/mirr/",
-    "status": "not_supported",
-    "testCount": 0,
-    "syntax": "MIRR()",
-    "description": "Função DAX MIRR.",
-    "notes": "Não implementada no motor atual."
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
   },
   {
     "name": "NOMINAL",
@@ -3408,7 +1182,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "NOMINAL(effect_rate, npery)",
     "description": "Retorna a taxa de juros nominal anual, dadas a taxa efetiva e o número de períodos de composição por ano.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "NPER",
@@ -3418,17 +1193,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "NPER(rate, pmt, pv, [fv], [type])",
     "description": "Retorna o número de períodos de um investimento com base em pagamentos periódicos e constantes e taxa de juros constante.",
-    "notes": "Implementada conforme dax.guide."
-  },
-  {
-    "name": "NPV",
-    "category": "Financial",
-    "guideUrl": "https://dax.guide/npv/",
-    "status": "not_supported",
-    "testCount": 0,
-    "syntax": "NPV()",
-    "description": "Função DAX NPV.",
-    "notes": "Não implementada no motor atual."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "ODDFPRICE",
@@ -3438,7 +1204,9 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 0,
     "syntax": "ODDFPRICE(settlement, maturity, issue, first_coupon, rate, yld, redemption, frequency, [basis])",
     "description": "Retorna o preço por R$ 100 de valor de face de um título com um primeiro período ímpar (curto ou longo).",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
   },
   {
     "name": "ODDFYIELD",
@@ -3448,7 +1216,9 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 0,
     "syntax": "ODDFYIELD(settlement, maturity, issue, first_coupon, rate, pr, redemption, frequency, [basis])",
     "description": "Retorna o rendimento de um título com primeiro período ímpar.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
   },
   {
     "name": "ODDLPRICE",
@@ -3458,7 +1228,9 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 0,
     "syntax": "ODDLPRICE(settlement, maturity, last_interest, rate, yld, redemption, frequency, [basis])",
     "description": "Retorna o preço por R$ 100 de valor de face de um título com um último período de cupom ímpar.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
   },
   {
     "name": "ODDLYIELD",
@@ -3468,7 +1240,9 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 0,
     "syntax": "ODDLYIELD(settlement, maturity, last_interest, rate, pr, redemption, frequency, [basis])",
     "description": "Retorna o rendimento de um título com um último período ímpar.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
   },
   {
     "name": "PDURATION",
@@ -3478,7 +1252,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "PDURATION(rate, pv, fv)",
     "description": "Retorna o número de períodos necessários para que um investimento atinja um valor especificado.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "PMT",
@@ -3488,7 +1263,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 6,
     "syntax": "PMT(rate, nper, pv, [fv], [type])",
     "description": "Calcula o pagamento de um empréstimo com base em pagamentos constantes e uma taxa de juros constante.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "PPMT",
@@ -3498,7 +1274,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "PPMT(rate, per, nper, pv, [fv], [type])",
     "description": "Calcula o pagamento sobre o capital de um investimento em um determinado período.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "PRICE",
@@ -3508,7 +1285,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "PRICE(settlement, maturity, rate, yld, redemption, frequency, [basis])",
     "description": "Retorna o preço por R$ 100 de valor de face de um título que paga juros periódicos.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "PRICEDISC",
@@ -3518,7 +1296,9 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 0,
     "syntax": "PRICEDISC(settlement, maturity, discount, redemption, [basis])",
     "description": "Retorna o preço por R$ 100 de valor de face de um título com desconto.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
   },
   {
     "name": "PRICEMAT",
@@ -3528,7 +1308,9 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 0,
     "syntax": "PRICEMAT(settlement, maturity, issue, rate, yld, [basis])",
     "description": "Retorna o preço por R$ 100 de valor de face de um título que paga juros no vencimento.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
   },
   {
     "name": "PV",
@@ -3538,7 +1320,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "PV(rate, nper, pmt, [fv], [type])",
     "description": "Calcula o valor presente de um investimento.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "RATE",
@@ -3548,7 +1331,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "RATE(nper, pmt, pv, [fv], [type], [guess])",
     "description": "Retorna a taxa de juros por período de uma anuidade.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "RECEIVED",
@@ -3558,7 +1342,9 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 0,
     "syntax": "RECEIVED(settlement, maturity, investment, discount, [basis])",
     "description": "Retorna o valor recebido no vencimento para um título com desconto totalmente investido.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
   },
   {
     "name": "RRI",
@@ -3568,7 +1354,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "RRI(nper, pv, fv)",
     "description": "Retorna uma taxa de juros equivalente para o crescimento de um investimento.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "SLN",
@@ -3578,7 +1365,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "SLN(cost, salvage, life)",
     "description": "Retorna a depreciação linear de um ativo para um período.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "SYD",
@@ -3588,7 +1376,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "SYD(cost, salvage, life, per)",
     "description": "Retorna a depreciação por soma dos anos de um ativo para um período específico.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "TBILLEQ",
@@ -3598,7 +1387,9 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 0,
     "syntax": "TBILLEQ(settlement, maturity, discount)",
     "description": "Retorna o rendimento equivalente a um título para uma Letra do Tesouro (T-Bill).",
-    "notes": "Placeholder matemático para rendimento de títulos do tesouro americano."
+    "notes": "Placeholder matemático para rendimento de títulos do tesouro americano.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
   },
   {
     "name": "TBILLPRICE",
@@ -3608,7 +1399,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "TBILLPRICE(settlement, maturity, discount)",
     "description": "Retorna o preço por R$ 100 de valor de face de uma Letra do Tesouro (T-Bill).",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "TBILLYIELD",
@@ -3618,7 +1410,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "TBILLYIELD(settlement, maturity, pr)",
     "description": "Retorna o rendimento de uma Letra do Tesouro (T-Bill).",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "VDB",
@@ -3628,7 +1421,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "VDB(cost, salvage, life, start_period, end_period, [factor], [no_switch])",
     "description": "Retorna a depreciação de um ativo para qualquer período especificado (inclusive fracionário) usando o método de saldo decrescente variável.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "XIRR",
@@ -3638,7 +1432,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 3,
     "syntax": "XIRR(table, values, dates, [guess]) ou XIRR(values, dates, [guess])",
     "description": "Calcula a taxa interna de retorno para um cronograma de fluxos de caixa que não é necessariamente periódico.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "XNPV",
@@ -3648,7 +1443,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 2,
     "syntax": "XNPV(table, values, dates, rate) ou XNPV(rate, values, dates)",
     "description": "Calcula o valor presente líquido de um cronograma de fluxos de caixa que não é necessariamente periódico.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "YIELD",
@@ -3658,7 +1454,8 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 1,
     "syntax": "YIELD(settlement, maturity, rate, pr, redemption, frequency, [basis])",
     "description": "Retorna o rendimento de um título que paga juros periódicos.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "YIELDDISC",
@@ -3668,7 +1465,9 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 0,
     "syntax": "YIELDDISC(settlement, maturity, pr, redemption, [basis])",
     "description": "Retorna o rendimento anual de um título com desconto.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
   },
   {
     "name": "YIELDMAT",
@@ -3678,66 +1477,4065 @@ export const DAX_CATALOG_GENERATED: DaxGeneratedItem[] = [
     "testCount": 0,
     "syntax": "YIELDMAT(settlement, maturity, issue, rate, pr, [basis])",
     "description": "Retorna o rendimento anual de um título que paga juros no vencimento.",
-    "notes": "Implementada no motor mas sem testes unitários dedicados no suite."
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
   },
   {
     "name": "COLUMNSTATISTICS",
-    "category": "Utility",
+    "category": "Information",
     "guideUrl": "https://dax.guide/columnstatistics/",
     "status": "full",
     "testCount": 2,
     "syntax": "COLUMNSTATISTICS([<Table>])",
     "description": "Retorna estatísticas detalhadas de todas as colunas do modelo ou da tabela especificada.",
-    "notes": "Retorna cardinalidade, contagem de nulos, valores mínimos e máximos por coluna."
+    "notes": "Retorna cardinalidade, contagem de nulos, valores mínimos e máximos por coluna.",
+    "isOutsideIndex": false
   },
   {
-    "name": "ERROR",
-    "category": "Utility",
-    "guideUrl": "https://dax.guide/error/",
+    "name": "CONTAINS",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/contains/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "CONTAINS(text_or_table, search_term)",
+    "description": "Verifica se o texto contém o termo especificado (ou tabela contém linha).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "CONTAINSROW",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/containsrow/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "CONTAINSROW()",
+    "description": "Função DAX CONTAINSROW.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "CONTAINSSTRING",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/containsstring/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "CONTAINSSTRING(within_text, find_text)",
+    "description": "Retorna TRUE se within_text contiver find_text (não diferencia maiúsculas de minúsculas).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "CONTAINSSTRINGEXACT",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/containsstringexact/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "CONTAINSSTRINGEXACT(within_text, find_text)",
+    "description": "Retorna TRUE se within_text contiver find_text (diferencia maiúsculas de minúsculas).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "CUSTOMDATA",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/customdata/",
     "status": "full",
     "testCount": 3,
-    "syntax": "ERROR(text)",
-    "description": "Gera um erro de execução DAX explícito interrompendo a avaliação ou sendo capturado por IFERROR.",
-    "notes": "Implementada conforme dax.guide."
+    "syntax": "CUSTOMDATA()",
+    "description": "Retorna o conteúdo da propriedade de cadeia de caracteres CustomData passada na conexão.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "EVALUATEANDLOG",
-    "category": "Utility",
+    "category": "Information",
     "guideUrl": "https://dax.guide/evaluateandlog/",
     "status": "full",
     "testCount": 2,
     "syntax": "EVALUATEANDLOG(<ValueOrTable> [, <Message>] [, <MaxRows>])",
     "description": "Avalia uma expressão DAX, registra seu resultado no console/log de depuração e retorna o resultado inalterado.",
-    "notes": "Emite log estruturado para console ou buffer de depuração sem alterar o valor escalar retornado."
+    "notes": "Emite log estruturado para console ou buffer de depuração sem alterar o valor escalar retornado.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "HASONEFILTER",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/hasonefilter/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "HASONEFILTER(column)",
+    "description": "Retorna TRUE quando o número de valores diretamente filtrados na coluna for exatamente um.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "HASONEVALUE",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/hasonevalue/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "HASONEVALUE(column)",
+    "description": "Retorna TRUE quando o contexto de coluna tem exatamente um valor distinto visível.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "INFO.ALTERNATEOFDEFINITIONS",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-alternateofdefinitions/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.ALTERNATEOFDEFINITIONS()",
+    "description": "Função DAX INFO.ALTERNATEOFDEFINITIONS.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.ANNOTATIONS",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-annotations/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "INFO.ANNOTATIONS()",
+    "description": "Retorna uma exibição de gerenciamento dinâmico (DMV) de metadados do modelo (ANNOTATIONS).",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "INFO.ATTRIBUTEHIERARCHIES",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-attributehierarchies/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.ATTRIBUTEHIERARCHIES()",
+    "description": "Função DAX INFO.ATTRIBUTEHIERARCHIES.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.ATTRIBUTEHIERARCHYSTORAGES",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-attributehierarchystorages/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.ATTRIBUTEHIERARCHYSTORAGES()",
+    "description": "Função DAX INFO.ATTRIBUTEHIERARCHYSTORAGES.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.CALCDEPENDENCY",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-calcdependency/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "INFO.CALCDEPENDENCY()",
+    "description": "Retorna uma exibição de gerenciamento dinâmico (DMV) de metadados do modelo (CALCDEPENDENCY).",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "INFO.CALCULATIONGROUPS",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-calculationgroups/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "INFO.CALCULATIONGROUPS()",
+    "description": "Retorna uma exibição de gerenciamento dinâmico (DMV) de metadados do modelo (CALCULATIONGROUPS).",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "INFO.CALCULATIONITEMS",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-calculationitems/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "INFO.CALCULATIONITEMS()",
+    "description": "Retorna uma exibição de gerenciamento dinâmico (DMV) de metadados do modelo (CALCULATIONITEMS).",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "INFO.CALENDARCOLUMNGROUPS",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-calendarcolumngroups/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.CALENDARCOLUMNGROUPS()",
+    "description": "Função DAX INFO.CALENDARCOLUMNGROUPS.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.CALENDARCOLUMNREFERENCES",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-calendarcolumnreferences/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.CALENDARCOLUMNREFERENCES()",
+    "description": "Função DAX INFO.CALENDARCOLUMNREFERENCES.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.CALENDARS",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-calendars/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.CALENDARS()",
+    "description": "Função DAX INFO.CALENDARS.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.CATALOGS",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-catalogs/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.CATALOGS()",
+    "description": "Função DAX INFO.CATALOGS.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.CHANGEDPROPERTIES",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-changedproperties/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.CHANGEDPROPERTIES()",
+    "description": "Função DAX INFO.CHANGEDPROPERTIES.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.COLUMNPARTITIONSTORAGES",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-columnpartitionstorages/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.COLUMNPARTITIONSTORAGES()",
+    "description": "Função DAX INFO.COLUMNPARTITIONSTORAGES.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.COLUMNPERMISSIONS",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-columnpermissions/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "INFO.COLUMNPERMISSIONS()",
+    "description": "Retorna uma exibição de gerenciamento dinâmico (DMV) de metadados do modelo (COLUMNPERMISSIONS).",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "INFO.COLUMNS",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-columns/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "INFO.COLUMNS()",
+    "description": "Retorna uma exibição de gerenciamento dinâmico (DMV) de metadados do modelo (COLUMNS).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.COLUMNSTORAGES",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-columnstorages/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.COLUMNSTORAGES()",
+    "description": "Função DAX INFO.COLUMNSTORAGES.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.CSDLMETADATA",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-csdlmetadata/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.CSDLMETADATA()",
+    "description": "Função DAX INFO.CSDLMETADATA.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.CULTURES",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-cultures/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.CULTURES()",
+    "description": "Função DAX INFO.CULTURES.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.DATACOVERAGEDEFINITIONS",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-datacoveragedefinitions/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.DATACOVERAGEDEFINITIONS()",
+    "description": "Função DAX INFO.DATACOVERAGEDEFINITIONS.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.DATASOURCES",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-datasources/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "INFO.DATASOURCES()",
+    "description": "Retorna uma exibição de gerenciamento dinâmico (DMV) de metadados do modelo (DATASOURCES).",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "INFO.DELTATABLEMETADATASTORAGES",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-deltatablemetadatastorages/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.DELTATABLEMETADATASTORAGES()",
+    "description": "Função DAX INFO.DELTATABLEMETADATASTORAGES.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.DEPENDENCIES",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-dependencies/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "INFO.DEPENDENCIES()",
+    "description": "Retorna uma exibição de gerenciamento dinâmico (DMV) de metadados do modelo (DEPENDENCIES).",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "INFO.DETAILROWSDEFINITIONS",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-detailrowsdefinitions/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.DETAILROWSDEFINITIONS()",
+    "description": "Função DAX INFO.DETAILROWSDEFINITIONS.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.DICTIONARYSTORAGES",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-dictionarystorages/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.DICTIONARYSTORAGES()",
+    "description": "Função DAX INFO.DICTIONARYSTORAGES.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.EXCLUDEDARTIFACTS",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-excludedartifacts/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.EXCLUDEDARTIFACTS()",
+    "description": "Função DAX INFO.EXCLUDEDARTIFACTS.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.EXPRESSIONS",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-expressions/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "INFO.EXPRESSIONS()",
+    "description": "Retorna uma exibição de gerenciamento dinâmico (DMV) de metadados do modelo (EXPRESSIONS).",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "INFO.EXTENDEDPROPERTIES",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-extendedproperties/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.EXTENDEDPROPERTIES()",
+    "description": "Função DAX INFO.EXTENDEDPROPERTIES.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.FORMATSTRINGDEFINITIONS",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-formatstringdefinitions/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.FORMATSTRINGDEFINITIONS()",
+    "description": "Função DAX INFO.FORMATSTRINGDEFINITIONS.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.FUNCTIONS",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-functions/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "INFO.FUNCTIONS()",
+    "description": "Retorna uma exibição de gerenciamento dinâmico (DMV) de metadados do modelo (FUNCTIONS).",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "INFO.GENERALSEGMENTMAPSEGMENTMETADATASTORAGES",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-generalsegmentmapsegmentmetadatastorages/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.GENERALSEGMENTMAPSEGMENTMETADATASTORAGES()",
+    "description": "Função DAX INFO.GENERALSEGMENTMAPSEGMENTMETADATASTORAGES.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.GROUPBYCOLUMNS",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-groupbycolumns/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.GROUPBYCOLUMNS()",
+    "description": "Função DAX INFO.GROUPBYCOLUMNS.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.HIERARCHIES",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-hierarchies/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "INFO.HIERARCHIES()",
+    "description": "Retorna uma exibição de gerenciamento dinâmico (DMV) de metadados do modelo (HIERARCHIES).",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "INFO.HIERARCHYSTORAGES",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-hierarchystorages/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.HIERARCHYSTORAGES()",
+    "description": "Função DAX INFO.HIERARCHYSTORAGES.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.KPIS",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-kpis/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "INFO.KPIS()",
+    "description": "Retorna uma exibição de gerenciamento dinâmico (DMV) de metadados do modelo (KPIS).",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "INFO.LEVELS",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-levels/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "INFO.LEVELS()",
+    "description": "Retorna uma exibição de gerenciamento dinâmico (DMV) de metadados do modelo (LEVELS).",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "INFO.LINGUISTICMETADATA",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-linguisticmetadata/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.LINGUISTICMETADATA()",
+    "description": "Função DAX INFO.LINGUISTICMETADATA.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.MEASURES",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-measures/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "INFO.MEASURES()",
+    "description": "Retorna uma exibição de gerenciamento dinâmico (DMV) de metadados do modelo (MEASURES).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.MODEL",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-model/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "INFO.MODEL()",
+    "description": "Retorna uma exibição de gerenciamento dinâmico (DMV) de metadados do modelo (MODEL).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.OBJECTTRANSLATIONS",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-objecttranslations/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.OBJECTTRANSLATIONS()",
+    "description": "Função DAX INFO.OBJECTTRANSLATIONS.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.PARQUETFILESTORAGES",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-parquetfilestorages/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.PARQUETFILESTORAGES()",
+    "description": "Função DAX INFO.PARQUETFILESTORAGES.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.PARTITIONS",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-partitions/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "INFO.PARTITIONS()",
+    "description": "Retorna uma exibição de gerenciamento dinâmico (DMV) de metadados do modelo (PARTITIONS).",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "INFO.PARTITIONSTORAGES",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-partitionstorages/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.PARTITIONSTORAGES()",
+    "description": "Função DAX INFO.PARTITIONSTORAGES.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.PERSPECTIVECOLUMNS",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-perspectivecolumns/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.PERSPECTIVECOLUMNS()",
+    "description": "Função DAX INFO.PERSPECTIVECOLUMNS.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.PERSPECTIVEHIERARCHIES",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-perspectivehierarchies/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.PERSPECTIVEHIERARCHIES()",
+    "description": "Função DAX INFO.PERSPECTIVEHIERARCHIES.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.PERSPECTIVEMEASURES",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-perspectivemeasures/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.PERSPECTIVEMEASURES()",
+    "description": "Função DAX INFO.PERSPECTIVEMEASURES.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.PERSPECTIVES",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-perspectives/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.PERSPECTIVES()",
+    "description": "Função DAX INFO.PERSPECTIVES.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.PERSPECTIVETABLES",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-perspectivetables/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.PERSPECTIVETABLES()",
+    "description": "Função DAX INFO.PERSPECTIVETABLES.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.PROPERTIES",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-properties/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "INFO.PROPERTIES()",
+    "description": "Retorna uma exibição de gerenciamento dinâmico (DMV) de metadados do modelo (PROPERTIES).",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "INFO.QUERYGROUPS",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-querygroups/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.QUERYGROUPS()",
+    "description": "Função DAX INFO.QUERYGROUPS.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.REFRESHPOLICIES",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-refreshpolicies/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.REFRESHPOLICIES()",
+    "description": "Função DAX INFO.REFRESHPOLICIES.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.RELATEDCOLUMNDETAILS",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-relatedcolumndetails/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.RELATEDCOLUMNDETAILS()",
+    "description": "Função DAX INFO.RELATEDCOLUMNDETAILS.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.RELATIONSHIPINDEXSTORAGES",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-relationshipindexstorages/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.RELATIONSHIPINDEXSTORAGES()",
+    "description": "Função DAX INFO.RELATIONSHIPINDEXSTORAGES.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.RELATIONSHIPS",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-relationships/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "INFO.RELATIONSHIPS()",
+    "description": "Retorna uma exibição de gerenciamento dinâmico (DMV) de metadados do modelo (RELATIONSHIPS).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.RELATIONSHIPSTORAGES",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-relationshipstorages/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.RELATIONSHIPSTORAGES()",
+    "description": "Função DAX INFO.RELATIONSHIPSTORAGES.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.ROLEMEMBERSHIPS",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-rolememberships/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "INFO.ROLEMEMBERSHIPS()",
+    "description": "Retorna uma exibição de gerenciamento dinâmico (DMV) de metadados do modelo (ROLEMEMBERSHIPS).",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "INFO.ROLES",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-roles/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "INFO.ROLES()",
+    "description": "Retorna uma exibição de gerenciamento dinâmico (DMV) de metadados do modelo (ROLES).",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "INFO.SEGMENTMAPSTORAGES",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-segmentmapstorages/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.SEGMENTMAPSTORAGES()",
+    "description": "Função DAX INFO.SEGMENTMAPSTORAGES.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.SEGMENTSTORAGES",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-segmentstorages/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.SEGMENTSTORAGES()",
+    "description": "Função DAX INFO.SEGMENTSTORAGES.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.STORAGEFILES",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-storagefiles/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.STORAGEFILES()",
+    "description": "Função DAX INFO.STORAGEFILES.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.STORAGEFOLDERS",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-storagefolders/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.STORAGEFOLDERS()",
+    "description": "Função DAX INFO.STORAGEFOLDERS.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.STORAGETABLECOLUMNS",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-storagetablecolumns/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.STORAGETABLECOLUMNS()",
+    "description": "Função DAX INFO.STORAGETABLECOLUMNS.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.STORAGETABLECOLUMNSEGMENTS",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-storagetablecolumnsegments/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.STORAGETABLECOLUMNSEGMENTS()",
+    "description": "Função DAX INFO.STORAGETABLECOLUMNSEGMENTS.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.TABLEPERMISSIONS",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-tablepermissions/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "INFO.TABLEPERMISSIONS()",
+    "description": "Retorna uma exibição de gerenciamento dinâmico (DMV) de metadados do modelo (TABLEPERMISSIONS).",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "INFO.TABLES",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-tables/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "INFO.TABLES()",
+    "description": "Retorna uma exibição de gerenciamento dinâmico (DMV) de metadados do modelo (TABLES).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.TABLESTORAGES",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-tablestorages/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.TABLESTORAGES()",
+    "description": "Função DAX INFO.TABLESTORAGES.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.USERDEFINEDFUNCTIONS",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-userdefinedfunctions/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "INFO.USERDEFINEDFUNCTIONS()",
+    "description": "Retorna uma exibição de gerenciamento dinâmico (DMV) de metadados do modelo (USERDEFINEDFUNCTIONS).",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "INFO.VARIATIONS",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-variations/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.VARIATIONS()",
+    "description": "Função DAX INFO.VARIATIONS.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.VIEW.COLUMNS",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-view-columns/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "INFO.VIEW.COLUMNS()",
+    "description": "Retorna uma exibição de gerenciamento dinâmico (DMV) de metadados do modelo (VIEW.COLUMNS).",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "INFO.VIEW.MEASURES",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-view-measures/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "INFO.VIEW.MEASURES()",
+    "description": "Retorna uma exibição de gerenciamento dinâmico (DMV) de metadados do modelo (VIEW.MEASURES).",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "INFO.VIEW.RELATIONSHIPS",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-view-relationships/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "INFO.VIEW.RELATIONSHIPS()",
+    "description": "Retorna uma exibição de gerenciamento dinâmico (DMV) de metadados do modelo (VIEW.RELATIONSHIPS).",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "INFO.VIEW.TABLES",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/info-view-tables/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "INFO.VIEW.TABLES()",
+    "description": "Retorna uma exibição de gerenciamento dinâmico (DMV) de metadados do modelo (VIEW.TABLES).",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "ISAFTER",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/isafter/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "ISAFTER(val1, val2, [order], [val3, val4, [order]], ...)",
+    "description": "Compara pares de valores para determinar se a primeira tupla é estritamente posterior à segunda na ordenação especificada.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "ISBLANK",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/isblank/",
+    "status": "full",
+    "testCount": 7,
+    "syntax": "ISBLANK(value)",
+    "description": "Retorna TRUE se o valor for BLANK (ou nulo/vazio).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "ISBOOLEAN",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/isboolean/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "ISBOOLEAN()",
+    "description": "Função DAX ISBOOLEAN.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "ISCROSSFILTERED",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/iscrossfiltered/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "ISCROSSFILTERED(table_or_column)",
+    "description": "Retorna TRUE quando a coluna ou tabela está sendo filtrada direta ou indiretamente por outra tabela relacionada.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "ISDATETIME",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/isdatetime/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "ISDATETIME(value)",
+    "description": "Retorna TRUE se o valor puder ser interpretado como data e hora.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "ISDECIMAL",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/isdecimal/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "ISDECIMAL(value)",
+    "description": "Retorna TRUE se o valor for numérico e contiver casas decimais fracionárias.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "ISDOUBLE",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/isdouble/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "ISDOUBLE()",
+    "description": "Função DAX ISDOUBLE.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "ISEMPTY",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/isempty/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "ISEMPTY(table)",
+    "description": "Retorna TRUE se a tabela ou expressão de tabela não contiver nenhuma linha no contexto de filtro atual.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "ISERROR",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/iserror/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "ISERROR(value)",
+    "description": "Retorna TRUE se a expressão resultar em erro.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "ISEVEN",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/iseven/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "ISEVEN(number)",
+    "description": "Retorna TRUE se o número inteiro for par.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "ISFILTERED",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/isfiltered/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "ISFILTERED(table_or_column)",
+    "description": "Retorna TRUE quando há filtros diretos aplicados à coluna ou tabela.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "ISINSCOPE",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/isinscope/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "ISINSCOPE()",
+    "description": "Função DAX ISINSCOPE.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "ISINT64",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/isint64/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "ISINT64()",
+    "description": "Função DAX ISINT64.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "ISLOGICAL",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/islogical/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "ISLOGICAL(value)",
+    "description": "Retorna TRUE se o valor for um booleano (TRUE/FALSE).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "ISNONTEXT",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/isnontext/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "ISNONTEXT(value)",
+    "description": "Retorna TRUE se o valor NÃO for um texto (por exemplo números, datas ou em branco).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "ISNUMBER",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/isnumber/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "ISNUMBER(value)",
+    "description": "Retorna TRUE se o valor for um número válido, senão FALSE.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "ISNUMERIC",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/isnumeric/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "ISNUMERIC()",
+    "description": "Função DAX ISNUMERIC.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "ISODD",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/isodd/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "ISODD(number)",
+    "description": "Retorna TRUE se o número inteiro for ímpar.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "ISONORAFTER",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/isonorafter/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "ISONORAFTER(val1, val2, [order], [val3, val4, [order]], ...)",
+    "description": "Compara tuplas determinando se a primeira tupla é igual ou posterior à segunda na ordem especificada.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "ISSELECTEDMEASURE",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/isselectedmeasure/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "ISSELECTEDMEASURE(<measure1> [, <measure2> ...])",
+    "description": "Retorna TRUE se a medida atualmente em avaliação for uma das medidas especificadas.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "ISSTRING",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/isstring/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "ISSTRING()",
+    "description": "Função DAX ISSTRING.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "ISSUBTOTAL",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/issubtotal/",
+    "status": "not_supported",
+    "testCount": 1,
+    "syntax": "ISSUBTOTAL()",
+    "description": "Função DAX ISSUBTOTAL.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "ISTEXT",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/istext/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "ISTEXT(value)",
+    "description": "Retorna TRUE se o valor for um texto/string.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "NAMEOF",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/nameof/",
+    "status": "full",
+    "testCount": 6,
+    "syntax": "NAMEOF(<ColumnOrMeasure>)",
+    "description": "Retorna o nome da coluna ou medida fornecida como referência de texto.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "SELECTEDMEASURE",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/selectedmeasure/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "SELECTEDMEASURE()",
+    "description": "Usada por itens de cálculo para fazer referência à medida atualmente em avaliação no contexto.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "SELECTEDMEASUREFORMATSTRING",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/selectedmeasureformatstring/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "SELECTEDMEASUREFORMATSTRING()",
+    "description": "Retorna a cadeia de formatação (format string) da medida atualmente selecionada.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "SELECTEDMEASURENAME",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/selectedmeasurename/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "SELECTEDMEASURENAME()",
+    "description": "Retorna o nome da medida atualmente selecionada pelo item de cálculo.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "TABLEOF",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/tableof/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "TABLEOF(<Table>)",
+    "description": "Retorna a tabela especificada mantendo sua estrutura e contexto.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "TEXTCONTAINS",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/textcontains/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "TEXTCONTAINS(within_text, find_text, [comparison_type])",
+    "description": "Verifica se uma cadeia contém outra. comparison_type 0 = linguístico (ignora maiúsculas), 1 = ordinal (exato).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "TEXTSIMILARITY",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/textsimilarity/",
+    "status": "full",
+    "testCount": 3,
+    "syntax": "TEXTSIMILARITY(text1, text2)",
+    "description": "Calcula o índice de similaridade entre dois textos (0.0 a 1.0). Implementado via razão de distância Levenshtein normalizada.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "USERCULTURE",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/userculture/",
+    "status": "full",
+    "testCount": 3,
+    "syntax": "USERCULTURE()",
+    "description": "Retorna a cultura de interface e localidade do usuário atual (ex: \"pt-BR\", \"en-US\").",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "USERNAME",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/username/",
+    "status": "full",
+    "testCount": 5,
+    "syntax": "USERNAME()",
+    "description": "Retorna o domínio e o nome do usuário atual no formato DOMÍNIO\\usuário ou nome simples.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "USEROBJECTID",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/userobjectid/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "USEROBJECTID()",
+    "description": "Retorna a ID do Objeto atual (GUID do Microsoft Entra ID / Azure AD).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "USERPRINCIPALNAME",
+    "category": "Information",
+    "guideUrl": "https://dax.guide/userprincipalname/",
+    "status": "full",
+    "testCount": 4,
+    "syntax": "USERPRINCIPALNAME()",
+    "description": "Retorna o Nome Principal do Usuário (UPN) atual, geralmente no formato de e-mail.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "AND",
+    "category": "Logical",
+    "guideUrl": "https://dax.guide/and/",
+    "status": "full",
+    "testCount": 3,
+    "syntax": "AND(logical1, logical2)",
+    "description": "Verifica se ambos os argumentos são verdadeiros. Retorna TRUE se ambos forem verdadeiros, senão FALSE.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "BITAND",
+    "category": "Logical",
+    "guideUrl": "https://dax.guide/bitand/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "BITAND(number1, number2)",
+    "description": "Retorna o resultado bit a bit AND entre dois inteiros.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "BITOR",
+    "category": "Logical",
+    "guideUrl": "https://dax.guide/bitor/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "BITOR(number1, number2)",
+    "description": "Retorna o resultado bit a bit OR entre dois inteiros.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "BITXOR",
+    "category": "Logical",
+    "guideUrl": "https://dax.guide/bitxor/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "BITXOR(number1, number2)",
+    "description": "Retorna o resultado bit a bit XOR (ou exclusivo) entre dois inteiros.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "COALESCE",
+    "category": "Logical",
+    "guideUrl": "https://dax.guide/coalesce/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "COALESCE(expr1, expr2, ...)",
+    "description": "Retorna a primeira expressão que não é BLANK (ou vazia em colunas calculadas).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "FALSE",
+    "category": "Logical",
+    "guideUrl": "https://dax.guide/false/",
+    "status": "full",
+    "testCount": 7,
+    "syntax": "FALSE()",
+    "description": "Retorna a constante booleana FALSE.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "IF",
+    "category": "Logical",
+    "guideUrl": "https://dax.guide/if/",
+    "status": "full",
+    "testCount": 16,
+    "syntax": "IF(logical_test, value_if_true, [value_if_false])",
+    "description": "Verifica uma condição e retorna um valor se for TRUE e outro se for FALSE. Possui avaliação preguiçosa (short-circuit).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "IF.EAGER",
+    "category": "Logical",
+    "guideUrl": "https://dax.guide/if-eager/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "IF.EAGER(logical_test, value_if_true, [value_if_false])",
+    "description": "Versão ansiosa de IF que avalia ambas as ramificações de execução.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "IFERROR",
+    "category": "Logical",
+    "guideUrl": "https://dax.guide/iferror/",
+    "status": "full",
+    "testCount": 3,
+    "syntax": "IFERROR(value, value_if_error)",
+    "description": "Retorna value_if_error se a expressão resultar em erro, senão retorna o próprio valor.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "NOT",
+    "category": "Logical",
+    "guideUrl": "https://dax.guide/not/",
+    "status": "full",
+    "testCount": 6,
+    "syntax": "NOT(logical)",
+    "description": "Inverte o valor lógico de FALSE para TRUE ou de TRUE para FALSE.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "OR",
+    "category": "Logical",
+    "guideUrl": "https://dax.guide/or/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "OR(logical1, logical2)",
+    "description": "Verifica se ao menos um argumento é verdadeiro. Retorna TRUE se pelo menos um for verdadeiro.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "SWITCH",
+    "category": "Logical",
+    "guideUrl": "https://dax.guide/switch/",
+    "status": "full",
+    "testCount": 4,
+    "syntax": "SWITCH(expression, val1, result1, [val2, result2, ...], [else])",
+    "description": "Avalia uma expressão contra uma lista de valores e retorna o primeiro resultado coincidente (ex: SWITCH(TRUE(), ...)).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "TRUE",
+    "category": "Logical",
+    "guideUrl": "https://dax.guide/true/",
+    "status": "full",
+    "testCount": 13,
+    "syntax": "TRUE()",
+    "description": "Retorna a constante booleana TRUE.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "ABS",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/abs/",
+    "status": "full",
+    "testCount": 5,
+    "syntax": "ABS(number)",
+    "description": "Retorna o valor absoluto de um número.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "ACOS",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/acos/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "ACOS(number)",
+    "description": "Retorna o arco cosseno de um número em radianos (0 a pi).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "ACOSH",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/acosh/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "ACOSH(number)",
+    "description": "Retorna o arco cosseno hiperbólico de um número (maior ou igual a 1).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "ACOT",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/acot/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "ACOT(number)",
+    "description": "Retorna o arco cotangente de um número em radianos (0 a pi).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "ACOTH",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/acoth/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "ACOTH(number)",
+    "description": "Retorna o arco cotangente hiperbólico de um número (|x| > 1).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "ASIN",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/asin/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "ASIN(number)",
+    "description": "Retorna o arco seno de um número em radianos (-pi/2 a pi/2).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "ASINH",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/asinh/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "ASINH(number)",
+    "description": "Retorna o arco seno hiperbólico de um número.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "ATAN",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/atan/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "ATAN(number)",
+    "description": "Retorna o arco tangente de um número em radianos (-pi/2 a pi/2).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "ATANH",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/atanh/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "ATANH(number)",
+    "description": "Retorna o arco tangente hiperbólico de um número (-1 < x < 1).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "CEILING",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/ceiling/",
+    "status": "full",
+    "testCount": 5,
+    "syntax": "CEILING(number, significance)",
+    "description": "Arredonda um número para cima, afastando-se de zero, até o múltiplo mais próximo da significância.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "CONVERT",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/convert/",
+    "status": "full",
+    "testCount": 6,
+    "syntax": "CONVERT(expression, data_type)",
+    "description": "Converte uma expressão para o tipo de dados especificado (\"INTEGER\", \"DOUBLE\", \"STRING\", \"BOOLEAN\", \"DATETIME\", \"CURRENCY\").",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "COS",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/cos/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "COS(number)",
+    "description": "Retorna o cosseno de um ângulo fornecido em radianos.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "COSH",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/cosh/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "COSH(number)",
+    "description": "Retorna o cosseno hiperbólico de um número.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "COT",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/cot/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "COT(number)",
+    "description": "Retorna a cotangente de um ângulo fornecido em radianos.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "COTH",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/coth/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "COTH(number)",
+    "description": "Retorna a cotangente hiperbólica de um número.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "CURRENCY",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/currency/",
+    "status": "full",
+    "testCount": 32,
+    "syntax": "CURRENCY(value)",
+    "description": "Converte o argumento no tipo Moeda do DAX (ponto fixo com 4 casas decimais).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "DEGREES",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/degrees/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "DEGREES(angle)",
+    "description": "Converte radianos em graus.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "DIVIDE",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/divide/",
+    "status": "full",
+    "testCount": 23,
+    "syntax": "DIVIDE(numerator, denominator, [alternate_result])",
+    "description": "Realiza divisão segura retornando resultado alternativo ou BLANK em caso de divisão por zero.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "EVEN",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/even/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "EVEN(number)",
+    "description": "Arredonda um número para cima até o inteiro par mais próximo, afastando-se de zero.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "EXP",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/exp/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "EXP(number)",
+    "description": "Retorna \"e\" elevado à potência de um número especificado.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "FACT",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/fact/",
+    "status": "full",
+    "testCount": 3,
+    "syntax": "FACT(number)",
+    "description": "Retorna o fatorial de um número inteiro não negativo.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "FLOOR",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/floor/",
+    "status": "full",
+    "testCount": 3,
+    "syntax": "FLOOR(number, significance)",
+    "description": "Arredonda um número para baixo, em direção a zero, até o múltiplo mais próximo da significância.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "GCD",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/gcd/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "GCD(number1, number2, ...)",
+    "description": "Retorna o máximo divisor comum (MDC) de dois ou mais inteiros.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INT",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/int/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "INT(number)",
+    "description": "Arredonda um número para baixo até o inteiro mais próximo em direção a infinito negativo.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "ISO.CEILING",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/iso-ceiling/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "ISO.CEILING(number, [significance])",
+    "description": "Arredonda um número para cima até o múltiplo mais próximo, independentemente do sinal da significância.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "LCM",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/lcm/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "LCM(number1, number2, ...)",
+    "description": "Retorna o mínimo múltiplo comum (MMC) de dois ou mais inteiros.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "LN",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/ln/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "LN(number)",
+    "description": "Retorna o logaritmo natural de um número.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "LOG",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/log/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "LOG(number, [base])",
+    "description": "Retorna o logaritmo de um número na base especificada (padrão 10).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "LOG10",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/log10/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "LOG10(number)",
+    "description": "Retorna o logaritmo de base 10 de um número.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "MOD",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/mod/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "MOD(number, divisor)",
+    "description": "Retorna o resto da divisão. No DAX: MOD(n, d) = n - d * INT(n / d).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "MROUND",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/mround/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "MROUND(number, multiple)",
+    "description": "Retorna um número arredondado para o múltiplo desejado.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "ODD",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/odd/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "ODD(number)",
+    "description": "Arredonda um número para cima até o inteiro ímpar mais próximo, afastando-se de zero.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "PI",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/pi/",
+    "status": "full",
+    "testCount": 3,
+    "syntax": "PI()",
+    "description": "Retorna o valor da constante matemática Pi (3.141592653589793).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "POWER",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/power/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "POWER(number, power)",
+    "description": "Retorna o resultado de um número elevado a uma potência.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "QUOTIENT",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/quotient/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "QUOTIENT(numerator, denominator)",
+    "description": "Retorna a parte inteira de uma divisão em direção a zero.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "RADIANS",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/radians/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "RADIANS(angle)",
+    "description": "Converte graus em radianos.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "RAND",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/rand/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "RAND()",
+    "description": "Retorna um número decimal aleatório maior ou igual a 0 e menor que 1 (função volátil).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "RANDBETWEEN",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/randbetween/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "RANDBETWEEN(bottom, top)",
+    "description": "Retorna um número inteiro aleatório entre os limites especificados inclusive.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "ROUND",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/round/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "ROUND(number, num_digits)",
+    "description": "Arredonda um número para o número de casas decimais especificado.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "ROUNDDOWN",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/rounddown/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "ROUNDDOWN(number, num_digits)",
+    "description": "Arredonda um número para baixo, aproximando-se de zero.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "ROUNDUP",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/roundup/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "ROUNDUP(number, num_digits)",
+    "description": "Arredonda um número para cima, afastando-se de zero.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "SIGN",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/sign/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "SIGN(number)",
+    "description": "Retorna o sinal de um número: 1 se positivo, 0 se zero/BLANK, -1 se negativo.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "SIN",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/sin/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "SIN(number)",
+    "description": "Retorna o seno de um ângulo fornecido em radianos.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "SINH",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/sinh/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "SINH(number)",
+    "description": "Retorna o seno hiperbólico de um número.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "SQRT",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/sqrt/",
+    "status": "full",
+    "testCount": 4,
+    "syntax": "SQRT(number)",
+    "description": "Retorna a raiz quadrada positiva de um número.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "SQRTPI",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/sqrtpi/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "SQRTPI(number)",
+    "description": "Retorna a raiz quadrada de (número * Pi).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "TAN",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/tan/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "TAN(number)",
+    "description": "Retorna a tangente de um ângulo fornecido em radianos.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "TANH",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/tanh/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "TANH(number)",
+    "description": "Retorna a tangente hiperbólica de um número.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "TRUNC",
+    "category": "Math and Trig",
+    "guideUrl": "https://dax.guide/trunc/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "TRUNC(number, [num_digits])",
+    "description": "Trunca um número para um inteiro removendo a parte fracionária, ou para casas especificadas.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "BITLSHIFT",
+    "category": "Other",
+    "guideUrl": "https://dax.guide/bitlshift/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "BITLSHIFT(number, shift_amount)",
+    "description": "Desloca os bits do número para a esquerda pela quantidade especificada.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "BITRSHIFT",
+    "category": "Other",
+    "guideUrl": "https://dax.guide/bitrshift/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "BITRSHIFT(number, shift_amount)",
+    "description": "Desloca os bits do número para a direita pela quantidade especificada.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "BLANK",
+    "category": "Other",
+    "guideUrl": "https://dax.guide/blank/",
+    "status": "full",
+    "testCount": 31,
+    "syntax": "BLANK()",
+    "description": "Retorna um valor em branco (BLANK / nulo) equivalente a uma célula não preenchida.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "EARLIER",
+    "category": "Other",
+    "guideUrl": "https://dax.guide/earlier/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "EARLIER(column, [number])",
+    "description": "Retorna o valor atual da coluna especificada em um passo de avaliação externa da tabela atual.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "EARLIEST",
+    "category": "Other",
+    "guideUrl": "https://dax.guide/earliest/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "EARLIEST(column)",
+    "description": "Retorna o valor atual da coluna especificada na etapa de avaliação mais externa da tabela.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "ERROR",
+    "category": "Other",
+    "guideUrl": "https://dax.guide/error/",
+    "status": "full",
+    "testCount": 3,
+    "syntax": "ERROR(text)",
+    "description": "Gera um erro de execução DAX explícito interrompendo a avaliação ou sendo capturado por IFERROR.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "EXTERNALMEASURE",
+    "category": "Other",
+    "guideUrl": "https://dax.guide/externalmeasure/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "EXTERNALMEASURE(<MeasureName> [, <Source>])",
+    "description": "Não suportada no navegador: requer instância externa do Analysis Services / DirectQuery remoto.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "HASH",
-    "category": "Utility",
+    "category": "Other",
     "guideUrl": "https://dax.guide/hash/",
     "status": "full",
     "testCount": 4,
     "syntax": "HASH(<Value1> [, <Value2> ...])",
     "description": "Calcula um código hash criptográfico/determinístico em hexadecimal a partir dos argumentos.",
-    "notes": "Gera hash MD5/SHA256 determinístico de strings ou valores numéricos."
+    "notes": "Gera hash MD5/SHA256 determinístico de strings ou valores numéricos.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "INFO.STORAGETABLES",
+    "category": "Other",
+    "guideUrl": "https://dax.guide/info-storagetables/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "INFO.STORAGETABLES()",
+    "description": "Função DAX INFO.STORAGETABLES.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "ISATLEVEL",
+    "category": "Other",
+    "guideUrl": "https://dax.guide/isatlevel/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "ISATLEVEL()",
+    "description": "Função DAX ISATLEVEL.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "ISCURRENCY",
+    "category": "Other",
+    "guideUrl": "https://dax.guide/iscurrency/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "ISCURRENCY()",
+    "description": "Função DAX ISCURRENCY.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "ISINTEGER",
+    "category": "Other",
+    "guideUrl": "https://dax.guide/isinteger/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "ISINTEGER(value)",
+    "description": "Retorna TRUE se o valor for um número inteiro.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "KEYWORDMATCH",
+    "category": "Other",
+    "guideUrl": "https://dax.guide/keywordmatch/",
+    "status": "full",
+    "testCount": 3,
+    "syntax": "KEYWORDMATCH(<Text>, <Keywords> [, <Delimiter>])",
+    "description": "Verifica se o texto contém palavras-chave especificadas.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "RANK",
+    "category": "Other",
+    "guideUrl": "https://dax.guide/rank/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "RANK([ties], [relation], [orderBy], [blanks], [partitionBy], [matchBy])",
+    "description": "Retorna a classificação da linha atual dentro da partição especificada na ordenação dada.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "ROWNUMBER",
+    "category": "Other",
+    "guideUrl": "https://dax.guide/rownumber/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "ROWNUMBER([relation], [orderBy], [blanks], [partitionBy], [matchBy])",
+    "description": "Retorna a classificação única e sequencial (1..N) da linha atual dentro da partição.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "SAMPLECARTESIANPOINTSBYCOVER",
+    "category": "Other",
+    "guideUrl": "https://dax.guide/samplecartesianpointsbycover/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "SAMPLECARTESIANPOINTSBYCOVER(...)",
+    "description": "Não suportada no navegador: algoritmo interno de amostragem espacial do Power BI.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "PATH",
+    "category": "Parent-Child",
+    "guideUrl": "https://dax.guide/path/",
+    "status": "full",
+    "testCount": 7,
+    "syntax": "PATH(<ID_columnName>, <parent_columnName>)",
+    "description": "Retorna uma cadeia de caracteres delimitada por pipes com os identificadores de todos os pais do item atual, até o nível raiz.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "PATHCONTAINS",
+    "category": "Parent-Child",
+    "guideUrl": "https://dax.guide/pathcontains/",
+    "status": "full",
+    "testCount": 5,
+    "syntax": "PATHCONTAINS(<Path>, <Item>)",
+    "description": "Retorna TRUE se o item especificado existir na cadeia de caminho delimitada por pipes.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "PATHITEM",
+    "category": "Parent-Child",
+    "guideUrl": "https://dax.guide/pathitem/",
+    "status": "full",
+    "testCount": 6,
+    "syntax": "PATHITEM(<Path>, <Position> [, <Type>])",
+    "description": "Retorna o item na posição especificada (base 1, da raiz para as folhas) de uma cadeia resultante de PATH.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "PATHITEMREVERSE",
+    "category": "Parent-Child",
+    "guideUrl": "https://dax.guide/pathitemreverse/",
+    "status": "full",
+    "testCount": 6,
+    "syntax": "PATHITEMREVERSE(<Path>, <Position> [, <Type>])",
+    "description": "Retorna o item na posição especificada contando de trás para frente (base 1, das folhas para a raiz).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "PATHLENGTH",
+    "category": "Parent-Child",
+    "guideUrl": "https://dax.guide/pathlength/",
+    "status": "full",
+    "testCount": 4,
+    "syntax": "PATHLENGTH(<Path>)",
+    "description": "Retorna o número de itens ou níveis na cadeia de delimitadores de PATH especificada.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "CROSSFILTER",
+    "category": "Relationship",
+    "guideUrl": "https://dax.guide/crossfilter/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "CROSSFILTER(columnName1, columnName2, direction)",
+    "description": "Especifica a direção de filtragem cruzada a ser usada durante a avaliação de uma expressão CALCULATE.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "RELATED",
+    "category": "Relationship",
+    "guideUrl": "https://dax.guide/related/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "RELATED(column)",
+    "description": "Retorna um valor relacionado de outra tabela navegando por um relacionamento no contexto de linha.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "RELATEDTABLE",
+    "category": "Relationship",
+    "guideUrl": "https://dax.guide/relatedtable/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "RELATEDTABLE(table)",
+    "description": "Retorna a tabela de linhas relacionadas à linha atual no contexto de linha.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "USERELATIONSHIP",
+    "category": "Relationship",
+    "guideUrl": "https://dax.guide/userelationship/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "USERELATIONSHIP(columnName1, columnName2)",
+    "description": "Ativa um relacionamento inativo existente entre duas colunas durante o cálculo de CALCULATE.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "BETA.DIST",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/beta-dist/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "BETA.DIST(x, alpha, beta, cumulative, [A], [B])",
+    "description": "Retorna a função de densidade de probabilidade ou acumulada da distribuição beta.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "BETA.INV",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/beta-inv/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "BETA.INV(probability, alpha, beta, [A], [B])",
+    "description": "Retorna o inverso da função de densidade de probabilidade cumulativa da distribuição beta.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "CHISQ.DIST",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/chisq-dist/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "CHISQ.DIST(x, deg_freedom, cumulative)",
+    "description": "Retorna a distribuição qui-quadrado.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "CHISQ.DIST.RT",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/chisq-dist-rt/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "CHISQ.DIST.RT(x, deg_freedom)",
+    "description": "Retorna a probabilidade de cauda direita da distribuição qui-quadrado.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "CHISQ.INV",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/chisq-inv/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "CHISQ.INV(probability, deg_freedom)",
+    "description": "Retorna o inverso da probabilidade de cauda esquerda da distribuição qui-quadrado.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "CHISQ.INV.RT",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/chisq-inv-rt/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "CHISQ.INV.RT(probability, deg_freedom)",
+    "description": "Retorna o inverso da probabilidade de cauda direita da distribuição qui-quadrado.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "COMBIN",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/combin/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "COMBIN(number, number_chosen)",
+    "description": "Retorna o número de combinações para um determinado número de itens sem repetição: n! / (k! * (n - k)!).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "COMBINA",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/combina/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "COMBINA(number, number_chosen)",
+    "description": "Retorna o número de combinações com repetições para um determinado número de itens: (n + k - 1)! / (k! * (n - 1)!).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "CONFIDENCE.NORM",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/confidence-norm/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "CONFIDENCE.NORM(alpha, standard_dev, size)",
+    "description": "Retorna o intervalo de confiança para a média de uma população, usando uma distribuição normal.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "CONFIDENCE.T",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/confidence-t/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "CONFIDENCE.T(alpha, standard_dev, size)",
+    "description": "Retorna o intervalo de confiança para a média de uma população, usando a distribuição t de Student.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "EXPON.DIST",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/expon-dist/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "EXPON.DIST(x, lambda, cumulative)",
+    "description": "Retorna a distribuição exponencial.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "GEOMEAN",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/geomean/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "GEOMEAN(column)",
+    "description": "Calcula a média geométrica dos valores positivos de uma coluna.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "GEOMEANX",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/geomeanx/",
+    "status": "full",
+    "testCount": 3,
+    "syntax": "GEOMEANX(table, expression)",
+    "description": "Avalia a expressão para cada linha da tabela e calcula a média geométrica.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "LINEST",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/linest/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "LINEST(y_column, x_column, [const])",
+    "description": "Executa uma regressão linear simples usando o método dos mínimos quadrados.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "LINESTX",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/linestx/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "LINESTX(table, y_expr, x_expr, [const])",
+    "description": "Avalia pares de expressões (Y, X) sobre a tabela e retorna os coeficientes de regressão linear.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "MEDIAN",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/median/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "MEDIAN(column)",
+    "description": "Calcula a mediana dos valores numéricos em uma coluna.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "MEDIANX",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/medianx/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "MEDIANX(table, expression)",
+    "description": "Avalia a expressão para cada linha da tabela e calcula a mediana.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "NORM.DIST",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/norm-dist/",
+    "status": "full",
+    "testCount": 3,
+    "syntax": "NORM.DIST(x, mean, standard_dev, cumulative)",
+    "description": "Retorna a distribuição normal para a média e desvio padrão especificados.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "NORM.INV",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/norm-inv/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "NORM.INV(probability, mean, standard_dev)",
+    "description": "Retorna o inverso da distribuição normal cumulativa para uma dada probabilidade, média e desvio padrão.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "NORM.S.DIST",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/norm-s-dist/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "NORM.S.DIST(z, cumulative)",
+    "description": "Retorna a distribuição normal padrão (média 0, desvio padrão 1).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "NORM.S.INV",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/norm-s-inv/",
+    "status": "full",
+    "testCount": 3,
+    "syntax": "NORM.S.INV(probability)",
+    "description": "Retorna o inverso da distribuição normal cumulativa padrão (média 0 e desvio padrão 1).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "PERCENTILE.EXC",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/percentile-exc/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "PERCENTILE.EXC(column, k)",
+    "description": "Calcula o k-ésimo percentil exclusivo dos valores em uma coluna.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "PERCENTILE.INC",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/percentile-inc/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "PERCENTILE.INC(column, k)",
+    "description": "Calcula o k-ésimo percentil inclusivo (0 <= k <= 1) dos valores em uma coluna.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "PERCENTILEX.EXC",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/percentilex-exc/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "PERCENTILEX.EXC(table, expression, k)",
+    "description": "Avalia a expressão sobre a tabela e calcula o percentil exclusivo k.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "PERCENTILEX.INC",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/percentilex-inc/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "PERCENTILEX.INC(table, expression, k)",
+    "description": "Avalia a expressão sobre a tabela e calcula o percentil inclusivo k.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "PERMUT",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/permut/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "PERMUT(number, number_chosen)",
+    "description": "Retorna o número de permutações para um determinado número de objetos que podem ser selecionados de um total de objetos: n! / (n - k)!).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "POISSON.DIST",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/poisson-dist/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "POISSON.DIST(x, mean, cumulative)",
+    "description": "Retorna a distribuição de Poisson.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "RANK.EQ",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/rank-eq/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "RANK.EQ(value, columnName, [order])",
+    "description": "Retorna o ranking de um número específico dentro de uma lista/coluna de números.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "RANKX",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/rankx/",
+    "status": "full",
+    "testCount": 7,
+    "syntax": "RANKX(table, expression, [value], [order], [ties])",
+    "description": "Calcula o ranking de uma expressão sobre uma tabela avaliada para cada linha. Suporta ordem ASC/DESC e desempate Skip/Dense.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "SAMPLE",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/sample/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "SAMPLE(n_value, table, [order_by_col], [order])",
+    "description": "Retorna uma amostra de N linhas da tabela especificada.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "STDEV.P",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/stdev-p/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "STDEV.P(column)",
+    "description": "Calcula o desvio padrão populacional de uma coluna com base em toda a população (divide por n).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "STDEV.S",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/stdev-s/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "STDEV.S(column)",
+    "description": "Calcula o desvio padrão amostral de uma coluna com base em uma amostra da população (divide por n - 1).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "STDEVX.P",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/stdevx-p/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "STDEVX.P(table, expression)",
+    "description": "Avalia a expressão sobre a tabela e calcula o desvio padrão populacional.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "STDEVX.S",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/stdevx-s/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "STDEVX.S(table, expression)",
+    "description": "Avalia a expressão sobre a tabela e calcula o desvio padrão amostral.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "T.DIST",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/t-dist/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "T.DIST(x, deg_freedom, cumulative)",
+    "description": "Retorna a distribuição t de Student (cauda esquerda).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "T.DIST.2T",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/t-dist-2t/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "T.DIST.2T(x, deg_freedom)",
+    "description": "Retorna a distribuição t de Student bicaudal para x > 0.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "T.DIST.RT",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/t-dist-rt/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "T.DIST.RT(x, deg_freedom)",
+    "description": "Retorna a distribuição t de Student para a cauda direita.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "T.INV",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/t-inv/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "T.INV(probability, deg_freedom)",
+    "description": "Retorna o inverso da função de distribuição acumulada t de Student unicaudal (cauda esquerda).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "T.INV.2T",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/t-inv-2t/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "T.INV.2T(probability, deg_freedom)",
+    "description": "Retorna o inverso bicaudal da distribuição t de Student.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "VAR.P",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/var-p/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "VAR.P(column)",
+    "description": "Calcula a variância populacional de uma coluna com base em toda a população (divide por n).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "VAR.S",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/var-s/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "VAR.S(column)",
+    "description": "Calcula a variância amostral de uma coluna com base em uma amostra da população (divide por n - 1).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "VARX.P",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/varx-p/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "VARX.P(table, expression)",
+    "description": "Avalia a expressão sobre a tabela e calcula a variância populacional.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "VARX.S",
+    "category": "Statistical",
+    "guideUrl": "https://dax.guide/varx-s/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "VARX.S(table, expression)",
+    "description": "Avalia a expressão sobre a tabela e calcula a variância amostral.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "ADDCOLUMNS",
+    "category": "Table manipulation",
+    "guideUrl": "https://dax.guide/addcolumns/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "ADDCOLUMNS(table, name1, expression1, [name2, expression2, ...])",
+    "description": "Adiciona colunas calculadas à tabela ou expressão de tabela fornecida.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "ADDMISSINGITEMS",
+    "category": "Table manipulation",
+    "guideUrl": "https://dax.guide/addmissingitems/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "ADDMISSINGITEMS(showAll_column1, [showAll_column2, ...], table, [groupBy_col1, ...])",
+    "description": "Adiciona itens com valores em branco a uma tabela resumida para manter todas as categorias visíveis.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "CROSSJOIN",
+    "category": "Table manipulation",
+    "guideUrl": "https://dax.guide/crossjoin/",
+    "status": "full",
+    "testCount": 3,
+    "syntax": "CROSSJOIN(table1, table2, [table3, ...])",
+    "description": "Retorna o produto cartesiano das linhas de duas ou mais tabelas.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "CURRENTGROUP",
+    "category": "Table manipulation",
+    "guideUrl": "https://dax.guide/currentgroup/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "CURRENTGROUP()",
+    "description": "Retorna o subconjunto de linhas do grupo atual em uma expressão GROUPBY.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "DATATABLE",
+    "category": "Table manipulation",
+    "guideUrl": "https://dax.guide/datatable/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "DATATABLE(columnName1, dataType1, [columnName2, dataType2, ...], data)",
+    "description": "Define uma tabela inline com colunas, tipos e valores estáticos.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "DETAILROWS",
+    "category": "Table manipulation",
+    "guideUrl": "https://dax.guide/detailrows/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "DETAILROWS(measure)",
+    "description": "Retorna a tabela detalhada associada a uma medida.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "DISTINCT",
+    "category": "Table manipulation",
+    "guideUrl": "https://dax.guide/distinct/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "DISTINCT(table_or_column)",
+    "description": "Retorna uma tabela de uma coluna contendo valores distintos no contexto de filtro atual.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "EXCEPT",
+    "category": "Table manipulation",
+    "guideUrl": "https://dax.guide/except/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "EXCEPT(leftTable, rightTable)",
+    "description": "Retorna as linhas de leftTable que não aparecem em rightTable.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "FILTERS",
+    "category": "Table manipulation",
+    "guideUrl": "https://dax.guide/filters/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "FILTERS(columnName)",
+    "description": "Retorna os valores que estão sendo aplicados diretamente como filtros à coluna especificada.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "GENERATE",
+    "category": "Table manipulation",
+    "guideUrl": "https://dax.guide/generate/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "GENERATE(table1, table2)",
+    "description": "Retorna uma tabela com o produto cartesiano entre table1 e a avaliação de table2 no contexto de cada linha de table1.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "GENERATEALL",
+    "category": "Table manipulation",
+    "guideUrl": "https://dax.guide/generateall/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "GENERATEALL(table1, table2)",
+    "description": "Similar ao GENERATE, mas preserva linhas de table1 mesmo quando table2 retorna vazio (left outer join).",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "GENERATESERIES",
+    "category": "Table manipulation",
+    "guideUrl": "https://dax.guide/generateseries/",
+    "status": "full",
+    "testCount": 4,
+    "syntax": "GENERATESERIES(startValue, endValue, [incrementValue])",
+    "description": "Retorna uma tabela de uma única coluna [Value] com uma série de valores de startValue até endValue com o incremento especificado.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "GROUPBY",
+    "category": "Table manipulation",
+    "guideUrl": "https://dax.guide/groupby/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "GROUPBY(table, groupBy_column1, [groupBy_column2, ...], [name1, expression1, ...])",
+    "description": "Agrupa linhas e avalia agregações usando CURRENTGROUP().",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "IGNORE",
+    "category": "Table manipulation",
+    "guideUrl": "https://dax.guide/ignore/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "IGNORE(expression)",
+    "description": "Modificador para SUMMARIZECOLUMNS que impede que a expressão omita linhas em branco.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "INTERSECT",
+    "category": "Table manipulation",
+    "guideUrl": "https://dax.guide/intersect/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "INTERSECT(leftTable, rightTable)",
+    "description": "Retorna a interseção de linhas entre duas tabelas, mantendo as duplicatas de leftTable se presentes em rightTable.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "NATURALINNERJOIN",
+    "category": "Table manipulation",
+    "guideUrl": "https://dax.guide/naturalinnerjoin/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "NATURALINNERJOIN(leftTable, rightTable)",
+    "description": "Executa uma junção interna baseada nas colunas comuns entre as duas tabelas.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "NATURALJOINUSAGE",
+    "category": "Table manipulation",
+    "guideUrl": "https://dax.guide/naturaljoinusage/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "NATURALJOINUSAGE(...)",
+    "description": "Dica de junção para execução DAX.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "NATURALLEFTOUTERJOIN",
+    "category": "Table manipulation",
+    "guideUrl": "https://dax.guide/naturalleftouterjoin/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "NATURALLEFTOUTERJOIN(leftTable, rightTable)",
+    "description": "Executa uma junção externa à esquerda baseada nas colunas comuns entre as duas tabelas.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "NONVISUAL",
+    "category": "Table manipulation",
+    "guideUrl": "https://dax.guide/nonvisual/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "NONVISUAL(expression)",
+    "description": "Modificador para SUMMARIZECOLUMNS que marca um filtro como não visual.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "ROLLUP",
+    "category": "Table manipulation",
+    "guideUrl": "https://dax.guide/rollup/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "ROLLUP(column1, [column2, ...])",
+    "description": "Modificador para SUMMARIZE que adiciona linhas de subtotal à agregação.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "ROLLUPADDISSUBTOTAL",
+    "category": "Table manipulation",
+    "guideUrl": "https://dax.guide/rollupaddissubtotal/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "ROLLUPADDISSUBTOTAL(column, subtotalColName)",
+    "description": "Modificador para SUMMARIZECOLUMNS que gera totais/subtotais e adiciona uma coluna de flag.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "ROLLUPGROUP",
+    "category": "Table manipulation",
+    "guideUrl": "https://dax.guide/rollupgroup/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "ROLLUPGROUP(column1, [column2, ...])",
+    "description": "Agrupa colunas para evitar subtotais intermediários indesejados em um ROLLUP.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "ROLLUPISSUBTOTAL",
+    "category": "Table manipulation",
+    "guideUrl": "https://dax.guide/rollupissubtotal/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "ROLLUPISSUBTOTAL(column, subtotalColName)",
+    "description": "Adiciona uma coluna que indica se uma linha é uma linha de subtotal em SUMMARIZE.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "ROW",
+    "category": "Table manipulation",
+    "guideUrl": "https://dax.guide/row/",
+    "status": "full",
+    "testCount": 4,
+    "syntax": "ROW(name1, expression1, [name2, expression2, ...])",
+    "description": "Retorna uma tabela com uma única linha contendo valores calculados a partir das expressões fornecidas.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "SAMPLEAXISWITHLOCALMINMAX",
+    "category": "Table manipulation",
+    "guideUrl": "https://dax.guide/sampleaxiswithlocalminmax/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "SAMPLEAXISWITHLOCALMINMAX(...)",
+    "description": "Não suportada no navegador: algoritmo interno de amostragem de eixos de alta densidade do Power BI.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "SELECTCOLUMNS",
+    "category": "Table manipulation",
+    "guideUrl": "https://dax.guide/selectcolumns/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "SELECTCOLUMNS(table, name1, expression1, [name2, expression2, ...])",
+    "description": "Retorna uma tabela com as colunas selecionadas da tabela e as novas colunas especificadas.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "SUBSTITUTEWITHINDEX",
+    "category": "Table manipulation",
+    "guideUrl": "https://dax.guide/substitutewithindex/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "SUBSTITUTEWITHINDEX(table, indexColumnName, indexTable, orderByColumn, [order])",
+    "description": "Substitui ou adiciona uma coluna de índice baseada em outra tabela indexada.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "SUMMARIZE",
+    "category": "Table manipulation",
+    "guideUrl": "https://dax.guide/summarize/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "SUMMARIZE(table, groupBy_column1, [groupBy_column2, ...], [name1, expression1, ...])",
+    "description": "Retorna uma tabela de resumo para os totais solicitados em um conjunto de grupos.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "SUMMARIZECOLUMNS",
+    "category": "Table manipulation",
+    "guideUrl": "https://dax.guide/summarizecolumns/",
+    "status": "full",
+    "testCount": 8,
+    "syntax": "SUMMARIZECOLUMNS(groupBy_column1, ..., [filterTable1, ...], [name1, expression1, ...])",
+    "description": "Retorna uma tabela de resumo em um conjunto de grupos aplicando tabelas de filtro e agregando expressões.",
+    "notes": "Suporta agrupamentos multidimensionais com pares \"Nome\", Expressão.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "TOPN",
+    "category": "Table manipulation",
+    "guideUrl": "https://dax.guide/topn/",
+    "status": "full",
+    "testCount": 4,
+    "syntax": "TOPN(n_value, table, [orderBy_expression], [order], ...)",
+    "description": "Retorna as primeiras N linhas de uma tabela ordenada por uma ou mais expressões.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "TOPNPERLEVEL",
+    "category": "Table manipulation",
+    "guideUrl": "https://dax.guide/topnperlevel/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "TOPNPERLEVEL(n_value, table, level_column, [orderBy], [order])",
+    "description": "Retorna as N primeiras linhas por nível de agrupamento.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "TOPNSKIP",
+    "category": "Table manipulation",
+    "guideUrl": "https://dax.guide/topnskip/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "TOPNSKIP(n_value, skip_value, table, [orderBy_expression], [order])",
+    "description": "Ignora as primeiras skip_value linhas e retorna as próximas n_value linhas.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "TREATAS",
+    "category": "Table manipulation",
+    "guideUrl": "https://dax.guide/treatas/",
+    "status": "not_supported",
+    "testCount": 0,
+    "syntax": "TREATAS()",
+    "description": "Função DAX TREATAS.",
+    "notes": "Não implementada no motor atual.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "UNION",
+    "category": "Table manipulation",
+    "guideUrl": "https://dax.guide/union/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "UNION(table1, table2, [table3, ...])",
+    "description": "Cria uma tabela unindo as linhas de duas ou mais tabelas. A tabela resultante herda as colunas da primeira tabela.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "VALUES",
+    "category": "Table manipulation",
+    "guideUrl": "https://dax.guide/values/",
+    "status": "full",
+    "testCount": 17,
+    "syntax": "VALUES(table_or_column)",
+    "description": "Retorna uma tabela de uma coluna que contém os valores distintos da coluna ou tabela no contexto atual.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "COMBINEVALUES",
+    "category": "Text",
+    "guideUrl": "https://dax.guide/combinevalues/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "COMBINEVALUES(delimiter, expression1, expression2, ...)",
+    "description": "Concatena dois ou mais valores de texto em uma única cadeia usando o delimitador especificado.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "CONCATENATE",
+    "category": "Text",
+    "guideUrl": "https://dax.guide/concatenate/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "CONCATENATE(text1, text2)",
+    "description": "Concatena duas cadeias de texto em uma só cadeia.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "CONCATENATEX",
+    "category": "Text",
+    "guideUrl": "https://dax.guide/concatenatex/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "CONCATENATEX(table, expression, [delimiter], [orderBy_expression], [order])",
+    "description": "Concatena o resultado de uma expressão avaliada para cada linha em uma tabela com delimitador e ordenação opcionais.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "EXACT",
+    "category": "Text",
+    "guideUrl": "https://dax.guide/exact/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "EXACT(text1, text2)",
+    "description": "Compara duas cadeias de texto e retorna TRUE se forem exatamente idênticas (diferencia maiúsculas de minúsculas), senão FALSE.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "FIND",
+    "category": "Text",
+    "guideUrl": "https://dax.guide/find/",
+    "status": "full",
+    "testCount": 28,
+    "syntax": "FIND(find_text, within_text, [start_num], [not_found_value])",
+    "description": "Retorna a posição inicial da primeira cadeia de texto dentro de outra cadeia (diferencia maiúsculas de minúsculas).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "FIXED",
+    "category": "Text",
+    "guideUrl": "https://dax.guide/fixed/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "FIXED(number, [decimals], [no_commas])",
+    "description": "Arredonda um número para o número de casas decimais especificado e retorna o resultado como texto formatado.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "FORMAT",
+    "category": "Text",
+    "guideUrl": "https://dax.guide/format/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "FORMAT(value, format_string)",
+    "description": "Converte um valor em texto de acordo com a cadeia de caracteres de formato especificada.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "LEFT",
+    "category": "Text",
+    "guideUrl": "https://dax.guide/left/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "LEFT(text, [num_chars])",
+    "description": "Retorna a quantidade de caracteres especificada a partir do início (esquerda) do texto.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "LEN",
+    "category": "Text",
+    "guideUrl": "https://dax.guide/len/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "LEN(text)",
+    "description": "Retorna a quantidade de caracteres em uma cadeia de texto.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "LOWER",
+    "category": "Text",
+    "guideUrl": "https://dax.guide/lower/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "LOWER(text)",
+    "description": "Converte todas as letras de um texto em minúsculas.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "MID",
+    "category": "Text",
+    "guideUrl": "https://dax.guide/mid/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "MID(text, start_num, num_chars)",
+    "description": "Retorna uma cadeia de caracteres de um texto a partir da posição inicial (base 1).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "REPLACE",
+    "category": "Text",
+    "guideUrl": "https://dax.guide/replace/",
+    "status": "full",
+    "testCount": 12,
+    "syntax": "REPLACE(old_text, start_num, num_chars, new_text)",
+    "description": "Substitui parte de uma cadeia de texto por um texto diferente com base na posição inicial e no comprimento.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "REPT",
+    "category": "Text",
+    "guideUrl": "https://dax.guide/rept/",
+    "status": "full",
+    "testCount": 3,
+    "syntax": "REPT(text, number_times)",
+    "description": "Repete o texto um determinado número de vezes.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "RIGHT",
+    "category": "Text",
+    "guideUrl": "https://dax.guide/right/",
+    "status": "full",
+    "testCount": 3,
+    "syntax": "RIGHT(text, [num_chars])",
+    "description": "Retorna a quantidade de caracteres especificada a partir do fim (direita) do texto.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "SEARCH",
+    "category": "Text",
+    "guideUrl": "https://dax.guide/search/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "SEARCH(find_text, within_text, [start_num], [not_found_value])",
+    "description": "Retorna o número da posição inicial de um texto dentro de outro, não diferenciando maiúsculas de minúsculas e aceitando curingas (? e *).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "SUBSTITUTE",
+    "category": "Text",
+    "guideUrl": "https://dax.guide/substitute/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "SUBSTITUTE(text, old_text, new_text, [instance_num])",
+    "description": "Substitui texto existente por novo texto em uma cadeia de caracteres.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "TOCSV",
-    "category": "Utility",
+    "category": "Text",
     "guideUrl": "https://dax.guide/tocsv/",
     "status": "full",
     "testCount": 2,
     "syntax": "TOCSV(<Table> [, <Delimiter>] [, <IncludeHeaders>])",
     "description": "Converte uma tabela DAX em uma cadeia de caracteres formatada como CSV.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
   },
   {
     "name": "TOJSON",
-    "category": "Utility",
+    "category": "Text",
     "guideUrl": "https://dax.guide/tojson/",
     "status": "full",
     "testCount": 3,
     "syntax": "TOJSON(<ValueOrTable>)",
     "description": "Serializa uma tabela DAX ou valor escalar em uma cadeia de caracteres no formato JSON.",
-    "notes": "Implementada conforme dax.guide."
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "TRIM",
+    "category": "Text",
+    "guideUrl": "https://dax.guide/trim/",
+    "status": "full",
+    "testCount": 4,
+    "syntax": "TRIM(text)",
+    "description": "Remove todos os espaços em branco de um texto, exceto espaços únicos entre palavras.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "UNICHAR",
+    "category": "Text",
+    "guideUrl": "https://dax.guide/unichar/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "UNICHAR(number)",
+    "description": "Retorna o caractere Unicode referenciado pelo valor numérico fornecido.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "UNICODE",
+    "category": "Text",
+    "guideUrl": "https://dax.guide/unicode/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "UNICODE(text)",
+    "description": "Retorna o número (ponto de código) correspondente ao primeiro caractere do texto.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "UPPER",
+    "category": "Text",
+    "guideUrl": "https://dax.guide/upper/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "UPPER(text)",
+    "description": "Converte todas as letras de um texto em maiúsculas.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "VALUE",
+    "category": "Text",
+    "guideUrl": "https://dax.guide/value/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "VALUE(text)",
+    "description": "Converte uma cadeia de caracteres de texto que representa um número em um número.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "CLOSINGBALANCEMONTH",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/closingbalancemonth/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "CLOSINGBALANCEMONTH(expression, dates, [filter])",
+    "description": "Avalia a expressão na última data do mês no contexto atual.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "CLOSINGBALANCEQUARTER",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/closingbalancequarter/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "CLOSINGBALANCEQUARTER(expression, dates, [filter])",
+    "description": "Avalia a expressão na última data do trimestre no contexto atual.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "CLOSINGBALANCEWEEK",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/closingbalanceweek/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "CLOSINGBALANCEWEEK(expression, dates, [filter])",
+    "description": "Avalia a expressão na última data da semana no contexto.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "CLOSINGBALANCEYEAR",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/closingbalanceyear/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "CLOSINGBALANCEYEAR(expression, dates, [filter], [year_end_date])",
+    "description": "Avalia a expressão no último dia do ano fiscal ou civil no contexto.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "DATEADD",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/dateadd/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "DATEADD(dates, number_of_intervals, interval)",
+    "description": "Desloca o conjunto de datas no contexto atual pelo número de intervalos especificado (YEAR, QUARTER, MONTH, DAY).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "DATESBETWEEN",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/datesbetween/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "DATESBETWEEN(dates, start_date, end_date)",
+    "description": "Retorna uma tabela contendo uma coluna de datas que começa na start_date e continua até end_date.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "DATESINPERIOD",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/datesinperiod/",
+    "status": "full",
+    "testCount": 3,
+    "syntax": "DATESINPERIOD(dates, start_date, number_of_intervals, interval)",
+    "description": "Retorna uma tabela contendo datas começando em start_date e avançando ou retrocedendo o número de intervalos especificado.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "DATESMTD",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/datesmtd/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "DATESMTD(dates)",
+    "description": "Retorna uma tabela que contém uma coluna de todas as datas no acumulado do mês (Month-To-Date).",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "DATESQTD",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/datesqtd/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "DATESQTD(dates)",
+    "description": "Retorna uma tabela que contém uma coluna de todas as datas no acumulado do trimestre (Quarter-To-Date).",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "DATESWTD",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/dateswtd/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "DATESWTD(dates)",
+    "description": "Retorna uma tabela que contém uma coluna de todas as datas no acumulado da semana (Week-To-Date).",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "DATESYTD",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/datesytd/",
+    "status": "full",
+    "testCount": 3,
+    "syntax": "DATESYTD(dates, [year_end_date])",
+    "description": "Retorna uma tabela que contém uma coluna de todas as datas no acumulado do ano (Year-To-Date) no contexto atual.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "ENDOFMONTH",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/endofmonth/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "ENDOFMONTH(dates)",
+    "description": "Retorna uma tabela com o último dia do mês correspondente ao contexto.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "ENDOFQUARTER",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/endofquarter/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "ENDOFQUARTER(dates)",
+    "description": "Retorna o último dia do trimestre correspondente ao contexto.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "ENDOFWEEK",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/endofweek/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "ENDOFWEEK(dates)",
+    "description": "Retorna o último dia da semana correspondente ao contexto.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "ENDOFYEAR",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/endofyear/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "ENDOFYEAR(dates, [year_end_date])",
+    "description": "Retorna o último dia do ano fiscal ou civil correspondente ao contexto.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "FIRSTDATE",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/firstdate/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "FIRSTDATE(dates)",
+    "description": "Retorna a primeira data visível no contexto atual em uma tabela de uma única coluna.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "FIRSTNONBLANK",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/firstnonblank/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "FIRSTNONBLANK(column, expression)",
+    "description": "Retorna o primeiro valor da coluna para o qual a expressão não avalia como BLANK.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "FIRSTNONBLANKVALUE",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/firstnonblankvalue/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "FIRSTNONBLANKVALUE(column, expression)",
+    "description": "Retorna o valor da expressão avaliada no primeiro valor não em branco da coluna.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "LASTDATE",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/lastdate/",
+    "status": "full",
+    "testCount": 3,
+    "syntax": "LASTDATE(dates)",
+    "description": "Retorna a última data visível no contexto atual em uma tabela de uma única coluna.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "LASTNONBLANK",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/lastnonblank/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "LASTNONBLANK(column, expression)",
+    "description": "Retorna o último valor da coluna para o qual a expressão não avalia como BLANK.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "LASTNONBLANKVALUE",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/lastnonblankvalue/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "LASTNONBLANKVALUE(column, expression)",
+    "description": "Retorna o valor da expressão avaliada no último valor não em branco da coluna.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "NEXTDAY",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/nextday/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "NEXTDAY(dates)",
+    "description": "Retorna uma tabela com o próximo dia após a última data do contexto atual.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "NEXTMONTH",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/nextmonth/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "NEXTMONTH(dates)",
+    "description": "Retorna todas as datas do próximo mês após a última data do contexto atual.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "NEXTQUARTER",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/nextquarter/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "NEXTQUARTER(dates)",
+    "description": "Retorna todas as datas do próximo trimestre após a última data do contexto atual.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "NEXTWEEK",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/nextweek/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "NEXTWEEK(dates)",
+    "description": "Retorna todas as datas da próxima semana após a última data do contexto atual.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "NEXTYEAR",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/nextyear/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "NEXTYEAR(dates, [year_end_date])",
+    "description": "Retorna todas as datas do próximo ano após a última data do contexto atual.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "OPENINGBALANCEMONTH",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/openingbalancemonth/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "OPENINGBALANCEMONTH(expression, dates, [filter])",
+    "description": "Avalia a expressão na última data do mês anterior (saldo de abertura do mês corrente).",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "OPENINGBALANCEQUARTER",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/openingbalancequarter/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "OPENINGBALANCEQUARTER(expression, dates, [filter])",
+    "description": "Avalia a expressão no saldo de abertura do trimestre corrente.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "OPENINGBALANCEWEEK",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/openingbalanceweek/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "OPENINGBALANCEWEEK(expression, dates, [filter])",
+    "description": "Avalia a expressão no saldo de abertura da semana corrente.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "OPENINGBALANCEYEAR",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/openingbalanceyear/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "OPENINGBALANCEYEAR(expression, dates, [filter], [year_end_date])",
+    "description": "Avalia a expressão no saldo de abertura do ano fiscal ou civil corrente.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "PARALLELPERIOD",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/parallelperiod/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "PARALLELPERIOD(dates, number_of_intervals, interval)",
+    "description": "Retorna uma tabela que representa um período paralelo às datas da coluna no contexto atual (YEAR, QUARTER, MONTH).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "PREVIOUSDAY",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/previousday/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "PREVIOUSDAY(dates)",
+    "description": "Retorna uma tabela com o dia anterior ao primeiro dia presente no contexto atual.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "PREVIOUSMONTH",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/previousmonth/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "PREVIOUSMONTH(dates)",
+    "description": "Retorna todas as datas do mês anterior ao primeiro dia do contexto atual.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "PREVIOUSQUARTER",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/previousquarter/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "PREVIOUSQUARTER(dates)",
+    "description": "Retorna todas as datas do trimestre anterior ao primeiro dia do contexto atual.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "PREVIOUSWEEK",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/previousweek/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "PREVIOUSWEEK(dates)",
+    "description": "Retorna todas as datas da semana anterior à primeira data do contexto.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "PREVIOUSYEAR",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/previousyear/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "PREVIOUSYEAR(dates, [year_end_date])",
+    "description": "Retorna todas as datas do ano anterior ao primeiro dia do contexto atual.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "SAMEPERIODLASTYEAR",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/sameperiodlastyear/",
+    "status": "full",
+    "testCount": 8,
+    "syntax": "SAMEPERIODLASTYEAR(dates)",
+    "description": "Retorna um conjunto de datas no mesmo período do ano anterior (deslocamento exato de -1 ano com respeito a fim de mês).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "STARTOFMONTH",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/startofmonth/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "STARTOFMONTH(dates)",
+    "description": "Retorna uma tabela com o primeiro dia do mês correspondente ao contexto.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "STARTOFQUARTER",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/startofquarter/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "STARTOFQUARTER(dates)",
+    "description": "Retorna o primeiro dia do trimestre correspondente ao contexto.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "STARTOFWEEK",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/startofweek/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "STARTOFWEEK(dates)",
+    "description": "Retorna uma tabela com a data inicial da semana correspondente ao contexto.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "STARTOFYEAR",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/startofyear/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "STARTOFYEAR(dates, [year_end_date])",
+    "description": "Retorna o primeiro dia do ano fiscal ou civil correspondente ao contexto.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "TOTALMTD",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/totalmtd/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "TOTALMTD(expression, dates, [filter])",
+    "description": "Avalia a expressão no acumulado do mês (Month-To-Date).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "TOTALQTD",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/totalqtd/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "TOTALQTD(expression, dates, [filter])",
+    "description": "Avalia a expressão no acumulado do trimestre (Quarter-To-Date).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "TOTALWTD",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/totalwtd/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "TOTALWTD(expression, dates, [filter])",
+    "description": "Avalia a expressão no acumulado da semana (Week-To-Date).",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "TOTALYTD",
+    "category": "Time Intelligence",
+    "guideUrl": "https://dax.guide/totalytd/",
+    "status": "full",
+    "testCount": 7,
+    "syntax": "TOTALYTD(expression, dates, [filter], [year_end_date])",
+    "description": "Avalia a expressão no acumulado do ano (Year-To-Date), equivalente a CALCULATE(expr, DATESYTD(dates, year_end_date), filter).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "COLLAPSE",
+    "category": "Visual Calculations",
+    "guideUrl": "https://dax.guide/collapse/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "COLLAPSE(column, [axis])",
+    "description": "Agrupa no nível pai dentro da hierarquia do visual.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "COLLAPSEALL",
+    "category": "Visual Calculations",
+    "guideUrl": "https://dax.guide/collapseall/",
+    "status": "full",
+    "testCount": 3,
+    "syntax": "COLLAPSEALL(column, [axis])",
+    "description": "Agrupa em todos os níveis no escopo do visual (total geral do visual).",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "EXPAND",
+    "category": "Visual Calculations",
+    "guideUrl": "https://dax.guide/expand/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "EXPAND(column, [axis])",
+    "description": "Expande para o próximo nível dentro da hierarquia do visual.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "EXPANDALL",
+    "category": "Visual Calculations",
+    "guideUrl": "https://dax.guide/expandall/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "EXPANDALL(column, [axis])",
+    "description": "Expande para todos os níveis detalhados do visual.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "FIRST",
+    "category": "Visual Calculations",
+    "guideUrl": "https://dax.guide/first/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "FIRST(column, [reset], [axis])",
+    "description": "Retorna o valor da primeira linha no escopo do visual.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "LAST",
+    "category": "Visual Calculations",
+    "guideUrl": "https://dax.guide/last/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "LAST(column, [reset], [axis])",
+    "description": "Retorna o valor da última linha no escopo do visual.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "MOVINGAVERAGE",
+    "category": "Visual Calculations",
+    "guideUrl": "https://dax.guide/movingaverage/",
+    "status": "full",
+    "testCount": 2,
+    "syntax": "MOVINGAVERAGE(column, windowSize, [reset], [axis])",
+    "description": "Calcula a média móvel de uma coluna no tamanho de janela especificado.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "NEXT",
+    "category": "Visual Calculations",
+    "guideUrl": "https://dax.guide/next/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "NEXT(column, [offset], [reset], [axis])",
+    "description": "Retorna o valor da próxima linha dentro do visual. Retorna BLANK na última linha.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "PREVIOUS",
+    "category": "Visual Calculations",
+    "guideUrl": "https://dax.guide/previous/",
+    "status": "full",
+    "testCount": 4,
+    "syntax": "PREVIOUS(column, [offset], [reset], [axis])",
+    "description": "Retorna o valor da linha anterior dentro do visual. Retorna BLANK na primeira linha.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "RANGE",
+    "category": "Visual Calculations",
+    "guideUrl": "https://dax.guide/range/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "RANGE(from, to, [axis])",
+    "description": "Retorna o intervalo relativo de linhas no cálculo visual.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": false,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "RUNNINGSUM",
+    "category": "Visual Calculations",
+    "guideUrl": "https://dax.guide/runningsum/",
+    "status": "full",
+    "testCount": 4,
+    "syntax": "RUNNINGSUM(column, [reset], [axis])",
+    "description": "Calcula a soma acumulada de uma coluna ao longo das linhas do visual.",
+    "notes": "Implementada conforme dax.guide.",
+    "isOutsideIndex": false
+  },
+  {
+    "name": "IFS",
+    "category": "Implementadas fora do índice",
+    "guideUrl": "https://dax.guide/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "IFS(cond1, val1, cond2, val2, [default])",
+    "description": "Avalia múltiplas condições em cascata até encontrar a primeira verdadeira.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": true,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "CONCAT",
+    "category": "Implementadas fora do índice",
+    "guideUrl": "https://dax.guide/",
+    "status": "partial",
+    "testCount": 0,
+    "syntax": "CONCAT(text1, text2, ...)",
+    "description": "Concatena argumentos de texto em uma única sequência.",
+    "notes": "Implementada no motor mas sem testes unitários dedicados no suite.",
+    "isOutsideIndex": true,
+    "partialReason": "low_tests"
+  },
+  {
+    "name": "PROPER",
+    "category": "Implementadas fora do índice",
+    "guideUrl": "https://dax.guide/",
+    "status": "full",
+    "testCount": 1,
+    "syntax": "PROPER(text)",
+    "description": "Converte a primeira letra de cada palavra em maiúscula e o restante em minúscula.",
+    "notes": "Função implementada no motor fora do índice canônico dax.guide.",
+    "isOutsideIndex": true
   }
 ];

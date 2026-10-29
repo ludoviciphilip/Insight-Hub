@@ -17,6 +17,8 @@ import {
   DAX_CONFORMANCE_SUMMARY,
   DaxGeneratedItem,
 } from '../../engine/compliance/daxCatalog.generated';
+import { DAX_GUIDE_INDEX_FETCHED_AT } from '../../engine/compliance/daxGuideIndex';
+import { APP_VERSION } from '../../version';
 import { DaxEngine } from '../../engine/daxEngine';
 import { useBiStore } from '../../store/useBiStore';
 
@@ -49,9 +51,14 @@ export const DaxComplianceView: React.FC = () => {
       let matchStatus = true;
       if (selectedStatus === 'full') matchStatus = item.status === 'full';
       else if (selectedStatus === 'partial') matchStatus = item.status === 'partial';
+      else if (selectedStatus === 'partial_status')
+        matchStatus = item.status === 'partial' && item.partialReason === 'support_status';
+      else if (selectedStatus === 'partial_tests')
+        matchStatus = item.status === 'partial' && item.partialReason === 'low_tests';
       else if (selectedStatus === 'stub') matchStatus = item.status === 'stub';
       else if (selectedStatus === 'not_supported') matchStatus = item.status === 'not_supported';
       else if (selectedStatus === 'untested') matchStatus = item.testCount === 0;
+      else if (selectedStatus === 'outside_index') matchStatus = Boolean(item.isOutsideIndex);
 
       return matchSearch && matchCategory && matchStatus;
     });
@@ -143,7 +150,7 @@ export const DaxComplianceView: React.FC = () => {
   const exportReportJson = () => {
     const report = {
       title: 'InsightHub DAX Engine - Relatório de Conformidade DAX.guide',
-      version: '0.10.0',
+      version: APP_VERSION,
       timestamp: new Date().toISOString(),
       summary: DAX_CONFORMANCE_SUMMARY,
       catalog: DAX_CATALOG_GENERATED.map(c => ({
@@ -155,7 +162,7 @@ export const DaxComplianceView: React.FC = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `dax-compliance-report-v0.10-${Date.now()}.json`;
+    a.download = `dax-compliance-report-v${APP_VERSION}-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -172,12 +179,12 @@ export const DaxComplianceView: React.FC = () => {
               <Zap className="w-5 h-5" />
             </span>
             <h1 className="text-xl font-bold text-white tracking-wide">
-              Conformidade DAX & Matriz dax.guide (0.10)
+              Conformidade DAX & Matriz dax.guide ({APP_VERSION})
             </h1>
           </div>
           <p className="text-xs text-slate-400 mt-1">
-            {s.implementedCount} implementadas de {s.totalInDaxGuide} no dax.guide ({s.coveragePercent}% de cobertura global).{' '}
-            {s.testedCount} com testes dedicados. {s.partialCount} parciais / {s.stubCount} stubs. {s.notSupportedCount} não suportadas.
+            Índice oficial completo coletado em <span className="text-amber-300 font-mono">{s.indexFetchedAt || DAX_GUIDE_INDEX_FETCHED_AT}</span>. {s.implementedCount} implementadas de {s.totalInDaxGuide} no dax.guide ({s.coveragePercent}% de cobertura global).{' '}
+            {s.testedCount} com testes dedicados. {s.partialCount} parciais ({s.partialByStatusCount || 0} por escopo, {s.partialByTestsCount || 0} sem testes). {s.stubCount} stubs. {s.notSupportedCount} não suportadas.{s.outsideIndexCount ? ` + ${s.outsideIndexCount} fora do índice.` : ''}
           </p>
         </div>
 
@@ -206,11 +213,11 @@ export const DaxComplianceView: React.FC = () => {
       </div>
 
       {/* KPI Cards Strip */}
-      <div className="px-6 py-3 bg-slate-900/60 border-b border-slate-800 grid grid-cols-2 sm:grid-cols-5 gap-3">
+      <div className="px-6 py-3 bg-slate-900/60 border-b border-slate-800 grid grid-cols-2 sm:grid-cols-6 gap-3">
         <div className="p-3 rounded-lg bg-slate-950/70 border border-slate-800">
           <div className="text-xs text-slate-400">Total dax.guide</div>
           <div className="text-2xl font-bold text-white mt-1">{s.totalInDaxGuide}</div>
-          <div className="text-[10px] text-slate-500 mt-0.5">Catálogo oficial completo</div>
+          <div className="text-[10px] text-slate-500 mt-0.5">Coletado em {s.indexFetchedAt || DAX_GUIDE_INDEX_FETCHED_AT}</div>
         </div>
 
         <div className="p-3 rounded-lg bg-slate-950/70 border border-emerald-900/40">
@@ -224,11 +231,22 @@ export const DaxComplianceView: React.FC = () => {
 
         <div className="p-3 rounded-lg bg-slate-950/70 border border-amber-900/40">
           <div className="text-xs text-amber-400 flex items-center justify-between">
-            <span>Parciais & Stubs</span>
+            <span>Parciais</span>
             <Clock className="w-3.5 h-3.5" />
           </div>
-          <div className="text-2xl font-bold text-amber-300 mt-1">{s.partialCount + s.stubCount}</div>
-          <div className="text-[10px] text-amber-500 mt-0.5">{s.partialCount} parciais, {s.stubCount} stub</div>
+          <div className="text-2xl font-bold text-amber-300 mt-1">{s.partialCount}</div>
+          <div className="text-[10px] text-amber-500 mt-0.5">
+            {s.partialByStatusCount || 0} escopo, {s.partialByTestsCount || 0} s/ testes
+          </div>
+        </div>
+
+        <div className="p-3 rounded-lg bg-slate-950/70 border border-purple-900/40">
+          <div className="text-xs text-purple-400 flex items-center justify-between">
+            <span>Stubs</span>
+            <HelpCircle className="w-3.5 h-3.5" />
+          </div>
+          <div className="text-2xl font-bold text-purple-300 mt-1">{s.stubCount}</div>
+          <div className="text-[10px] text-purple-500 mt-0.5">Placeholders de sintaxe</div>
         </div>
 
         <div className="p-3 rounded-lg bg-slate-950/70 border border-rose-900/40">
@@ -237,11 +255,16 @@ export const DaxComplianceView: React.FC = () => {
             <AlertCircle className="w-3.5 h-3.5" />
           </div>
           <div className="text-2xl font-bold text-rose-300 mt-1">{s.notSupportedCount}</div>
-          <div className="text-[10px] text-rose-500 mt-0.5">Aguardando implementação</div>
+          <div className="text-[10px] text-rose-500 mt-0.5">Aguardando motor</div>
         </div>
 
         <div className="p-3 rounded-lg bg-slate-950/70 border border-amber-500/30">
-          <div className="text-xs text-amber-300">Cobertura Global</div>
+          <div className="text-xs text-amber-300 flex items-center justify-between">
+            <span>Cobertura</span>
+            {s.outsideIndexCount > 0 && (
+              <span className="text-[10px] text-cyan-400 font-mono">+{s.outsideIndexCount} fora</span>
+            )}
+          </div>
           <div className="text-2xl font-bold text-amber-400 mt-1">{s.coveragePercent}%</div>
           <div className="w-full bg-slate-800 h-1.5 rounded-full mt-2 overflow-hidden">
             <div
@@ -250,6 +273,27 @@ export const DaxComplianceView: React.FC = () => {
             />
           </div>
         </div>
+      </div>
+
+      {/* Status Explanations Banner */}
+      <div className="px-6 py-2 bg-slate-950 border-b border-slate-800/80 text-[11px] text-slate-400 flex flex-wrap gap-x-6 gap-y-1.5 items-center">
+        <span className="font-semibold text-slate-300">Regras de Status:</span>
+        <span className="inline-flex items-center gap-1">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" />
+          <strong className="text-emerald-300">Total (full):</strong> Implementada e com testes unitários dedicados (&gt; 0 testes).
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span className="w-2 h-2 rounded-full bg-amber-400 inline-block" />
+          <strong className="text-amber-300">Parcial (partial):</strong> Por escopo funcional limitado OU por falta de testes dedicados no suite (0 testes).
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span className="w-2 h-2 rounded-full bg-purple-400 inline-block" />
+          <strong className="text-purple-300">Stub (stub):</strong> Assinatura parseada sem erro, execução simplificada.
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span className="w-2 h-2 rounded-full bg-rose-400 inline-block" />
+          <strong className="text-rose-300">Não Suportada (not_supported):</strong> No dax.guide, pendente de implementação.
+        </span>
       </div>
 
       {/* Filter Toolbar */}
@@ -262,7 +306,7 @@ export const DaxComplianceView: React.FC = () => {
               type="text"
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              placeholder="Buscar função, sintaxe ou descrição (ex: CALCULATE, SUMX, WINDOW)..."
+              placeholder="Buscar função, sintaxe ou descrição (ex: CALCULATE, SUMX, WINDOW, INFO.TABLES)..."
               className="w-full pl-9 pr-3 py-1.5 bg-slate-900 border border-slate-700 rounded text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
             />
           </div>
@@ -285,11 +329,12 @@ export const DaxComplianceView: React.FC = () => {
         <div className="flex items-center gap-1 bg-slate-900 p-0.5 rounded border border-slate-800 flex-wrap">
           {[
             { id: 'All', label: 'Todas' },
-            { id: 'full', label: 'Totalmente Suportadas' },
-            { id: 'partial', label: 'Parciais' },
+            { id: 'full', label: 'Suporte Total' },
+            { id: 'partial_status', label: 'Parcial (Escopo)' },
+            { id: 'partial_tests', label: 'Parcial (Sem Testes)' },
             { id: 'stub', label: 'Stubs' },
             { id: 'not_supported', label: 'Não Suportadas' },
-            { id: 'untested', label: 'Sem Testes' },
+            { id: 'outside_index', label: 'Fora do Índice' },
           ].map(btn => (
             <button
               key={btn.id}
@@ -439,7 +484,7 @@ export const DaxComplianceView: React.FC = () => {
 
             <div className="mt-4 space-y-4 text-xs text-slate-300">
               <div>
-                <div className="text-[11px] font-semibold text-slate-400 mb-1">Status de Suporte (0.10.0)</div>
+                <div className="text-[11px] font-semibold text-slate-400 mb-1">Status de Suporte ({APP_VERSION})</div>
                 <div className="flex items-center gap-2">
                   <span
                     className={`px-2 py-0.5 rounded text-xs font-semibold ${
@@ -455,7 +500,9 @@ export const DaxComplianceView: React.FC = () => {
                     {selectedItem.status === 'full'
                       ? 'Totalmente Suportada'
                       : selectedItem.status === 'partial'
-                      ? 'Parcial'
+                      ? selectedItem.partialReason === 'support_status'
+                        ? 'Parcial (Escopo)'
+                        : 'Parcial (Sem Testes)'
                       : selectedItem.status === 'stub'
                       ? 'Stub'
                       : 'Não Suportada'}
@@ -464,6 +511,19 @@ export const DaxComplianceView: React.FC = () => {
                     {selectedItem.testCount} asserções/testes
                   </span>
                 </div>
+                {selectedItem.status === 'partial' && (
+                  <div className="mt-2 p-2 rounded bg-amber-950/40 border border-amber-800/40 text-[11px] text-amber-300 leading-relaxed">
+                    <strong>Causa do status parcial:</strong>{' '}
+                    {selectedItem.partialReason === 'support_status'
+                      ? 'Escopo funcional suporta cenários principais; parâmetros avançados não suportados.'
+                      : 'Implementada no motor mas sem testes unitários dedicados no suite (0 testes).'}
+                  </div>
+                )}
+                {selectedItem.isOutsideIndex && (
+                  <div className="mt-2 p-2 rounded bg-cyan-950/40 border border-cyan-800/40 text-[11px] text-cyan-300 leading-relaxed">
+                    <strong>Fora do índice canônico:</strong> Função auxiliar ou alias implementada no motor mas não documentada na raiz do dax.guide.
+                  </div>
+                )}
               </div>
 
               <div>

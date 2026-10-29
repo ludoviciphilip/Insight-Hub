@@ -14,8 +14,9 @@ import { useBiStore } from '../../store/useBiStore';
 import { DaxEngine } from '../../engine/daxEngine';
 import { globalDataEngine } from '../../engine/dataEngine';
 import { formatNumber } from '../../engine/shared/formatter';
-import { daxAssist } from '../../services/aiClient';
+import { daxAssist, DaxAssistResponse } from '../../services/aiClient';
 import { hasConfiguredApiKey, shouldPromptPrivacyConsent } from '../../services/aiConfig';
+import { buildSafeSchema } from '../../services/aiSchema';
 import { AiPrivacyModal } from '../ai/AiPrivacyModal';
 
 interface DaxAiAssistantModalProps {
@@ -41,15 +42,7 @@ export const DaxAiAssistantModal: React.FC<DaxAiAssistantModalProps> = ({
   const [successMsg, setSuccessMsg] = useState('');
 
   // AI Response state
-  const [aiResponse, setAiResponse] = useState<{
-    suggestedMeasureName?: string;
-    targetTable?: string;
-    dax?: string;
-    explanation?: string;
-    performanceTips?: string;
-    source?: 'gemini' | 'local';
-    fallbackReason?: string;
-  } | null>(null);
+  const [aiResponse, setAiResponse] = useState<DaxAssistResponse | null>(null);
 
   // Test validation state
   const [validationResult, setValidationResult] = useState<{
@@ -74,16 +67,12 @@ export const DaxAiAssistantModal: React.FC<DaxAiAssistantModalProps> = ({
     setLoading(true);
 
     try {
-      const schemaSummary = tables
-        .map(t => `${t.name} (${t.columns.map(c => c.name).join(', ')})`)
-        .join('; ');
-
       const data = await daxAssist(
         {
           task,
           description: task === 'generate' ? description : undefined,
           existingFormula: formula,
-          schemaContext: schemaSummary,
+          schemaContext: buildSafeSchema(tables, measures),
         },
         tables,
         measures
@@ -132,7 +121,7 @@ export const DaxAiAssistantModal: React.FC<DaxAiAssistantModalProps> = ({
       tarefa: task,
       descricao: description,
       formulaExistente: formula,
-      schema: tables.map(t => t.name),
+      schema: buildSafeSchema(tables, measures),
     };
 
     if (hasConfiguredApiKey() && shouldPromptPrivacyConsent()) {
@@ -319,7 +308,9 @@ export const DaxAiAssistantModal: React.FC<DaxAiAssistantModalProps> = ({
                       <span className="text-amber-800">
                         {aiResponse.fallbackReason === 'no_key'
                           ? 'Nenhuma chave Gemini configurada'
-                          : `Fallback local: ${aiResponse.fallbackReason || 'heurística'}`}
+                          : aiResponse.fallbackReason === 'consent_declined'
+                          ? 'Envio à API recusado na confirmação de privacidade'
+                          : `Fallback local: ${aiResponse.errorMessage || aiResponse.fallbackReason || 'erro na requisição'}`}
                       </span>
                     </div>
                     <button

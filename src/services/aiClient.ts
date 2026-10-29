@@ -1,5 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
-import { getAiApiKey, getSelectedModel, DEFAULT_GEMINI_MODEL } from './aiConfig';
+import { getAiApiKey, getSelectedModel, getPrivacyConsent, DEFAULT_GEMINI_MODEL } from './aiConfig';
 import {
   localAsk,
   localSummary,
@@ -10,12 +10,14 @@ import {
   LocalSummaryResult,
 } from './localAssist';
 import { Table, Measure } from '../types/bi';
+import { buildSafeSchema, truncatePayload } from './aiSchema';
 
 export type AiSource = 'gemini' | 'local';
 export type FallbackReason = 'no_key' | 'error' | 'consent_declined';
 
 export interface AiResponseMeta {
   source: AiSource;
+  isFallback: boolean;
   fallbackReason?: FallbackReason;
   errorMessage?: string;
   isTruncated?: boolean;
@@ -26,7 +28,6 @@ export type SummaryResponse = Omit<LocalSummaryResult, 'source'> & AiResponseMet
 export type DaxAssistResponse = Omit<LocalDaxResult, 'source'> & AiResponseMeta;
 
 const TIMEOUT_MS = 30000;
-const MAX_PAYLOAD_BYTES = 50 * 1024; // 50 KB limit for privacy and performance
 
 function translateErrorMessage(err: any): string {
   const msg = String(err?.message || err || '');
@@ -57,7 +58,7 @@ function translateErrorMessage(err: any): string {
     msg.includes('not found') ||
     msg.includes('deprecated')
   ) {
-    return 'Modelo de IA inexistente ou descontinuado. Abra as Configurações de IA para selecionar outro modelo.';
+    return 'Modelo de IA inexistente ou descontinuado. Abra as Configurações de IA e use "Testar conexão e listar modelos" para selecionar um modelo disponível.';
   }
   if (
     msg.includes('Failed to fetch') ||
@@ -68,17 +69,6 @@ function translateErrorMessage(err: any): string {
     return 'Sem conexão com a internet ou tempo limite excedido (30s) ao contactar a Google.';
   }
   return `Erro ao consultar o Gemini: ${msg}`;
-}
-
-function truncatePayload(payloadString: string): { data: string; isTruncated: boolean } {
-  if (new Blob([payloadString]).size <= MAX_PAYLOAD_BYTES) {
-    return { data: payloadString, isTruncated: false };
-  }
-  // Truncate to safe slice
-  const truncated =
-    payloadString.slice(0, MAX_PAYLOAD_BYTES - 150) +
-    '\n... [TRUNCADO: limite de 50 KB de segurança atingido]';
-  return { data: truncated, isTruncated: true };
 }
 
 /**
@@ -102,11 +92,6 @@ async function callGeminiWithTimeout(
     try {
       const ai = new GoogleGenAI({
         apiKey,
-        httpOptions: {
-          headers: {
-            'User-Agent': 'aistudio-build',
-          },
-        },
       });
 
       const response = await ai.models.generateContent({
@@ -153,17 +138,30 @@ export async function askData(
   const modelName = getSelectedModel();
   const { tables, measures } = extractTablesAndMeasures(schemaOrTables, fallbackMeasures);
 
+  const consent = getPrivacyConsent();
+  if (apiKey && !consent.accepted) {
+    const local = localAsk(question, tables, measures);
+    return {
+      ...local,
+      source: 'local',
+      isFallback: true,
+      fallbackReason: 'consent_declined',
+      errorMessage: 'Envio à API recusado na confirmação de privacidade. Resposta gerada localmente.',
+    };
+  }
+
   if (!apiKey) {
     const local = localAsk(question, tables, measures);
     return {
       ...local,
       source: 'local',
+      isFallback: true,
       fallbackReason: 'no_key',
       errorMessage: 'Chave Gemini não configurada. Resposta gerada localmente.',
     };
   }
 
-  const { data: safeSchema, isTruncated } = truncatePayload(schemaContext || JSON.stringify(tables));
+  const { data: safeSchema, isTruncated } = truncatePayload(schemaContext || buildSafeSchema(tables, measures));
 
   const systemInstruction = `Você é o Copilot de Business Intelligence do InsightHub (pt-BR).
 O usuário fará uma pergunta em linguagem natural sobre seus dados.
@@ -215,6 +213,7 @@ Responda ESTRITAMENTE em formato JSON com o seguinte formato:
       explanation: parsed.explanation || 'Visual sugerido pelo modelo Gemini com base no seu esquema.',
       insights: Array.isArray(parsed.insights) ? parsed.insights : [],
       source: 'gemini',
+      isFallback: false,
       isTruncated,
     };
   } catch (err: any) {
@@ -223,6 +222,7 @@ Responda ESTRITAMENTE em formato JSON com o seguinte formato:
     return {
       ...local,
       source: 'local',
+      isFallback: true,
       fallbackReason: 'error',
       errorMessage: errorMsg,
       isTruncated,
@@ -243,11 +243,24 @@ export async function summarize(
   const modelName = getSelectedModel();
   const { tables, measures } = extractTablesAndMeasures(schemaOrTables, fallbackMeasures);
 
+  const consent = getPrivacyConsent();
+  if (apiKey && !consent.accepted) {
+    const local = localSummary(datasetSummary, currentMetrics, tables, measures);
+    return {
+      ...local,
+      source: 'local',
+      isFallback: true,
+      fallbackReason: 'consent_declined',
+      errorMessage: 'Envio à API recusado na confirmação de privacidade. Resumo gerado localmente.',
+    };
+  }
+
   if (!apiKey) {
     const local = localSummary(datasetSummary, currentMetrics, tables, measures);
     return {
       ...local,
       source: 'local',
+      isFallback: true,
       fallbackReason: 'no_key',
       errorMessage: 'Chave Gemini não configurada. Resumo gerado localmente por regras heurísticas.',
     };
@@ -271,6 +284,7 @@ Mantenha o tom profissional e direto, estilo relatório de diretoria. Finalize c
     return {
       summary: text,
       source: 'gemini',
+      isFallback: false,
       isTruncated,
     };
   } catch (err: any) {
@@ -279,6 +293,7 @@ Mantenha o tom profissional e direto, estilo relatório de diretoria. Finalize c
     return {
       ...local,
       source: 'local',
+      isFallback: true,
       fallbackReason: 'error',
       errorMessage: errorMsg,
       isTruncated,
@@ -303,17 +318,30 @@ export async function daxAssist(
   const modelName = getSelectedModel();
   const { tables, measures } = extractTablesAndMeasures(schemaOrTables, fallbackMeasures);
 
+  const consent = getPrivacyConsent();
+  if (apiKey && !consent.accepted) {
+    const local = localDax(params, tables, measures);
+    return {
+      ...local,
+      source: 'local',
+      isFallback: true,
+      fallbackReason: 'consent_declined',
+      errorMessage: 'Envio à API recusado na confirmação de privacidade. Fórmula DAX gerada localmente.',
+    };
+  }
+
   if (!apiKey) {
     const local = localDax(params, tables, measures);
     return {
       ...local,
       source: 'local',
+      isFallback: true,
       fallbackReason: 'no_key',
       errorMessage: 'Chave Gemini não configurada. Fórmula DAX gerada localmente.',
     };
   }
 
-  const { data: safeSchema, isTruncated } = truncatePayload(params.schemaContext || JSON.stringify(tables));
+  const { data: safeSchema, isTruncated } = truncatePayload(params.schemaContext || buildSafeSchema(tables, measures));
 
   let taskInstruction = '';
   if (params.task === 'explain') {
@@ -360,6 +388,7 @@ Responda ESTRITAMENTE em formato JSON com o seguinte formato:
       explanation: parsed.explanation || 'Fórmula DAX gerada pelo modelo Gemini.',
       performanceTips: parsed.performanceTips || 'Use variáveis (VAR) para evitar recalcular a mesma expressão.',
       source: 'gemini',
+      isFallback: false,
       isTruncated,
     };
   } catch (err: any) {
@@ -368,6 +397,7 @@ Responda ESTRITAMENTE em formato JSON com o seguinte formato:
     return {
       ...local,
       source: 'local',
+      isFallback: true,
       fallbackReason: 'error',
       errorMessage: errorMsg,
       isTruncated,
@@ -391,11 +421,6 @@ export async function testConnectionAndListModels(
   try {
     const ai = new GoogleGenAI({
       apiKey: key,
-      httpOptions: {
-        headers: {
-          'User-Agent': 'aistudio-build',
-        },
-      },
     });
 
     const response = await ai.models.list();

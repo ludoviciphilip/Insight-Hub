@@ -48,9 +48,9 @@ export class UdfManager {
    */
   public static evaluate(
     fn: UserDefinedFunction,
-    argValues: any[],
+    argValues: unknown[],
     parentContext: EvaluationContext
-  ): any {
+  ): unknown {
     if (argValues.length !== fn.parameters.length) {
       throw new DaxError(
         'Semantic',
@@ -95,22 +95,29 @@ export class UdfManager {
    */
   public static importFromJson(jsonString: string): { imported: number; functions: UserDefinedFunction[] } {
     try {
-      const parsed = JSON.parse(jsonString);
-      const list: any[] = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.functions) ? parsed.functions : []);
+      const parsed: unknown = JSON.parse(jsonString);
+      const isObjWithFunctions = (val: unknown): val is { functions: unknown[] } =>
+        typeof val === 'object' && val !== null && 'functions' in val && Array.isArray((val as { functions: unknown[] }).functions);
+      const list: unknown[] = Array.isArray(parsed) ? parsed : (isObjWithFunctions(parsed) ? parsed.functions : []);
       const valid: UserDefinedFunction[] = [];
 
       for (const item of list) {
-        if (item && typeof item.name === 'string' && typeof item.body === 'string') {
-          valid.push({
-            id: item.id || `udf_${Math.random().toString(36).substring(2, 9)}`,
-            name: item.name.trim(),
-            parameters: Array.isArray(item.parameters) ? item.parameters : [],
-            body: item.body,
-            description: item.description || '',
-            category: item.category || 'Geral',
-            returnType: item.returnType || 'Variant',
-            updatedAt: new Date().toISOString(),
-          });
+        if (item && typeof item === 'object') {
+          const rec = item as Record<string, unknown>;
+          if (typeof rec.name === 'string' && typeof rec.body === 'string') {
+            valid.push({
+              id: typeof rec.id === 'string' ? rec.id : `udf_${Math.random().toString(36).substring(2, 9)}`,
+              name: rec.name.trim(),
+              parameters: Array.isArray(rec.parameters)
+                ? rec.parameters.filter((p): p is string => typeof p === 'string')
+                : [],
+              body: rec.body,
+              description: typeof rec.description === 'string' ? rec.description : '',
+              category: typeof rec.category === 'string' ? rec.category : 'Geral',
+              returnType: typeof rec.returnType === 'string' ? rec.returnType : 'Variant',
+              updatedAt: new Date().toISOString(),
+            });
+          }
         }
       }
 
@@ -119,8 +126,9 @@ export class UdfManager {
       }
 
       return { imported: valid.length, functions: this.getFunctions() };
-    } catch (e: any) {
-      throw new DaxError('Execution', `Falha ao importar biblioteca de UDFs: ${e.message}`);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      throw new DaxError('Execution', `Falha ao importar biblioteca de UDFs: ${msg}`);
     }
   }
 

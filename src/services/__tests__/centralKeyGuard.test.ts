@@ -82,4 +82,25 @@ describe('Guarda de chave central e endpoints centralizados (BYOK Guard)', () =>
       `Arquivos contendo rotas de proxy central /api/ai/: ${violations.join(', ')}`
     ).toEqual([]);
   });
+
+  it('não deve conter JSON.stringify(tables) em nenhum arquivo de src/services ou componentes de IA', () => {
+    const forbidden = ['JSON', 'stringify(tables)'].join('.');
+    const violations: string[] = [];
+
+    const serviceFiles = getAllSourceFiles(path.join(rootDir, 'src', 'services'));
+    const componentFiles = getAllSourceFiles(path.join(rootDir, 'src', 'components'));
+
+    for (const filePath of [...serviceFiles, ...componentFiles]) {
+      if (!fs.existsSync(filePath)) continue;
+      const content = fs.readFileSync(filePath, 'utf-8');
+      if (content.includes(forbidden)) {
+        violations.push(path.relative(rootDir, filePath));
+      }
+    }
+
+    expect(
+      violations,
+      `Arquivos contendo JSON.stringify(tables) desprotegido: ${violations.join(', ')}`
+    ).toEqual([]);
+  });
 });

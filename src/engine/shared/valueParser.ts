@@ -23,7 +23,7 @@ const MS_PER_DAY = 86400000;
  * Universal date parser supporting ISO, dd/mm/yyyy, Excel serials, and Date instances.
  * Always resolves to UTC date to prevent timezone shifts.
  */
-export function parseDate(val: any): DateParseResult {
+export function parseDate(val: unknown): DateParseResult {
   if (val === null || val === undefined || val === '') {
     return { date: null, serial: null, iso: null };
   }
@@ -151,7 +151,7 @@ export function parseDate(val: any): DateParseResult {
  * and standard en-US numbers.
  */
 export function parseNumber(
-  val: any,
+  val: unknown,
   locale: 'pt-BR' | 'en-US' | 'auto' = 'auto'
 ): NumberParseResult {
   if (val === null || val === undefined || val === '') {

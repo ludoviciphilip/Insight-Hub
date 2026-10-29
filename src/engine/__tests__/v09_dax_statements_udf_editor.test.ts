@@ -454,7 +454,10 @@ describe('V0.9 - DAX Statements, User Defined Functions (UDF), and Refactoring',
       const defMeasure = findDefinition('[Lucro Total]', [f_Vendas], measures);
       expect(defMeasure.found).toBe(true);
       expect(defMeasure.node?.type).toBe('measure');
-      expect(defMeasure.details?.formula).toBe('[Receita] - [Custo]');
+      expect(defMeasure.node?.formula).toBe('[Receita] - [Custo]');
+      if (defMeasure.details && 'formula' in defMeasure.details) {
+        expect(defMeasure.details.formula).toBe('[Receita] - [Custo]');
+      }
 
       const defTable = findDefinition('f_Vendas', [f_Vendas], measures);
       expect(defTable.found).toBe(true);

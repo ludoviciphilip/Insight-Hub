@@ -1,4 +1,4 @@
-import { Table, Measure, Visual, UserDefinedFunction } from '../../types/bi';
+import { Table, Measure, Column, Visual, UserDefinedFunction } from '../../types/bi';
 import { Lexer } from '../expr/lexer';
 
 export interface DependencyNode {
@@ -287,6 +287,12 @@ export function buildModelDependencyGraph(
   return { nodes, edges };
 }
 
+export type DefinitionDetails =
+  | Measure
+  | UserDefinedFunction
+  | Table
+  | (Column & { tableName: string });
+
 /**
  * Finds the definition and details of a given identifier (measure, column, table, UDF).
  */
@@ -295,7 +301,7 @@ export function findDefinition(
   tables: Table[],
   measures: Measure[],
   udfs: UserDefinedFunction[] = []
-): { found: boolean; node?: DependencyNode; details?: any } {
+): { found: boolean; node?: DependencyNode; details?: DefinitionDetails } {
   const clean = identifier.replace(/^\[|\]$|^'|'$/g, '').trim().toLowerCase();
 
   // 1. Check measures

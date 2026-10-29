@@ -6,7 +6,7 @@ import { DaxError } from '../shared/errors';
 export interface RowContext {
   tableId: string;
   tableName: string;
-  row: Record<string, any>;
+  row: Record<string, unknown>;
   rowIndex: number;
   lineage?: Record<string, { tableId: string; tableName: string; column: string }>;
 }
@@ -24,7 +24,7 @@ export class RowContextStack {
   public push(
     tableId: string,
     tableName: string,
-    row: Record<string, any>,
+    row: Record<string, unknown>,
     rowIndex: number,
     lineage?: Record<string, { tableId: string; tableName: string; column: string }>
   ): void {
