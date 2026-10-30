@@ -1,5 +1,5 @@
 {
-  "name": "Remix InsightHub - Business Intelligence & Analytics",
+  "name": "InsightHub - Business Intelligence & Analytics",
   "description": "Plataforma completa de Business Intelligence estilo Power BI e Metabase com motor de dados SQL/DAX local, modelagem relacional, Power Query ETL, relatórios interativos e inteligência analítica.",
   "requestFramePermissions": [],
   "majorCapabilities": []
